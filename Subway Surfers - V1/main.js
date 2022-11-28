@@ -123,22 +123,6 @@ function runFrame() {
 }
 function processInput(){ 
     const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
-    // if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) {
-    //     if (lastClick <= Date.now() - clickDelay && player.lane - 1 >= 1){
-    //         player.lane -= 1;
-    //         lastClick = Date.now();
-    //         runState();
-    //         player.x = laneLocation(player.lane, player.width);
-    //     }
-    // }
-    // if (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) {
-    //     if (lastClick <= Date.now() - clickDelay && player.lane + 1 <= 3){
-    //         player.lane += 1;
-    //         lastClick = Date.now();
-    //         runState();
-    //         player.x = laneLocation(player.lane, player.width);
-    //     }
-    // }
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
         if (lastClick <= Date.now() - clickDelay && player.lane + playerDirectionChange <= 3 && player.lane + playerDirectionChange >= 1){
             player.lane += playerDirectionChange
