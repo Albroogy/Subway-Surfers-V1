@@ -121,20 +121,15 @@ function processInput(){
             player.state = PlayerStates.Running;
         }
     }
-    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
-        if (player.state == PlayerStates.Running){
-            player.state = PlayerStates.Ducking;
-            console.log(player.state);
-            setTimeout(runState, stateDuration);
+    if (player.state == PlayerStates.Running){
+        if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
+            changeState(PlayerStates.Ducking)
+        }
+        else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
+            changeState(PlayerStates.Jumping)
         }
     }
-    if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
-        if (player.state == PlayerStates.Running){
-            player.state = PlayerStates.Jumping;
-            console.log(player.state);
-            setTimeout(runState, stateDuration);
-        }
-    }
+
     player.x = laneLocation(player.lane, player.width)
 }
 function update(deltaTime){
@@ -210,7 +205,8 @@ function draw() {
     context.fillText("SCORE: " + SCORE, 50, 100);
     context.font = "20px Arial";
     context.fillText("HIGH SCORE: " + HIGH_SCORE, 50, 50);
-    context.drawImage(image,100,100,50,50);
+
+    context.drawImage(image,200,50,50,50);
 
 }
 
@@ -259,4 +255,9 @@ function spawn(lastSpawn,delay,spawnType){
 }
 function objectLane(){
     return Math.floor(Math.random() * LANE_COUNT) + 1;
+}
+
+function changeState(state){
+    player.state = state
+    setTimeout(runState, stateDuration);
 }
