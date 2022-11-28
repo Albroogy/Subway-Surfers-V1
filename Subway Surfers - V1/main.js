@@ -133,16 +133,7 @@ function processInput(){
 }
 function update(deltaTime){
     SCORE += SCORE_SPEED
-    if (lastSpawn <= Date.now() - spawnDelay){
-        let generateType = spawnType[Math.round(Math.random())]
-        if (generateType == "generateObject"){
-            generateObject()
-        }
-        else if (generateType == "generateCoin"){
-            generateCoin()
-        }
-        lastSpawn = Date.now();
-    }
+    checkSpawn()
     for (let i = 3; i < rects.length; i++){
         rects[i].y += move(rects[i].speed, deltaTime)
         if (rects[i].y >= canvas.height){
@@ -264,5 +255,14 @@ function changeState(state){
 }
 
 function checkSpawn(){
-    
+    if (lastSpawn <= Date.now() - spawnDelay){
+        let generateType = spawnType[Math.round(Math.random())]
+        if (generateType == "generateObject"){
+            generateObject()
+        }
+        else if (generateType == "generateCoin"){
+            generateCoin()
+        }
+        lastSpawn = Date.now();
+    }
 }
