@@ -206,28 +206,22 @@ function isCoinColliding(coin, player){
 function isDodging(obstacle,player){
     return obstacle.requiredState == player.state;
 }
-function runState(){
-    player.state = PlayerStates.Running
-    console.log(player.state)
-}
 function laneLocation(lane,width){
     return lane * LANE_WIDTH - LANE_WIDTH/2 - width/2;
 }
 function move(speed, deltaTime){
     return speed * deltaTime / 1000;
 }
-function spawn(lastSpawn,delay,spawnType){
-
-}
 function objectLane(){
     return Math.floor(Math.random() * LANE_COUNT) + 1;
 }
-
 function changeState(state){
     player.state = state
     setTimeout(runState, stateDuration);
 }
-
+function runState(){
+    player.state = PlayerStates.Running
+}
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
         let generateType = spawnType[Math.round(Math.random())]
