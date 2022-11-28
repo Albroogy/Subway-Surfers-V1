@@ -27,6 +27,7 @@ let clickDelay = 300; //This is milliseconds
 let spawnDelay = 1000; //This is also in milliseconds
 let SCORE = 0;
 let HIGH_SCORE = 0;
+let fallSpeed = 150;
 
 // Key detection
 const allPressedKeys = {};
@@ -72,14 +73,14 @@ class Circles{
 
 // Arrays and Dictionaries 
 const rects = [
-    lane1 = new Rects(0, 500, LANE_WIDTH, 50, "red"),
-    lane2 = new Rects(canvas.width / 3, 500, LANE_WIDTH, 50, "green"),
-    lane3 = new Rects(canvas.width / 3 * 2, 500, LANE_WIDTH, 50, "purple"),
+    lane1 = new Rects(0, canvas.width/4, LANE_WIDTH, 50, "red"),
+    lane2 = new Rects(canvas.width / 3, canvas.width/4, LANE_WIDTH, 50, "green"),
+    lane3 = new Rects(canvas.width / 3 * 2, canvas.width/4, LANE_WIDTH, 50, "purple"),
 ]
 const coins = []
 const player = {
-    x: canvas.width / 2 - 25,
-    y: 600,
+    x: canvas.width/2 -25,
+    y: canvas.width/3,
     width: 50,
     height: 50,
     color: "blue",
@@ -156,7 +157,8 @@ function update(deltaTime){
         player.color = "teal"
     }
     spawnDelay -= 0.02
-    console.log(spawnDelay)
+    fallSpeed -= 0.01
+    console.log(fallSpeed)
 }
 
 function draw() {
@@ -218,18 +220,25 @@ function move(speed, deltaTime){
 function objectLane(){
     return Math.floor(Math.random() * LANE_COUNT) + 1;
 }
-
+function resetGame(){
+    rects.splice(3);
+    coins.splice(0);
+    player.lane = 2;
+    player.x = laneLocation(player.lane, player.width);
+    spawnDelay = 1000;
+    fallSpeed = 150;
+}
 
 // These functions carry out a certain action
 function generateObject(){
     type = Math.floor(Math.random() * LANE_COUNT);
     rects.push(
-        new Rects(laneLocation(objectLane(),50), -50, 50, 50, objectColor[type], objectType[type], 150)
+        new Rects(laneLocation(objectLane(),50), -50, 50, 50, objectColor[type], objectType[type], fallSpeed)
     )
 }
 function generateCoin(){
     coins.push(
-        new Circles(laneLocation(objectLane(),0), -50, 25, "yellow", 150)
+        new Circles(laneLocation(objectLane(),0), -50, 25, "yellow", fallSpeed)
     )
 }
 function changeState(state){
@@ -265,10 +274,7 @@ function loop(type,offset,deltaTime){
         }
         else if (type == rects){
             if (isColliding(rects[i],player) && !isDodging(rects[i],player)){
-                rects.splice(3);
-                coins.splice(0);
-                player.lane = 2;
-                player.x = laneLocation(player.lane, player.width);
+                resetGame()
                 if (SCORE > HIGH_SCORE){
                     HIGH_SCORE = SCORE;
                 }
