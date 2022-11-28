@@ -14,16 +14,15 @@ const PlayerStates = {
 };
 const objectColor = ["yellow","brown","black"]
 const objectType = [PlayerStates.Ducking, PlayerStates.Jumping,PlayerStates.Powerup1]
+const spawnType = ["generateObject","generateCoin"]
 const image = new Image();
 image.src = 'coin_01.png';
 
 let lastTime = Date.now();
 let lastClick = Date.now();
-let lastRectSpawn = Date.now();
-let lastCoinSpawn = Date.now();
+let lastSpawn = Date.now();
 let clickDelay = 300; //This is milliseconds
-let spawnDelay = 1500; //This is also in milliseconds
-let spawnCoinDelay = 2500
+let spawnDelay = 1000; //This is also in milliseconds
 let SCORE = 0;
 let HIGH_SCORE = 0;
 
@@ -134,13 +133,15 @@ function processInput(){
 }
 function update(deltaTime){
     SCORE += SCORE_SPEED
-    if (lastRectSpawn <= Date.now() - spawnDelay){
-        generateObject();
-        lastRectSpawn = Date.now();
-    }
-    if (lastCoinSpawn <= Date.now() - spawnCoinDelay){
-        generateCoin()
-        lastCoinSpawn = Date.now()
+    if (lastSpawn <= Date.now() - spawnDelay){
+        let generateType = spawnType[Math.round(Math.random())]
+        if (generateType == "generateObject"){
+            generateObject()
+        }
+        else if (generateType == "generateCoin"){
+            generateCoin()
+        }
+        lastSpawn = Date.now();
     }
     for (let i = 3; i < rects.length; i++){
         rects[i].y += move(rects[i].speed, deltaTime)
@@ -260,4 +261,8 @@ function objectLane(){
 function changeState(state){
     player.state = state
     setTimeout(runState, stateDuration);
+}
+
+function checkSpawn(){
+    
 }
