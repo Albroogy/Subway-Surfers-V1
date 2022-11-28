@@ -134,34 +134,8 @@ function processInput(){
 function update(deltaTime){
     SCORE += SCORE_SPEED
     checkSpawn()
-    for (let i = 3; i < rects.length; i++){
-        rects[i].y += move(rects[i].speed, deltaTime)
-        if (rects[i].y >= canvas.height){
-            rects.splice(i,1);
-        }
-        if (isColliding(rects[i],player) && !isDodging(rects[i],player)){
-            console.log("game over");
-            rects.splice(3);
-            coins.splice(0)
-            player.lane = 2;
-            if (SCORE > HIGH_SCORE){
-                HIGH_SCORE = SCORE
-            }
-            SCORE = 0
-        }
-    }
-    for (let i = 0; i < coins.length; i++){
-        coins[i].y += move(coins[i].speed, deltaTime)
-        console.log(coins[i].speed)
-        if (isCoinColliding(coins[i],player)){
-            coins.splice(i,1);
-            SCORE += 300;
-        }
-        else if (coins[i].y >= canvas.height){
-            coins.splice(i,1);
-        }
-    }
-    
+    loop(rects,3,deltaTime)
+    loop(coins,0,deltaTime)
     if (player.state == PlayerStates.Running){
         player.color = "blue"
     }
@@ -264,5 +238,30 @@ function checkSpawn(){
             generateCoin()
         }
         lastSpawn = Date.now();
+    }
+}
+function loop(type,offset,deltaTime){
+    for (let i = offset; i < type.length; i++){
+        type[i].y += move(type[i].speed, deltaTime)
+        if (type[i].y >= canvas.height){
+            type.splice(i,1);
+        }
+        if (type == coins){
+            if (isCoinColliding(coins[i],player)){
+                coins.splice(i,1);
+                SCORE += 300;
+            }
+        }
+        else if (type == rects){
+            if (isColliding(rects[i],player) && !isDodging(rects[i],player)){
+                rects.splice(3);
+                coins.splice(0);
+                player.lane = 2;
+                if (SCORE > HIGH_SCORE){
+                    HIGH_SCORE = SCORE;
+                }
+                SCORE = 0;
+            }
+        }
     }
 }
