@@ -176,17 +176,7 @@ function draw() {
 
 }
 
-function generateObject(){
-    type = Math.floor(Math.random() * LANE_COUNT);
-    rects.push(
-        new Rects(laneLocation(objectLane(),50), -50, 50, 50, objectColor[type], objectType[type], 150)
-    )
-}
-function generateCoin(){
-    coins.push(
-        new Circles(laneLocation(objectLane(),0), -50, 25, "yellow", 150)
-    )
-}
+// These functions calculate something
 function isColliding(obstacle, player){
     return (
         obstacle.x <= player.x + player.width &&
@@ -214,6 +204,20 @@ function move(speed, deltaTime){
 }
 function objectLane(){
     return Math.floor(Math.random() * LANE_COUNT) + 1;
+}
+
+
+// These functions carry out a certain action
+function generateObject(){
+    type = Math.floor(Math.random() * LANE_COUNT);
+    rects.push(
+        new Rects(laneLocation(objectLane(),50), -50, 50, 50, objectColor[type], objectType[type], 150)
+    )
+}
+function generateCoin(){
+    coins.push(
+        new Circles(laneLocation(objectLane(),0), -50, 25, "yellow", 150)
+    )
 }
 function changeState(state){
     player.state = state
