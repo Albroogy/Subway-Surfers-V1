@@ -87,6 +87,20 @@ class Rects{
         context.fillStyle = this.color;
         context.fillRect(this.x, this.y, this.width, this.height);
     }
+    isColliding(player){
+        return (
+            this.x <= player.x + player.width &&
+            this.x + this.width >= player.x &&
+            this.y + this.height >= player.y &&
+            this.y <= player.y + player.height
+        )
+    }
+    isDodging(player){
+        return this.requiredState == player.state;
+    }
+    move(deltaTime){
+        return this.speed * deltaTime / 1000;
+    }
 }
 class Circles{
     constructor(x, y, radius, color, speed){
@@ -102,6 +116,17 @@ class Circles{
         context.closePath();
         context.fillStyle = this.color;
         context.fill();
+    }
+    isColliding(player){
+        return (
+            this.x - this.radius <= player.x + player.width &&
+            this.x + this.radius >= player.x &&
+            this.y + this.radius >= player.y &&
+            this.y - this.radius <= player.y + player.height
+        )
+    }
+    move(deltaTime){
+        return this.speed * deltaTime / 1000;
     }
 }
 
@@ -207,14 +232,6 @@ function draw() {
 }
 
 // These functions calculate a certain value
-function isColliding(obstacle, player){
-    return (
-        obstacle.x <= player.x + player.width &&
-        obstacle.x + obstacle.width >= player.x &&
-        obstacle.y + obstacle.height >= player.y &&
-        obstacle.y <= player.y + player.height
-    )
-}
 function isCoinColliding(coin, player){
     return (
         coin.x - coin.radius <= player.x + player.width &&
@@ -278,19 +295,19 @@ function resetGame(){
 function loop(type,deltaTime){
     for (let i = 0; i < type.length; i++){
         type[i].speed = fallSpeed;
-        type[i].y += move(type[i].speed, deltaTime)
+        type[i].y += type[i].move(deltaTime)
         if (type[i].y >= canvas.height){
             type.splice(i,1);
             continue;
         }
         if (type == coins){
-            if (isCoinColliding(coins[i],player)){
+            if (type[i].isColliding(player)){
                 coins.splice(i,1);
                 score += COIN_VALUE;
             }
         }
         else if (type == rects){
-            if (isColliding(rects[i],player) && !isDodging(rects[i],player)){
+            if (type[i].isColliding(player) && !type[i].isDodging(player)){
                 resetGame()
                 if (score > highScore){
                     highScore = score;
