@@ -14,6 +14,8 @@ const PlayerStates = {
 };
 const objectColor = ["yellow","brown","black"]
 const objectType = [PlayerStates.Ducking, PlayerStates.Jumping,PlayerStates.Powerup1]
+const image = new Image();
+image.src = 'coin_01.png';
 
 let lastTime = Date.now();
 let lastClick = Date.now();
@@ -208,6 +210,7 @@ function draw() {
     context.fillText("SCORE: " + SCORE, 50, 100);
     context.font = "20px Arial";
     context.fillText("HIGH SCORE: " + HIGH_SCORE, 50, 50);
+    context.drawImage(image,100,100,50,50);
 
 }
 
