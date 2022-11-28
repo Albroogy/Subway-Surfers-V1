@@ -8,7 +8,18 @@ const LANE_WIDTH = canvas.width/3;
 const LANE_COUNT = 3;
 const SCORE_SPEED = 1;
 const COIN_VALUE = 300;
-const clickDelay = 300; //This is in milliseconds
+const CLICK_DELAY = 300; //This is in milliseconds
+const SPAWN_INCREMENT = 0.2;
+const FALL_INCREMENT = 0.1;
+const OBJECT_SPAWN_LOCATION = -50;
+const COIN_RADIUS = 25;
+const OBSTACLE_WIDTH = 50;
+const OBSTACLE_HEIGHT = 50;
+const SCORE_X = 50;
+const SCORE_Y = 100;
+const HIGH_SCORE_X = 50;
+const HIGH_SCORE_Y = 50;
+const OFFSET = 1;
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -19,7 +30,7 @@ const PlayerStates = {
     Jumping: "Jumping",
     Ducking: "Ducking",
 };
-const obstacleColor = {
+const obstacleColors = {
     Yellow: "yellow",
     Brown: "brown",
     Black: "black"
@@ -27,6 +38,9 @@ const obstacleColor = {
 const spawnType = {
     generateObstacle: "generateObstacle",
     generateCoin: "generateCoin",
+}
+const playersColors = {
+
 }
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 
@@ -74,7 +88,7 @@ class Circles{
     }
     draw(){
         context.beginPath();
-        context.arc(this.x, this.y, this.radius,0, 2*Math.PI, false);
+        context.arc(this.x, this.y, this.radius, 0, 2*Math.PI, false);
         context.closePath();
         context.fillStyle = this.color;
         context.fill();
@@ -124,7 +138,7 @@ function runFrame() {
 function processInput(){ 
     const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        if (lastClick <= Date.now() - clickDelay && player.lane + playerDirectionChange <= 3 && player.lane + playerDirectionChange >= 1){
+        if (lastClick <= Date.now() - CLICK_DELAY && player.lane + playerDirectionChange <= LANE_COUNT && player.lane + playerDirectionChange >= 1){
             player.lane += playerDirectionChange
             console.log(player.lane)
             lastClick = Date.now();
@@ -132,7 +146,6 @@ function processInput(){
             runState();
         }
     }
-
     if (player.state == PlayerStates.Running){
         if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
             changeState(PlayerStates.Ducking);
@@ -156,8 +169,8 @@ function update(deltaTime){
     else if (player.state == PlayerStates.Ducking){
         player.color = "teal";
     }
-    spawnDelay -= 0.02;
-    fallSpeed -= 0.01;
+    spawnDelay -= SPAWN_INCREMENT;
+    fallSpeed -= FALL_INCREMENT;
 }
 
 function draw() {
@@ -182,9 +195,9 @@ function draw() {
 
     context.fillStyle = "black";
     context.font = "20px Arial";
-    context.fillText("SCORE: " + score, 50, 100);
+    context.fillText("SCORE: " + score, SCORE_X, SCORE_Y);
     context.font = "20px Arial";
-    context.fillText("HIGH SCORE: " + highScore, 50, 50);
+    context.fillText("HIGH SCORE: " + highScore, HIGH_SCORE_X, HIGH_SCORE_Y);
 
     context.drawImage(image,200,50,50,50);
 
@@ -217,19 +230,19 @@ function move(speed, deltaTime){
     return speed * deltaTime / 1000;
 }
 function obstacleLane(){
-    return Math.floor(Math.random() * LANE_COUNT) + 1;
+    return Math.floor(Math.random() * LANE_COUNT) + OFFSET;
 }
 
 // These functions carry out a certain action
 function generateObstacle(){
     type = Math.floor(Math.random() * LANE_COUNT);
     rects.push(
-        new Rects(laneLocation(obstacleLane(),50), -50, 50, 50, Object.keys(obstacleColor)[type], obstacleType[type], fallSpeed)
+        new Rects(laneLocation(obstacleLane(),OBSTACLE_WIDTH), OBJECT_SPAWN_LOCATION, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
     )
 }
 function generateCoin(){
     coins.push(
-        new Circles(laneLocation(obstacleLane(),0), -50, 25, "yellow", fallSpeed)
+        new Circles(laneLocation(obstacleLane(),0), OBJECT_SPAWN_LOCATION, COIN_RADIUS, "yellow", fallSpeed)
     )
 }
 function changeState(state){
