@@ -50,13 +50,13 @@ window.addEventListener("keyup", function (event) {
 // Classes
 class Rects{
     constructor(x, y, width, height, color, requiredState, speed) {
-        this.x = x
-        this.y = y
-        this.width = width
-        this.height = height
-        this.color = color
-        this.requiredState = requiredState
-        this.speed = speed
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.color = color;
+        this.requiredState = requiredState;
+        this.speed = speed;
         }
     draw(){
         context.fillStyle = this.color;
@@ -65,27 +65,23 @@ class Rects{
 }
 class Circles{
     constructor(x, y, radius, color, speed){
-        this.x = x
-        this.y = y
-        this.radius = radius
-        this.color = color
-        this.speed = speed
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.speed = speed;
     }
     draw(){
         context.beginPath();
         context.arc(this.x, this.y, this.radius,0, 2*Math.PI, false);
-        context.closePath()
+        context.closePath();
         context.fillStyle = this.color;
         context.fill();
     }
 }
 
 // Arrays and Dictionaries 
-const rects = [
-    lane1 = new Rects(0, canvas.width/4, LANE_WIDTH, 50, "red"),
-    lane2 = new Rects(canvas.width / 3, canvas.width/4, LANE_WIDTH, 50, "green"),
-    lane3 = new Rects(canvas.width / 3 * 2, canvas.width/4, LANE_WIDTH, 50, "purple"),
-]
+const rects = []
 const coins = []
 const player = {
     x: canvas.width/2 -25,
@@ -130,32 +126,32 @@ function processInput(){
         if (lastClick <= Date.now() - clickDelay && player.lane - 1 >= 1){
             player.lane -= 1;
             lastClick = Date.now();
-            runState()
-            player.x = laneLocation(player.lane, player.width)
+            runState();
+            player.x = laneLocation(player.lane, player.width);
         }
     }
     if (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) {
         if (lastClick <= Date.now() - clickDelay && player.lane + 1 <= 3){
             player.lane += 1;
             lastClick = Date.now();
-            runState()
-            player.x = laneLocation(player.lane, player.width)
+            runState();
+            player.x = laneLocation(player.lane, player.width);
         }
     }
     if (player.state == PlayerStates.Running){
         if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
-            changeState(PlayerStates.Ducking)
+            changeState(PlayerStates.Ducking);
         }
         else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
-            changeState(PlayerStates.Jumping)
+            changeState(PlayerStates.Jumping);
         }
     }
 }
 function update(deltaTime){
     score += SCORE_SPEED;
     checkSpawn();
-    loop(rects,3,deltaTime);
-    loop(coins,0,deltaTime);
+    loop(rects,deltaTime);
+    loop(coins,deltaTime);
     if (player.state == PlayerStates.Running){
         player.color = "blue";
     }
@@ -180,16 +176,16 @@ function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let rect of rects){
-        rect.draw()
+        rect.draw();
     }
     for (let coin of coins){
-        coin.draw()
+        coin.draw();
     }
 
     context.fillStyle = player.color;
     context.fillRect(player.x, player.y, player.width, player.height);
 
-    context.fillStyle = "black"
+    context.fillStyle = "black";
     context.font = "20px Arial";
     context.fillText("SCORE: " + score, 50, 100);
     context.font = "20px Arial";
@@ -250,26 +246,26 @@ function generateCoin(){
     )
 }
 function changeState(state){
-    player.state = state
+    player.state = state;
     setTimeout(runState, stateDuration);
 }
 function runState(){
-    player.state = PlayerStates.Running
+    player.state = PlayerStates.Running;
 }
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
-        let generateType = Object.keys(spawnType)[Math.round(Math.random())]
+        let generateType = Object.keys(spawnType)[Math.round(Math.random())];
         if (generateType == "generateObstacle"){
             generateObstacle()
         }
         else if (generateType == "generateCoin"){
-            generateCoin()
+            generateCoin();
         }
         lastSpawn = Date.now();
     }
 }
-function loop(type,offset,deltaTime){
-    for (let i = offset; i < type.length; i++){
+function loop(type,deltaTime){
+    for (let i = 0; i < type.length; i++){
         type[i].y += move(type[i].speed, deltaTime)
         if (type[i].y >= canvas.height){
             type.splice(i,1);
