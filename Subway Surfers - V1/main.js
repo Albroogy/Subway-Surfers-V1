@@ -224,14 +224,6 @@ function move(speed, deltaTime){
 function obstacleLane(){
     return Math.floor(Math.random() * LANE_COUNT) + 1;
 }
-function resetGame(){
-    rects.splice(3);
-    coins.splice(0);
-    player.lane = 2;
-    player.x = laneLocation(player.lane, player.width);
-    spawnDelay = 1000;
-    fallSpeed = 150;
-}
 
 // These functions carry out a certain action
 function generateObstacle(){
@@ -263,6 +255,14 @@ function checkSpawn(){
         }
         lastSpawn = Date.now();
     }
+}
+function resetGame(){
+    rects.splice(0);
+    coins.splice(0);
+    player.lane = 2;
+    player.x = laneLocation(player.lane, player.width);
+    spawnDelay = 1000;
+    fallSpeed = 150;
 }
 function loop(type,deltaTime){
     for (let i = 0; i < type.length; i++){
