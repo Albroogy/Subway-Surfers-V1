@@ -22,7 +22,6 @@ let lastCoinSpawn = Date.now();
 let clickDelay = 300; //This is milliseconds
 let spawnDelay = 1500; //This is also in milliseconds
 let spawnCoinDelay = 2500
-let objectLane = 0;
 let SCORE = 0;
 let HIGH_SCORE = 0;
 
@@ -201,7 +200,6 @@ function draw() {
     for (let coin of coins){
         coin.draw()
     }
-
     context.fillStyle = player.color;
     context.fillRect(player.x, player.y, player.width, player.height);
 
@@ -214,16 +212,14 @@ function draw() {
 }
 
 function generateObject(){
-    objectLane = Math.floor(Math.random() * LANE_COUNT) + 1;
     type = Math.floor(Math.random() * LANE_COUNT);
     rects.push(
-        new Rects(laneLocation(objectLane,50), -50, 50, 50, objectColor[type], objectType[type], 150)
+        new Rects(laneLocation(objectLane(),50), -50, 50, 50, objectColor[type], objectType[type], 150)
     )
 }
 function generateCoin(){
-    objectLane = Math.floor(Math.random() * LANE_COUNT) + 1;
     coins.push(
-        new Circles(laneLocation(objectLane,0), -50, 25, "yellow", 150)
+        new Circles(laneLocation(objectLane(),0), -50, 25, "yellow", 150)
     )
 }
 function isColliding(obstacle, player){
@@ -257,4 +253,7 @@ function move(speed, deltaTime){
 }
 function spawn(lastSpawn,delay,spawnType){
 
+}
+function objectLane(){
+    return Math.floor(Math.random() * LANE_COUNT) + 1;
 }
