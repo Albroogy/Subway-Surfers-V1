@@ -7,14 +7,14 @@ const stateDuration = 1000;
 const LANE_WIDTH = canvas.width/3;
 const LANE_COUNT = 3;
 const SCORE_SPEED = 1;
+const coinValue = 300;
 const PlayerStates = {
     Running: "Running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
     Jumping: "Jumping",
     Ducking: "Ducking",
-    Powerup1: "Powerup1"
 };
 const objectColor = ["yellow","brown","black"]
-const objectType = [PlayerStates.Ducking, PlayerStates.Jumping,PlayerStates.Powerup1]
+const objectType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 const spawnType = ["generateObject","generateCoin"]
 const image = new Image();
 image.src = 'coin_01.png';
@@ -25,8 +25,8 @@ let lastClick = Date.now();
 let lastSpawn = Date.now();
 let clickDelay = 300; //This is milliseconds
 let spawnDelay = 1000; //This is also in milliseconds
-let SCORE = 0;
-let HIGH_SCORE = 0;
+let score = 0;
+let highScore = 0;
 let fallSpeed = 150;
 
 // Key detection
@@ -143,22 +143,23 @@ function processInput(){
     }
 }
 function update(deltaTime){
-    SCORE += SCORE_SPEED
-    checkSpawn()
-    loop(rects,3,deltaTime)
-    loop(coins,0,deltaTime)
+    score += SCORE_SPEED;
+    checkSpawn();
+    loop(rects,3,deltaTime);
+    loop(coins,0,deltaTime);
     if (player.state == PlayerStates.Running){
-        player.color = "blue"
+        player.color = "blue";
     }
     else if (player.state == PlayerStates.Jumping){
-        player.color = "navy"
+        player.color = "navy";
     }
     else if (player.state == PlayerStates.Ducking){
-        player.color = "teal"
+        player.color = "teal";
     }
-    spawnDelay -= 0.02
-    fallSpeed -= 0.01
-    console.log(fallSpeed)
+    spawnDelay -= 0.02;
+    fallSpeed -= 0.01;
+    console.log(fallSpeed);
+    console.log(objectType2)
 }
 
 function draw() {
@@ -183,9 +184,9 @@ function draw() {
 
     context.fillStyle = "black"
     context.font = "20px Arial";
-    context.fillText("SCORE: " + SCORE, 50, 100);
+    context.fillText("SCORE: " + score, 50, 100);
     context.font = "20px Arial";
-    context.fillText("HIGH SCORE: " + HIGH_SCORE, 50, 50);
+    context.fillText("HIGH SCORE: " + highScore, 50, 50);
 
     context.drawImage(image,200,50,50,50);
 
@@ -265,20 +266,21 @@ function loop(type,offset,deltaTime){
         type[i].y += move(type[i].speed, deltaTime)
         if (type[i].y >= canvas.height){
             type.splice(i,1);
+            continue;
         }
         if (type == coins){
             if (isCoinColliding(coins[i],player)){
                 coins.splice(i,1);
-                SCORE += 300;
+                score += coinValue;
             }
         }
         else if (type == rects){
             if (isColliding(rects[i],player) && !isDodging(rects[i],player)){
                 resetGame()
-                if (SCORE > HIGH_SCORE){
-                    HIGH_SCORE = SCORE;
+                if (score > highScore){
+                    highScore = score;
                 }
-                SCORE = 0;
+                score = 0;
             }
         }
     }
