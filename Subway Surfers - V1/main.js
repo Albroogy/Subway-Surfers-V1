@@ -1,3 +1,4 @@
+// Constant variables
 const canvas = document.getElementById("game-canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -18,6 +19,7 @@ const spawnType = ["generateObject","generateCoin"]
 const image = new Image();
 image.src = 'coin_01.png';
 
+// Changeble variables
 let lastTime = Date.now();
 let lastClick = Date.now();
 let lastSpawn = Date.now();
@@ -26,6 +28,7 @@ let spawnDelay = 1000; //This is also in milliseconds
 let SCORE = 0;
 let HIGH_SCORE = 0;
 
+// Key detection
 const allPressedKeys = {};
 window.addEventListener("keydown", function (event) {
     allPressedKeys[event.keyCode] = true;
@@ -33,6 +36,8 @@ window.addEventListener("keydown", function (event) {
 window.addEventListener("keyup", function (event) {
     allPressedKeys[event.keyCode] = false;
 });
+
+// Classes
 class Rects{
     constructor(x, y, width, height, color, requiredState, speed) {
         this.x = x
@@ -64,6 +69,8 @@ class Circles{
         context.fill();
     }
 }
+
+// Arrays and Dictionaries 
 const rects = [
     lane1 = new Rects(0, 500, LANE_WIDTH, 50, "red"),
     lane2 = new Rects(canvas.width / 3, 500, LANE_WIDTH, 50, "green"),
@@ -90,8 +97,10 @@ const KEYS = {
     ArrowUp: 38,
     ArrowDown: 40,
 };
+
 requestAnimationFrame(runFrame)
 
+// Main processing loop 
 function runFrame() {
     const currentTime = Date.now();
     const deltaTime = currentTime - lastTime;
@@ -105,6 +114,7 @@ function runFrame() {
     // be called one more time
     requestAnimationFrame(runFrame);
 }
+
 function processInput(){
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) {
         if (lastClick <= Date.now() - clickDelay && player.lane - 1 >= 1){
@@ -176,7 +186,7 @@ function draw() {
 
 }
 
-// These functions calculate something
+// These functions calculate a certain value
 function isColliding(obstacle, player){
     return (
         obstacle.x <= player.x + player.width &&
