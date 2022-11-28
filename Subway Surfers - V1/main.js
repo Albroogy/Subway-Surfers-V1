@@ -120,7 +120,7 @@ function processInput(){
         if (lastClick <= Date.now() - clickDelay && player.lane - 1 >= 1){
             player.lane -= 1;
             lastClick = Date.now();
-            player.state = PlayerStates.Running;
+            runState()
             player.x = laneLocation(player.lane, player.width)
         }
     }
@@ -128,7 +128,7 @@ function processInput(){
         if (lastClick <= Date.now() - clickDelay && player.lane + 1 <= 3){
             player.lane += 1;
             lastClick = Date.now();
-            player.state = PlayerStates.Running;
+            runState()
             player.x = laneLocation(player.lane, player.width)
         }
     }
@@ -155,6 +155,8 @@ function update(deltaTime){
     else if (player.state == PlayerStates.Ducking){
         player.color = "teal"
     }
+    spawnDelay -= 0.02
+    console.log(spawnDelay)
 }
 
 function draw() {
@@ -173,6 +175,7 @@ function draw() {
     for (let coin of coins){
         coin.draw()
     }
+
     context.fillStyle = player.color;
     context.fillRect(player.x, player.y, player.width, player.height);
 
@@ -265,6 +268,7 @@ function loop(type,offset,deltaTime){
                 rects.splice(3);
                 coins.splice(0);
                 player.lane = 2;
+                player.x = laneLocation(player.lane, player.width);
                 if (SCORE > HIGH_SCORE){
                     HIGH_SCORE = SCORE;
                 }
