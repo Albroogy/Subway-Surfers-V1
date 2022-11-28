@@ -112,6 +112,7 @@ function processInput(){
             player.lane -= 1;
             lastClick = Date.now();
             player.state = PlayerStates.Running;
+            player.x = laneLocation(player.lane, player.width)
         }
     }
     if (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) {
@@ -119,6 +120,7 @@ function processInput(){
             player.lane += 1;
             lastClick = Date.now();
             player.state = PlayerStates.Running;
+            player.x = laneLocation(player.lane, player.width)
         }
     }
     if (player.state == PlayerStates.Running){
@@ -129,8 +131,6 @@ function processInput(){
             changeState(PlayerStates.Jumping)
         }
     }
-
-    player.x = laneLocation(player.lane, player.width)
 }
 function update(deltaTime){
     SCORE += SCORE_SPEED
