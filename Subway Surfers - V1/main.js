@@ -26,9 +26,9 @@ image.src = 'coin_01.png';
 
 //Dictionaries
 const PlayerStates = {
-    Running: "Running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
-    Jumping: "Jumping",
-    Ducking: "Ducking",
+    Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
+    Jumping: "jumping",
+    Ducking: "ducking"
 };
 const obstacleColors = {
     Yellow: "yellow",
@@ -39,9 +39,11 @@ const spawnType = {
     generateObstacle: "generateObstacle",
     generateCoin: "generateCoin",
 }
-const playersColors = {
-
-}
+const playerStateToColorMap = {
+    [PlayerStates.Running]: "blue",
+    [PlayerStates.Jumping]: "navy",
+    [PlayerStates.Ducking]: "teal"
+};
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 
 // Changeble variables
@@ -52,6 +54,7 @@ let spawnDelay = 1000; //This is in milliseconds
 let score = 0;
 let highScore = 0;
 let fallSpeed = 150;
+let playerState = PlayerStates.Running
 
 // Key detection
 const allPressedKeys = {};
@@ -160,18 +163,12 @@ function update(deltaTime){
     checkSpawn();
     loop(rects,deltaTime);
     loop(coins,deltaTime);
-    if (player.state == PlayerStates.Running){
-        player.color = "blue";
-    }
-    else if (player.state == PlayerStates.Jumping){
-        player.color = "navy";
-    }
-    else if (player.state == PlayerStates.Ducking){
-        player.color = "teal";
-    }
+    playerState = player.state
+    player.color = playerStateToColorMap[player.state]
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed -= FALL_INCREMENT;
 }
+
 
 function draw() {
     // 2d context can do primitive graphic object manipulation
@@ -274,6 +271,7 @@ function resetGame(){
 }
 function loop(type,deltaTime){
     for (let i = 0; i < type.length; i++){
+        type[i].speed = fallSpeed;
         type[i].y += move(type[i].speed, deltaTime)
         if (type[i].y >= canvas.height){
             type.splice(i,1);
