@@ -4,21 +4,12 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext("2d");
 const stateDuration = 1000;
-const LANE_WIDTH = canvas.width/3;
-const LANE_COUNT = 3;
 const SCORE_SPEED = 1;
 const COIN_VALUE = 300;
-const CLICK_DELAY = 300; //This is in milliseconds
+const CLICK_DELAY = 200; //This is in milliseconds
 const SPAWN_INCREMENT = 0.2;
 const FALL_INCREMENT = 0.1;
-const OBJECT_SPAWN_LOCATION = -50;
 const COIN_RADIUS = 25;
-const OBSTACLE_WIDTH = 50;
-const OBSTACLE_HEIGHT = 50;
-const SCORE_X = 50;
-const SCORE_Y = 100;
-const HIGH_SCORE_X = 50;
-const HIGH_SCORE_Y = 50;
 const OFFSET = 1;
 
 const image = new Image();
@@ -31,7 +22,7 @@ const PlayerStates = {
     Ducking: "ducking"
 };
 const obstacleColors = {
-    Yellow: "yellow",
+    Orange: "orange",
     Brown: "brown",
     Black: "black"
 }
@@ -44,6 +35,23 @@ const playerStateToColorMap = {
     [PlayerStates.Jumping]: "navy",
     [PlayerStates.Ducking]: "teal"
 };
+const HIGH_SCORE = {
+    x: 50,
+    y: 50
+}
+const SCORE = {
+    x: 50,
+    y: 100
+}
+const OBSTACLE = {
+    WIDTH: 50,
+    HEIGHT: 50,
+    SPAWN_LOCATION: -50
+}
+const LANE = {
+    WIDTH: canvas.width/3,
+    COUNT: 3
+}
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 
 // Changeble variables
@@ -54,7 +62,6 @@ let spawnDelay = 1000; //This is in milliseconds
 let score = 0;
 let highScore = 0;
 let fallSpeed = 150;
-let playerState = PlayerStates.Running
 
 // Key detection
 const allPressedKeys = {};
@@ -141,7 +148,7 @@ function runFrame() {
 function processInput(){ 
     const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        if (lastClick <= Date.now() - CLICK_DELAY && player.lane + playerDirectionChange <= LANE_COUNT && player.lane + playerDirectionChange >= 1){
+        if (lastClick <= Date.now() - CLICK_DELAY && player.lane + playerDirectionChange <= LANE.COUNT && player.lane + playerDirectionChange >= 1){
             player.lane += playerDirectionChange
             console.log(player.lane)
             lastClick = Date.now();
@@ -163,10 +170,9 @@ function update(deltaTime){
     checkSpawn();
     loop(rects,deltaTime);
     loop(coins,deltaTime);
-    playerState = player.state
     player.color = playerStateToColorMap[player.state]
     spawnDelay -= SPAWN_INCREMENT;
-    fallSpeed -= FALL_INCREMENT;
+    fallSpeed += FALL_INCREMENT;
 }
 
 
@@ -192,9 +198,9 @@ function draw() {
 
     context.fillStyle = "black";
     context.font = "20px Arial";
-    context.fillText("SCORE: " + score, SCORE_X, SCORE_Y);
+    context.fillText("SCORE: " + score, SCORE.x, SCORE.y);
     context.font = "20px Arial";
-    context.fillText("HIGH SCORE: " + highScore, HIGH_SCORE_X, HIGH_SCORE_Y);
+    context.fillText("HIGH SCORE: " + highScore, HIGH_SCORE.x, HIGH_SCORE.y);
 
     context.drawImage(image,200,50,50,50);
 
@@ -221,25 +227,25 @@ function isDodging(obstacle,player){
     return obstacle.requiredState == player.state;
 }
 function laneLocation(lane,width){
-    return lane * LANE_WIDTH - LANE_WIDTH/2 - width/2;
+    return lane * LANE.WIDTH - LANE.WIDTH/2 - width/2;
 }
 function move(speed, deltaTime){
     return speed * deltaTime / 1000;
 }
 function obstacleLane(){
-    return Math.floor(Math.random() * LANE_COUNT) + OFFSET;
+    return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
 
 // These functions carry out a certain action
 function generateObstacle(){
-    type = Math.floor(Math.random() * LANE_COUNT);
+    type = Math.floor(Math.random() * LANE.COUNT);
     rects.push(
-        new Rects(laneLocation(obstacleLane(),OBSTACLE_WIDTH), OBJECT_SPAWN_LOCATION, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
+        new Rects(laneLocation(obstacleLane(),OBSTACLE.WIDTH), OBSTACLE.SPAWN_LOCATION , OBSTACLE.WIDTH, OBSTACLE.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
     )
 }
 function generateCoin(){
     coins.push(
-        new Circles(laneLocation(obstacleLane(),0), OBJECT_SPAWN_LOCATION, COIN_RADIUS, "yellow", fallSpeed)
+        new Circles(laneLocation(obstacleLane(),0), OBSTACLE.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
     )
 }
 function changeState(state){
