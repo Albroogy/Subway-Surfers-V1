@@ -7,7 +7,9 @@ const stateDuration = 1000;
 const LANE_WIDTH = canvas.width/3;
 const LANE_COUNT = 3;
 const SCORE_SPEED = 1;
-const coinValue = 300;
+const COIN_VALUE = 300;
+const clickDelay = 300; //This is in milliseconds
+
 const image = new Image();
 image.src = 'coin_01.png';
 
@@ -32,8 +34,7 @@ const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 let lastTime = Date.now();
 let lastClick = Date.now();
 let lastSpawn = Date.now();
-let clickDelay = 300; //This is milliseconds
-let spawnDelay = 1000; //This is also in milliseconds
+let spawnDelay = 1000; //This is in milliseconds
 let score = 0;
 let highScore = 0;
 let fallSpeed = 150;
@@ -120,24 +121,34 @@ function runFrame() {
     // be called one more time
     requestAnimationFrame(runFrame);
 }
+function processInput(){ 
+    const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
+    // if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) {
+    //     if (lastClick <= Date.now() - clickDelay && player.lane - 1 >= 1){
+    //         player.lane -= 1;
+    //         lastClick = Date.now();
+    //         runState();
+    //         player.x = laneLocation(player.lane, player.width);
+    //     }
+    // }
+    // if (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) {
+    //     if (lastClick <= Date.now() - clickDelay && player.lane + 1 <= 3){
+    //         player.lane += 1;
+    //         lastClick = Date.now();
+    //         runState();
+    //         player.x = laneLocation(player.lane, player.width);
+    //     }
+    // }
+    if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
+        if (lastClick <= Date.now() - clickDelay && player.lane + playerDirectionChange <= 3 && player.lane + playerDirectionChange >= 1){
+            player.lane += playerDirectionChange
+            console.log(player.lane)
+            lastClick = Date.now();
+            player.x = laneLocation(player.lane, player.width);
+            runState();
+        }
+    }
 
-function processInput(){
-    if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) {
-        if (lastClick <= Date.now() - clickDelay && player.lane - 1 >= 1){
-            player.lane -= 1;
-            lastClick = Date.now();
-            runState();
-            player.x = laneLocation(player.lane, player.width);
-        }
-    }
-    if (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) {
-        if (lastClick <= Date.now() - clickDelay && player.lane + 1 <= 3){
-            player.lane += 1;
-            lastClick = Date.now();
-            runState();
-            player.x = laneLocation(player.lane, player.width);
-        }
-    }
     if (player.state == PlayerStates.Running){
         if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
             changeState(PlayerStates.Ducking);
@@ -274,7 +285,7 @@ function loop(type,deltaTime){
         if (type == coins){
             if (isCoinColliding(coins[i],player)){
                 coins.splice(i,1);
-                score += coinValue;
+                score += COIN_VALUE;
             }
         }
         else if (type == rects){
