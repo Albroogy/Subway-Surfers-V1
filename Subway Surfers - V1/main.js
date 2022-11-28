@@ -8,16 +8,25 @@ const LANE_WIDTH = canvas.width/3;
 const LANE_COUNT = 3;
 const SCORE_SPEED = 1;
 const coinValue = 300;
+const image = new Image();
+image.src = 'coin_01.png';
+
+//Dictionaries
 const PlayerStates = {
     Running: "Running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
     Jumping: "Jumping",
     Ducking: "Ducking",
 };
-const objectColor = ["yellow","brown","black"]
-const objectType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
-const spawnType = ["generateObject","generateCoin"]
-const image = new Image();
-image.src = 'coin_01.png';
+const obstacleColor = {
+    Yellow: "yellow",
+    Brown: "brown",
+    Black: "black"
+}
+const spawnType = {
+    generateObstacle: "generateObstacle",
+    generateCoin: "generateCoin",
+}
+const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 
 // Changeble variables
 let lastTime = Date.now();
@@ -158,8 +167,6 @@ function update(deltaTime){
     }
     spawnDelay -= 0.02;
     fallSpeed -= 0.01;
-    console.log(fallSpeed);
-    console.log(objectType2)
 }
 
 function draw() {
@@ -218,7 +225,7 @@ function laneLocation(lane,width){
 function move(speed, deltaTime){
     return speed * deltaTime / 1000;
 }
-function objectLane(){
+function obstacleLane(){
     return Math.floor(Math.random() * LANE_COUNT) + 1;
 }
 function resetGame(){
@@ -231,15 +238,15 @@ function resetGame(){
 }
 
 // These functions carry out a certain action
-function generateObject(){
+function generateObstacle(){
     type = Math.floor(Math.random() * LANE_COUNT);
     rects.push(
-        new Rects(laneLocation(objectLane(),50), -50, 50, 50, objectColor[type], objectType[type], fallSpeed)
+        new Rects(laneLocation(obstacleLane(),50), -50, 50, 50, Object.keys(obstacleColor)[type], obstacleType[type], fallSpeed)
     )
 }
 function generateCoin(){
     coins.push(
-        new Circles(laneLocation(objectLane(),0), -50, 25, "yellow", fallSpeed)
+        new Circles(laneLocation(obstacleLane(),0), -50, 25, "yellow", fallSpeed)
     )
 }
 function changeState(state){
@@ -251,9 +258,9 @@ function runState(){
 }
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
-        let generateType = spawnType[Math.round(Math.random())]
-        if (generateType == "generateObject"){
-            generateObject()
+        let generateType = Object.keys(spawnType)[Math.round(Math.random())]
+        if (generateType == "generateObstacle"){
+            generateObstacle()
         }
         else if (generateType == "generateCoin"){
             generateCoin()
