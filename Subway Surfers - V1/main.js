@@ -11,7 +11,7 @@ const SPAWN_INCREMENT = 0.2;
 const FALL_INCREMENT = 0.02;
 const COIN_RADIUS = 25;
 const OFFSET = 1;
-const ORIGINAL_SPEED = 50
+const ORIGINAL_SPEED = 150
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -106,7 +106,7 @@ class Rects{
         return this.requiredState == player.state;
     }
     move(deltaTime){
-        this.x += this.speed * deltaTime / 1000;
+        this.y += this.speed * deltaTime / 1000;
     }
 }
 class Circles{
@@ -133,7 +133,7 @@ class Circles{
         )
     }
     move(deltaTime){
-        this.x += this.speed * deltaTime / 1000;
+        this.y += this.speed * deltaTime / 1000;
     }
 }
 
@@ -290,9 +290,7 @@ function resetGame(){
 function loop(deltaTime){
     for (let i = 0; i < objects.length; i++){
         objects[i].speed = fallSpeed;
-        // objects[i].move()
-        console.log(objects[i].speed)
-        objects[i].y += objects[i].speed/deltaTime;
+        objects[i].move(deltaTime);
         if (objects[i].y >= canvas.height){
             objects.splice(i,1);
             continue;
