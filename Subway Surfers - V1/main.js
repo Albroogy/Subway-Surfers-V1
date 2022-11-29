@@ -234,9 +234,6 @@ function isDodging(obstacle,player){
 function calculateLaneLocation(lane,width){
     return lane * LANE.WIDTH - LANE.WIDTH/2 - width/2;
 }
-function calculateMove(speed, deltaTime){
-    return speed * deltaTime / 1000;
-}
 function pickLane(){
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
