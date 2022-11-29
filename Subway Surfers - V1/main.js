@@ -217,11 +217,8 @@ function draw() {
 
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    for (let rect of rects){
-        rect.draw();
-    }
-    for (let coin of coins){
-        coin.draw();
+    for (let object of objects){
+        object.draw()
     }
 
     context.fillStyle = player.color;
@@ -318,14 +315,15 @@ function resetGame(){
 
 function loop(deltaTime){
     for (let object in objects){
+        console.log(object.constructor)
         object.speed = fallSpeed;
-        // object.y += object.calculateMove(deltaTime)
+        object.y += calculateMove(object.speed,deltaTime)
         if (object.y >= canvas.height){
             type.splice(i,1);
             continue;
         }
         if (object.constructor == Circles){
-            if (Rects[object].isColliding(player)){
+            if (object.isColliding(player)){
                 coins.splice(i,1);
                 score += COIN_VALUE;
             }
