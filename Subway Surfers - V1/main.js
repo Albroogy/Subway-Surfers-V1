@@ -7,10 +7,11 @@ const STATE_DURATION = 1000;
 const SCORE_SPEED = 1;
 const COIN_VALUE = 300;
 const CLICK_DELAY = 300; //This is in milliseconds
-const SPAWN_INCREMENT = 0.4;
-const FALL_INCREMENT = 0.05;
+const SPAWN_INCREMENT = 0.2;
+const FALL_INCREMENT = 0.02;
 const COIN_RADIUS = 25;
 const OFFSET = 1;
+const ORIGINAL_SPEED = 50
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -61,7 +62,7 @@ let lastSpawn = Date.now();
 let spawnDelay = 1000; //This is in milliseconds
 let score = 0;
 let highScore = 0;
-let fallSpeed = 150;
+let fallSpeed = ORIGINAL_SPEED;
 
 // Key detection
 const allPressedKeys = {};
@@ -199,8 +200,7 @@ function processInput(){
 function update(deltaTime){
     score += SCORE_SPEED;
     checkSpawn();
-    loop(rects,deltaTime);
-    loop(coins,deltaTime);
+    loop(deltaTime);
     player.color = playerStateToColorMap[player.state]
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
@@ -280,56 +280,31 @@ function checkSpawn(){
     }
 }
 function resetGame(){
-    rects.splice(0);
-    coins.splice(0);
+    objects.splice(0);
     player.lane = 2;
     player.x = calculateLaneLocation(player.lane, player.width);
     spawnDelay = 1000;
-    fallSpeed = 150;
+    fallSpeed = ORIGINAL_SPEED;
 }
-// function loop(type,deltaTime){
-//     for (let i = 0; i < type.length; i++){
-//         type[i].speed = fallSpeed;
-//         type[i].y += type[i].calculateMove(deltaTime)
-//         if (type[i].y >= canvas.height){
-//             type.splice(i,1);
-//             continue;
-//         }
-//         if (type == coins){
-//             if (type[i].isColliding(player)){
-//                 coins.splice(i,1);
-//                 score += COIN_VALUE;
-//             }
-//         }
-//         else if (type == rects){
-//             if (type[i].isColliding(player) && !type[i].isDodging(player)){
-//                 resetGame()
-//                 if (score > highScore){
-//                     highScore = score;
-//                 }
-//                 score = 0;
-//             }
-//         }
-//     }
-// }
 
 function loop(deltaTime){
-    for (let object in objects){
-        console.log(object.constructor)
-        object.speed = fallSpeed;
-        object.move(deltaTime)
-        if (object.y >= canvas.height){
-            type.splice(i,1);
+    for (let i = 0; i < objects.length; i++){
+        objects[i].speed = fallSpeed;
+        // objects[i].move()
+        console.log(objects[i].speed)
+        objects[i].y += objects[i].speed/deltaTime;
+        if (objects[i].y >= canvas.height){
+            objects.splice(i,1);
             continue;
         }
-        if (object.constructor == Circles){
-            if (object.isColliding(player)){
-                coins.splice(i,1);
+        if (objects[i].constructor == Circles){
+            if (objects[i].isColliding(player)){
+                objects.splice(i,1);
                 score += COIN_VALUE;
             }
         }
-        else if (object.constructor == Rects){
-            if (object.isColliding(player) && !object.isDodging(player)){
+        else if (objects[i].constructor == Rects){
+            if (objects[i].isColliding(player) && !objects[i].isDodging(player)){
                 resetGame()
                 if (score > highScore){
                     highScore = score;
