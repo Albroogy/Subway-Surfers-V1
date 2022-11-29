@@ -104,8 +104,8 @@ class Rects{
     isDodging(player){
         return this.requiredState == player.state;
     }
-    calculateMove(deltaTime){
-        return this.speed * deltaTime / 1000;
+    Move(deltaTime){
+        this.x += this.speed * deltaTime / 1000;
     }
 }
 class Circles{
@@ -131,8 +131,8 @@ class Circles{
             this.y - this.radius <= player.y + player.height
         )
     }
-    calculateMove(deltaTime){
-        return this.speed * deltaTime / 1000;
+    Move(deltaTime){
+        this.x += this.speed * deltaTime / 1000;
     }
 }
 
@@ -317,7 +317,7 @@ function loop(deltaTime){
     for (let object in objects){
         console.log(object.constructor)
         object.speed = fallSpeed;
-        object.y += object.calculateMove(object.speed,deltaTime)
+        object.Move(deltaTime)
         if (object.y >= canvas.height){
             type.splice(i,1);
             continue;
