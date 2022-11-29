@@ -6,9 +6,9 @@ const context = canvas.getContext("2d");
 const stateDuration = 1000;
 const SCORE_SPEED = 1;
 const COIN_VALUE = 300;
-const CLICK_DELAY = 200; //This is in milliseconds
-const SPAWN_INCREMENT = 0.2;
-const FALL_INCREMENT = 0.1;
+const CLICK_DELAY = 300; //This is in milliseconds
+const SPAWN_INCREMENT = 0.4;
+const FALL_INCREMENT = 0.05;
 const COIN_RADIUS = 25;
 const OFFSET = 1;
 
@@ -73,6 +73,12 @@ window.addEventListener("keyup", function (event) {
 });
 
 // Classes
+// class Objects{
+//     calculateMove(deltaTime){
+//         return this.speed * deltaTime / 1000;
+//     }
+// }
+
 class Rects{
     constructor(x, y, width, height, color, requiredState, speed) {
         this.x = x;
@@ -98,7 +104,7 @@ class Rects{
     isDodging(player){
         return this.requiredState == player.state;
     }
-    move(deltaTime){
+    calculateMove(deltaTime){
         return this.speed * deltaTime / 1000;
     }
 }
@@ -125,12 +131,13 @@ class Circles{
             this.y - this.radius <= player.y + player.height
         )
     }
-    move(deltaTime){
+    calculateMove(deltaTime){
         return this.speed * deltaTime / 1000;
     }
 }
 
 // Arrays and Dictionaries 
+const objects = []
 const rects = []
 const coins = []
 const player = {
@@ -175,10 +182,9 @@ function processInput(){
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
         if (lastClick <= Date.now() - CLICK_DELAY && player.lane + playerDirectionChange <= LANE.COUNT && player.lane + playerDirectionChange >= 1){
             player.lane += playerDirectionChange
-            console.log(player.lane)
             lastClick = Date.now();
-            player.x = laneLocation(player.lane, player.width);
-            runState();
+            player.x = calculateLaneLocation(player.lane, player.width);
+            changeStateToRun();
         }
     }
     if (player.state == PlayerStates.Running){
@@ -232,44 +238,36 @@ function draw() {
 }
 
 // These functions calculate a certain value
-function isCoinColliding(coin, player){
-    return (
-        coin.x - coin.radius <= player.x + player.width &&
-        coin.x + coin.radius >= player.x &&
-        coin.y + coin.radius >= player.y &&
-        coin.y - coin.radius <= player.y + player.height
-    )
-}
 function isDodging(obstacle,player){
     return obstacle.requiredState == player.state;
 }
-function laneLocation(lane,width){
+function calculateLaneLocation(lane,width){
     return lane * LANE.WIDTH - LANE.WIDTH/2 - width/2;
 }
-function move(speed, deltaTime){
+function calculateMove(speed, deltaTime){
     return speed * deltaTime / 1000;
 }
-function obstacleLane(){
+function pickLane(){
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
 
 // These functions carry out a certain action
 function generateObstacle(){
     type = Math.floor(Math.random() * LANE.COUNT);
-    rects.push(
-        new Rects(laneLocation(obstacleLane(),OBSTACLE.WIDTH), OBSTACLE.SPAWN_LOCATION , OBSTACLE.WIDTH, OBSTACLE.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
+    objects.push(
+        new Rects(calculateLaneLocation(pickLane(),OBSTACLE.WIDTH), OBSTACLE.SPAWN_LOCATION , OBSTACLE.WIDTH, OBSTACLE.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
     )
 }
 function generateCoin(){
-    coins.push(
-        new Circles(laneLocation(obstacleLane(),0), OBSTACLE.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
+    objects.push(
+        new Circles(calculateLaneLocation(pickLane(),0), OBSTACLE.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
     )
 }
 function changeState(state){
     player.state = state;
-    setTimeout(runState, stateDuration);
+    setTimeout(changeStateToRun, stateDuration);
 }
-function runState(){
+function changeStateToRun(){
     player.state = PlayerStates.Running;
 }
 function checkSpawn(){
@@ -288,26 +286,52 @@ function resetGame(){
     rects.splice(0);
     coins.splice(0);
     player.lane = 2;
-    player.x = laneLocation(player.lane, player.width);
+    player.x = calculateLaneLocation(player.lane, player.width);
     spawnDelay = 1000;
     fallSpeed = 150;
 }
-function loop(type,deltaTime){
-    for (let i = 0; i < type.length; i++){
-        type[i].speed = fallSpeed;
-        type[i].y += type[i].move(deltaTime)
-        if (type[i].y >= canvas.height){
+// function loop(type,deltaTime){
+//     for (let i = 0; i < type.length; i++){
+//         type[i].speed = fallSpeed;
+//         type[i].y += type[i].calculateMove(deltaTime)
+//         if (type[i].y >= canvas.height){
+//             type.splice(i,1);
+//             continue;
+//         }
+//         if (type == coins){
+//             if (type[i].isColliding(player)){
+//                 coins.splice(i,1);
+//                 score += COIN_VALUE;
+//             }
+//         }
+//         else if (type == rects){
+//             if (type[i].isColliding(player) && !type[i].isDodging(player)){
+//                 resetGame()
+//                 if (score > highScore){
+//                     highScore = score;
+//                 }
+//                 score = 0;
+//             }
+//         }
+//     }
+// }
+
+function loop(deltaTime){
+    for (let object in objects){
+        object.speed = fallSpeed;
+        // object.y += object.calculateMove(deltaTime)
+        if (object.y >= canvas.height){
             type.splice(i,1);
             continue;
         }
-        if (type == coins){
-            if (type[i].isColliding(player)){
+        if (object.constructor == Circles){
+            if (Rects[object].isColliding(player)){
                 coins.splice(i,1);
                 score += COIN_VALUE;
             }
         }
-        else if (type == rects){
-            if (type[i].isColliding(player) && !type[i].isDodging(player)){
+        else if (object.constructor == Rects){
+            if (object.isColliding(player) && !object.isDodging(player)){
                 resetGame()
                 if (score > highScore){
                     highScore = score;
