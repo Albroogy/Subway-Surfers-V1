@@ -73,13 +73,6 @@ window.addEventListener("keyup", function (event) {
     allPressedKeys[event.keyCode] = false;
 });
 
-// Classes
-// class Objects{
-//     calculateMove(deltaTime){
-//         return this.speed * deltaTime / 1000;
-//     }
-// }
-
 class Rects{
     constructor(x, y, width, height, color, requiredState, speed) {
         this.x = x;
@@ -89,7 +82,7 @@ class Rects{
         this.color = color;
         this.requiredState = requiredState;
         this.speed = speed;
-        }
+    }
     draw(){
         context.fillStyle = this.color;
         context.fillRect(this.x, this.y, this.width, this.height);
@@ -270,10 +263,10 @@ function changeStateToRun(){
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
         let generateType = Object.keys(spawnType)[Math.round(Math.random())];
-        if (generateType == "generateObstacle"){
+        if (generateType == spawnType.generateObstacle){
             generateObstacle()
         }
-        else if (generateType == "generateCoin"){
+        else if (generateType == spawnType.generateCoin){
             generateCoin();
         }
         lastSpawn = Date.now();
