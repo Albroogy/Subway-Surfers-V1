@@ -3,7 +3,7 @@ const canvas = document.getElementById("game-canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext("2d");
-const stateDuration = 1000;
+const STATE_DURATION = 1000;
 const SCORE_SPEED = 1;
 const COIN_VALUE = 300;
 const CLICK_DELAY = 300; //This is in milliseconds
@@ -262,7 +262,7 @@ function generateCoin(){
 }
 function changeState(state){
     player.state = state;
-    setTimeout(changeStateToRun, stateDuration);
+    setTimeout(changeStateToRun, STATE_DURATION);
 }
 function changeStateToRun(){
     player.state = PlayerStates.Running;
@@ -317,7 +317,7 @@ function loop(deltaTime){
     for (let object in objects){
         console.log(object.constructor)
         object.speed = fallSpeed;
-        object.y += calculateMove(object.speed,deltaTime)
+        object.y += object.calculateMove(object.speed,deltaTime)
         if (object.y >= canvas.height){
             type.splice(i,1);
             continue;
