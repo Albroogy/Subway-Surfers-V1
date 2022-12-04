@@ -54,6 +54,10 @@ const LANE = {
     COUNT: 3
 }
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
+const PLAYER_SIZE = {
+    WIDTH: 95.16666666666667,
+    HEIGHT: 158.75
+}
 
 // Changeble variables
 let lastTime = Date.now();
@@ -89,10 +93,10 @@ class Rects{
     }
     isColliding(player){
         return (
-            this.x <= player.x + player.frameW &&
-            this.x + this.width >= player.x &&
-            this.y + this.height >= player.y &&
-            this.y <= player.y + player.frameH
+            this.x <= player.x + PLAYER_SIZE.WIDTH/2 &&
+            this.x + this.width >= player.x - PLAYER_SIZE.WIDTH/2 &&
+            this.y + this.height >= player.y - PLAYER_SIZE.HEIGHT/2 &&
+            this.y <= player.y + PLAYER_SIZE.HEIGHT/2
         )
     }
     isDodging(player){
@@ -119,10 +123,10 @@ class Circles{
     }
     isColliding(player){
         return (
-            this.x - this.radius <= player.x + player.frameW &&
-            this.x + this.radius >= player.x &&
-            this.y + this.radius >= player.y &&
-            this.y - this.radius <= player.y + player.frameH
+            this.x - this.radius <= player.x + PLAYER_SIZE.WIDTH/2 &&
+            this.x + this.radius >= player.x - PLAYER_SIZE.WIDTH/2 &&
+            this.y + this.radius >= player.y - PLAYER_SIZE.HEIGHT/2 &&
+            this.y - this.radius <= player.y + PLAYER_SIZE.HEIGHT/2
         )
     }
     move(deltaTime){
@@ -144,7 +148,7 @@ const playerAnimationInfo = {
 };
 
 class PlayerCharacter {
-    constructor(x, y, spritesheetURL, animationInfo,lane,state){
+    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height){
         this.x = x;
         this.y = y;
         this.spritesheet = new Image();
@@ -153,8 +157,10 @@ class PlayerCharacter {
         this.currentAnimation = null;
         this.currentAnimationFrame = 0;
         this.timeSinceLastFrame = 0;
-        this.lane = lane
-        this.state = state
+        this.lane = lane;
+        this.state = state;
+        this.width = width;
+        this.height = height;
     }
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
@@ -162,7 +168,7 @@ class PlayerCharacter {
     processInput(){ 
         const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
         if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-            if (lastClick <= Date.now() - CLICK_DELAY && player.lane + playerDirectionChange <= LANE.COUNT && player.lane + playerDirectionChange >= 1){
+            if (lastClick <= Date.now() - CLICK_DELAY && this.lane + playerDirectionChange <= LANE.COUNT && this.lane + playerDirectionChange >= 1){
                 this.lane += playerDirectionChange;
                 lastClick = Date.now();
                 this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
@@ -205,15 +211,13 @@ class PlayerCharacter {
 
         context.drawImage(this.spritesheet,
             frameSX, frameSY, frameW, frameH,
-            this.x - frameW / 2, this.y - frameH / 2, frameW, frameH
+            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
         );
     }
 }
 
 // Arrays and Dictionaries 
 const objects = []
-const rects = []
-const coins = []
 const player = {
     x: canvas.width/2 -25,
     y: canvas.width/3,
@@ -223,7 +227,7 @@ const player = {
     lane: 2,
     state: PlayerStates.Running
 };
-const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running);
+const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 const KEYS = {
     W: 87,
