@@ -144,7 +144,7 @@ const playerAnimationInfo = {
 };
 
 class PlayerCharacter {
-    constructor(x, y, spritesheetURL, animationInfo){
+    constructor(x, y, spritesheetURL, animationInfo,lane,state){
         this.x = x;
         this.y = y;
         this.spritesheet = new Image();
@@ -153,6 +153,8 @@ class PlayerCharacter {
         this.currentAnimation = null;
         this.currentAnimationFrame = 0;
         this.timeSinceLastFrame = 0;
+        this.lane = lane
+        this.state = state
     }
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
@@ -167,6 +169,7 @@ class PlayerCharacter {
             this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
             this.timeSinceLastFrame = 0;
         }
+        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2
     }
     draw(){
         if (this.currentAnimation == null) {
@@ -201,7 +204,7 @@ const player = {
     lane: 2,
     state: PlayerStates.Running
 };
-const playerAnimated = new PlayerCharacter(player.x, player.y, "hero.webp", playerAnimationInfo);
+const playerAnimated = new PlayerCharacter(player.x, player.y, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 const KEYS = {
     W: 87,
