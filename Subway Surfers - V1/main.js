@@ -130,6 +130,64 @@ class Circles{
     }
 }
 
+const AnimationNames = {
+    RunningBack: "runningBack",
+}
+
+const playerAnimationInfo = {
+    animationCount: 4, 
+    [AnimationNames.RunningBack]: {
+        rowIndex: 3,
+        frameCount: 12,
+        framesPerSecond: 12,
+    }
+};
+
+class PlayerCharacter {
+    constructor(x, y, spritesheetURL, animationInfo){
+        this.x = x;
+        this.y = y;
+        this.spritesheet = new Image();
+        this.spritesheet.src = spritesheetURL;
+        this.animationInfo = animationInfo;
+        this.currentAnimation = null;
+        this.currentAnimationFrame = 0;
+        this.timeSinceLastFrame = 0;
+    }
+    playAnimation(name) {
+        this.currentAnimation = this.animationInfo[name];
+    }
+    update(deltaTime) {
+        if (this.currentAnimation == null) {
+            return;
+        }
+        const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond;
+        this.timeSinceLastFrame += deltaTime;
+        if (this.timeSinceLastFrame >= timeBetweenFrames) {
+            this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
+            this.timeSinceLastFrame = 0;
+        }
+    }
+    draw(){
+        if (this.currentAnimation == null) {
+            return;
+        }
+        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
+        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
+        console.assert(frameW > 0);
+        console.assert(frameH > 0);
+        const frameSX = this.currentAnimationFrame * frameW;
+        const frameSY = this.currentAnimation.rowIndex * frameH;
+        console.assert(frameW >= 0);
+        console.assert(frameH >= 0);
+
+        context.drawImage(this.spritesheet,
+            frameSX, frameSY, frameW, frameH,
+            this.x - frameW / 2, this.y - frameH / 2, frameW, frameH
+        );
+    }
+}
+
 // Arrays and Dictionaries 
 const objects = []
 const rects = []
@@ -143,6 +201,8 @@ const player = {
     lane: 2,
     state: PlayerStates.Running
 };
+const playerAnimated = new PlayerCharacter(player.x, player.y, "hero.webp", playerAnimationInfo);
+playerAnimated.playAnimation(AnimationNames.RunningBack);
 const KEYS = {
     W: 87,
     S: 83,
@@ -224,6 +284,7 @@ function draw() {
     context.fillText("HIGH SCORE: " + highScore, HIGH_SCORE.x, HIGH_SCORE.y);
 
     context.drawImage(image,200,50,50,50);
+    playerAnimated.draw();
 
 }
 
@@ -301,4 +362,5 @@ function loop(deltaTime){
             }
         }
     }
+    playerAnimated.update(deltaTime);
 }
