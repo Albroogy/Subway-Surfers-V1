@@ -16,6 +16,7 @@ const ORIGINAL_SPAWN_DELAY = 1000;
 
 const image = new Image();
 image.src = 'coin_01.png';
+const music = new Audio('Game_Song.mp3')
 
 // Player Information
 const PlayerStates = {
@@ -152,6 +153,7 @@ const AnimationNames = {
     Jumping: "jumping",
     Ducking: "ducking"
 }
+// Should I combine the AnimationNames dictionary with the PlayerStates Dictionary?
 
 const playerAnimationInfo = {
     animationCount: 4, 
@@ -196,6 +198,7 @@ class PlayerCharacter {
     processInput(){ 
         const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
         if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
+            music.play()
             if (lastClick <= Date.now() - CLICK_DELAY && this.lane + playerDirectionChange <= LANE.COUNT && this.lane + playerDirectionChange >= 1){
                 this.lane += playerDirectionChange;
                 lastClick = Date.now();
@@ -356,7 +359,7 @@ function loop(deltaTime){
     for (let i = 0; i < objects.length; i++){
         objects[i].speed = fallSpeed;
         objects[i].move(deltaTime);
-        if (objects[i].y >= canvas.height){
+        if (objects[i].y >= canvas.height + OBJECT.HEIGHT/2){
             objects.splice(i,1);
             continue;
         }
