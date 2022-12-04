@@ -89,10 +89,10 @@ class Rects{
     }
     isColliding(player){
         return (
-            this.x <= player.x + player.width &&
+            this.x <= player.x + player.frameW &&
             this.x + this.width >= player.x &&
             this.y + this.height >= player.y &&
-            this.y <= player.y + player.height
+            this.y <= player.y + player.frameH
         )
     }
     isDodging(player){
@@ -119,10 +119,10 @@ class Circles{
     }
     isColliding(player){
         return (
-            this.x - this.radius <= player.x + player.width &&
+            this.x - this.radius <= player.x + player.frameW &&
             this.x + this.radius >= player.x &&
             this.y + this.radius >= player.y &&
-            this.y - this.radius <= player.y + player.height
+            this.y - this.radius <= player.y + player.frameH
         )
     }
     move(deltaTime){
@@ -159,6 +159,26 @@ class PlayerCharacter {
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
     }
+    processInput(){ 
+        const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
+        if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
+            if (lastClick <= Date.now() - CLICK_DELAY && player.lane + playerDirectionChange <= LANE.COUNT && player.lane + playerDirectionChange >= 1){
+                this.lane += playerDirectionChange;
+                lastClick = Date.now();
+                this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
+                changeStateToRun();
+                console.log(this.x)
+            }
+        }
+        if (player.state == PlayerStates.Running){
+            if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
+                changeState(PlayerStates.Ducking);
+            }
+            else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
+                changeState(PlayerStates.Jumping);
+            }
+        }
+    }
     update(deltaTime) {
         if (this.currentAnimation == null) {
             return;
@@ -169,7 +189,6 @@ class PlayerCharacter {
             this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
             this.timeSinceLastFrame = 0;
         }
-        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2
     }
     draw(){
         if (this.currentAnimation == null) {
@@ -204,7 +223,7 @@ const player = {
     lane: 2,
     state: PlayerStates.Running
 };
-const playerAnimated = new PlayerCharacter(player.x, player.y, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running);
+const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 const KEYS = {
     W: 87,
@@ -226,7 +245,7 @@ function runFrame() {
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime;
     // process input
-    processInput();
+    playerAnimated.processInput();
     // update state
     update(deltaTime);
     // draw the world
@@ -234,25 +253,7 @@ function runFrame() {
     // be called one more time
     requestAnimationFrame(runFrame);
 }
-function processInput(){ 
-    const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
-    if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        if (lastClick <= Date.now() - CLICK_DELAY && player.lane + playerDirectionChange <= LANE.COUNT && player.lane + playerDirectionChange >= 1){
-            player.lane += playerDirectionChange
-            lastClick = Date.now();
-            player.x = calculateLaneLocation(player.lane, player.width);
-            changeStateToRun();
-        }
-    }
-    if (player.state == PlayerStates.Running){
-        if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
-            changeState(PlayerStates.Ducking);
-        }
-        else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
-            changeState(PlayerStates.Jumping);
-        }
-    }
-}
+
 function update(deltaTime){
     score += SCORE_SPEED;
     checkSpawn();
@@ -350,13 +351,13 @@ function loop(deltaTime){
             continue;
         }
         if (objects[i].constructor == Circles){
-            if (objects[i].isColliding(player)){
+            if (objects[i].isColliding(playerAnimated)){
                 objects.splice(i,1);
                 score += COIN_VALUE;
             }
         }
         else if (objects[i].constructor == Rects){
-            if (objects[i].isColliding(player) && !objects[i].isDodging(player)){
+            if (objects[i].isColliding(playerAnimated) && !objects[i].isDodging(playerAnimated)){
                 resetGame()
                 if (score > highScore){
                     highScore = score;
