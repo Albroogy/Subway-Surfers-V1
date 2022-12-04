@@ -85,14 +85,14 @@ class Rects{
     }
     draw(){
         context.fillStyle = this.color;
-        context.fillRect(this.x, this.y, this.width, this.height);
+        context.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
     }
     isColliding(player){
         return (
-            this.x <= player.x + PLAYER_SIZE.WIDTH/2 &&
-            this.x + this.width >= player.x - PLAYER_SIZE.WIDTH/2 &&
-            this.y + this.height >= player.y - PLAYER_SIZE.HEIGHT/2 &&
-            this.y <= player.y + PLAYER_SIZE.HEIGHT/2
+            this.x - this.width/2 <= player.x + PLAYER_SIZE.WIDTH/2 &&
+            this.x + this.width/2 >= player.x - PLAYER_SIZE.WIDTH/2 &&
+            this.y + this.height/2 >= player.y - PLAYER_SIZE.HEIGHT/2 &&
+            this.y - this.height/2 <= player.y + PLAYER_SIZE.HEIGHT/2
         )
     }
     isDodging(player){
@@ -282,11 +282,11 @@ function draw() {
 }
 
 // These functions calculate a certain value
-function isDodging(obstacle,player){
+function isDodging(obstacle){
     return obstacle.requiredState == playerAnimated.state;
 }
-function calculateLaneLocation(lane,width){
-    return lane * LANE.WIDTH - LANE.WIDTH/2 - width/2;
+function calculateLaneLocation(lane){
+    return lane * LANE.WIDTH - LANE.WIDTH/2;
 }
 function pickLane(){
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
@@ -296,12 +296,12 @@ function pickLane(){
 function generateObstacle(){
     type = Math.floor(Math.random() * LANE.COUNT);
     objects.push(
-        new Rects(calculateLaneLocation(pickLane(),OBSTACLE.WIDTH), OBSTACLE.SPAWN_LOCATION , OBSTACLE.WIDTH, OBSTACLE.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
+        new Rects(calculateLaneLocation(pickLane()), OBSTACLE.SPAWN_LOCATION , OBSTACLE.WIDTH, OBSTACLE.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
     )
 }
 function generateCoin(){
     objects.push(
-        new Circles(calculateLaneLocation(pickLane(),0), OBSTACLE.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
+        new Circles(calculateLaneLocation(pickLane()), OBSTACLE.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
     )
 }
 function changeState(state){
