@@ -17,12 +17,23 @@ const ORIGINAL_SPAWN_DELAY = 1000;
 const image = new Image();
 image.src = 'coin_01.png';
 
-//Dictionaries
+// Player Information
 const PlayerStates = {
     Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
     Jumping: "jumping",
     Ducking: "ducking"
 };
+const PLAYER_SIZE = {
+    WIDTH: 65,
+    HEIGHT: 100
+}
+
+// Obstacle Information
+const OBSTACLE = {
+    WIDTH: 50,
+    HEIGHT: 50,
+    SPAWN_LOCATION: -50
+}
 const obstacleColors = {
     Orange: "orange",
     Brown: "brown",
@@ -32,6 +43,14 @@ const spawnType = {
     generateObstacle: "generateObstacle",
     generateCoin: "generateCoin",
 }
+const LANE = {
+    WIDTH: canvas.width/3,
+    COUNT: 3
+}
+const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
+const objects = []
+
+// Score Information
 const HIGH_SCORE = {
     x: 50,
     y: 50
@@ -39,20 +58,6 @@ const HIGH_SCORE = {
 const SCORE = {
     x: 50,
     y: 100
-}
-const OBSTACLE = {
-    WIDTH: 50,
-    HEIGHT: 50,
-    SPAWN_LOCATION: -50
-}
-const LANE = {
-    WIDTH: canvas.width/3,
-    COUNT: 3
-}
-const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
-const PLAYER_SIZE = {
-    WIDTH: 65,
-    HEIGHT: 100
 }
 
 // Changeble variables
@@ -64,7 +69,7 @@ let score = 0;
 let highScore = 0;
 let fallSpeed = ORIGINAL_SPEED;
 
-// Key detection
+// Key Information
 const allPressedKeys = {};
 window.addEventListener("keydown", function (event) {
     allPressedKeys[event.keyCode] = true;
@@ -72,6 +77,17 @@ window.addEventListener("keydown", function (event) {
 window.addEventListener("keyup", function (event) {
     allPressedKeys[event.keyCode] = false;
 });
+const KEYS = {
+    W: 87,
+    S: 83,
+    A: 65,
+    D: 68,
+    Space: 32,
+    ArrowLeft: 37,
+    ArrowRight: 39,
+    ArrowUp: 38,
+    ArrowDown: 40,
+};
 
 class Rects{
     constructor(x, y, width, height, color, requiredState, speed) {
@@ -130,8 +146,10 @@ class Circles{
     }
 }
 
+// Animation Information
 const AnimationNames = {
     RunningBack: "runningBack",
+    Jumping: "jumping"
 }
 
 const playerAnimationInfo = {
@@ -139,7 +157,12 @@ const playerAnimationInfo = {
     [AnimationNames.RunningBack]: {
         rowIndex: 3,
         frameCount: 12,
-        framesPerSecond: 12,
+        framesPerSecond: 12
+    },
+    [AnimationNames.Jumping]: {
+        rowIndex: 1,
+        frameCount: 12,
+        framesPerSecond: 12
     }
 };
 
@@ -214,22 +237,11 @@ class PlayerCharacter {
     }
 }
 
-// Arrays and Dictionaries 
-const objects = []
+// Player Animation
 const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
-const KEYS = {
-    W: 87,
-    S: 83,
-    A: 65,
-    D: 68,
-    Space: 32,
-    ArrowLeft: 37,
-    ArrowRight: 39,
-    ArrowUp: 38,
-    ArrowDown: 40,
-};
 
+//Start Loop
 requestAnimationFrame(runFrame)
 
 // Main processing loop 
