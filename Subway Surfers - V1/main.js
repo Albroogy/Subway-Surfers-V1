@@ -29,7 +29,7 @@ const PLAYER_SIZE = {
 }
 
 // Obstacle Information
-const OBSTACLE = {
+const OBJECT = {
     WIDTH: 50,
     HEIGHT: 50,
     SPAWN_LOCATION: -50
@@ -149,7 +149,8 @@ class Circles{
 // Animation Information
 const AnimationNames = {
     RunningBack: "runningBack",
-    Jumping: "jumping"
+    Jumping: "jumping",
+    Ducking: "ducking"
 }
 
 const playerAnimationInfo = {
@@ -161,6 +162,11 @@ const playerAnimationInfo = {
     },
     [AnimationNames.Jumping]: {
         rowIndex: 1,
+        frameCount: 12,
+        framesPerSecond: 12
+    },
+    [AnimationNames.Ducking]: {
+        rowIndex: 2,
         frameCount: 12,
         framesPerSecond: 12
     }
@@ -200,9 +206,11 @@ class PlayerCharacter {
         if (this.state == PlayerStates.Running){
             if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
                 changeState(PlayerStates.Ducking);
+                this.playAnimation(AnimationNames.Ducking)
             }
             else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
                 changeState(PlayerStates.Jumping);
+                this.playAnimation(AnimationNames.Jumping);
             }
         }
     }
@@ -308,12 +316,12 @@ function pickLane(){
 function generateObstacle(){
     type = Math.floor(Math.random() * LANE.COUNT);
     objects.push(
-        new Rects(calculateLaneLocation(pickLane()), OBSTACLE.SPAWN_LOCATION , OBSTACLE.WIDTH, OBSTACLE.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
+        new Rects(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , OBJECT.WIDTH, OBJECT.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
     )
 }
 function generateCoin(){
     objects.push(
-        new Circles(calculateLaneLocation(pickLane()), OBSTACLE.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
+        new Circles(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
     )
 }
 function changeState(state){
@@ -322,6 +330,7 @@ function changeState(state){
 }
 function changeStateToRun(){
     playerAnimated.state = PlayerStates.Running;
+    playerAnimated.playAnimation(AnimationNames.RunningBack);
 }
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
