@@ -3,7 +3,7 @@ const canvas = document.getElementById("game-canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext("2d");
-const STATE_DURATION = 1000;
+const STATE_DURATION = 1500;
 const SCORE_SPEED = 1;
 const COIN_VALUE = 300;
 const CLICK_DELAY = 300; //This is in milliseconds
@@ -11,7 +11,8 @@ const SPAWN_INCREMENT = 0.2;
 const FALL_INCREMENT = 0.02;
 const COIN_RADIUS = 25;
 const OFFSET = 1;
-const ORIGINAL_SPEED = 150
+const ORIGINAL_SPEED = 150;
+const ORIGINAL_SPAWN_DELAY = 1000;
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -31,11 +32,6 @@ const spawnType = {
     generateObstacle: "generateObstacle",
     generateCoin: "generateCoin",
 }
-const playerStateToColorMap = {
-    [PlayerStates.Running]: "blue",
-    [PlayerStates.Jumping]: "navy",
-    [PlayerStates.Ducking]: "teal"
-};
 const HIGH_SCORE = {
     x: 50,
     y: 50
@@ -55,15 +51,15 @@ const LANE = {
 }
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 const PLAYER_SIZE = {
-    WIDTH: 95.16666666666667,
-    HEIGHT: 158.75
+    WIDTH: 65,
+    HEIGHT: 100
 }
 
 // Changeble variables
 let lastTime = Date.now();
 let lastClick = Date.now();
 let lastSpawn = Date.now();
-let spawnDelay = 1000; //This is in milliseconds
+let spawnDelay = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score = 0;
 let highScore = 0;
 let fallSpeed = ORIGINAL_SPEED;
@@ -165,18 +161,20 @@ class PlayerCharacter {
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
     }
+    changeLane(){
+        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
+    }
     processInput(){ 
         const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
         if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
             if (lastClick <= Date.now() - CLICK_DELAY && this.lane + playerDirectionChange <= LANE.COUNT && this.lane + playerDirectionChange >= 1){
                 this.lane += playerDirectionChange;
                 lastClick = Date.now();
-                this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
+                this.changeLane();
                 changeStateToRun();
-                console.log(this.x)
             }
         }
-        if (player.state == PlayerStates.Running){
+        if (this.state == PlayerStates.Running){
             if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
                 changeState(PlayerStates.Ducking);
             }
@@ -218,15 +216,6 @@ class PlayerCharacter {
 
 // Arrays and Dictionaries 
 const objects = []
-const player = {
-    x: canvas.width/2 -25,
-    y: canvas.width/3,
-    width: 50,
-    height: 50,
-    color: "blue",
-    lane: 2,
-    state: PlayerStates.Running
-};
 const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 const KEYS = {
@@ -262,7 +251,6 @@ function update(deltaTime){
     score += SCORE_SPEED;
     checkSpawn();
     loop(deltaTime);
-    player.color = playerStateToColorMap[player.state]
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
 }
@@ -282,9 +270,6 @@ function draw() {
         object.draw()
     }
 
-    context.fillStyle = player.color;
-    context.fillRect(player.x, player.y, player.width, player.height);
-
     context.fillStyle = "black";
     context.font = "20px Arial";
     context.fillText("SCORE: " + score, SCORE.x, SCORE.y);
@@ -298,7 +283,7 @@ function draw() {
 
 // These functions calculate a certain value
 function isDodging(obstacle,player){
-    return obstacle.requiredState == player.state;
+    return obstacle.requiredState == playerAnimated.state;
 }
 function calculateLaneLocation(lane,width){
     return lane * LANE.WIDTH - LANE.WIDTH/2 - width/2;
@@ -320,11 +305,11 @@ function generateCoin(){
     )
 }
 function changeState(state){
-    player.state = state;
+    playerAnimated.state = state;
     setTimeout(changeStateToRun, STATE_DURATION);
 }
 function changeStateToRun(){
-    player.state = PlayerStates.Running;
+    playerAnimated.state = PlayerStates.Running;
 }
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
@@ -340,9 +325,9 @@ function checkSpawn(){
 }
 function resetGame(){
     objects.splice(0);
-    player.lane = 2;
-    player.x = calculateLaneLocation(player.lane, player.width);
-    spawnDelay = 1000;
+    playerAnimated.lane = 2;
+    playerAnimated.changeLane();
+    spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_SPEED;
 }
 
