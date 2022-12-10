@@ -173,6 +173,78 @@ const playerAnimationInfo = {
         framesPerSecond: 12
     }
 };
+///
+class InventoryItem {
+    constructor(width, height, iconURL) {}
+}
+class Inventory {
+    constructor(width, height) {
+        this.cells = [];
+        for (let i = 0; i < width; i++) {
+            this.cells[i] = [];
+            for (let j = 0; j < height; j++) {
+                this.cells[i][j] = null;
+            }
+        }
+    }
+    placeItem(item, cellRow, cellCol) {
+        // Go through all the coordinates of the item and figure out if the cells are null;
+        // If they are, place the item AND apply some effect to the player
+        // If even 1 cell is taken, do nothing 
+    }
+    draw() {
+        // for every row and col
+        //   go through every cell, that is the top-left coordinate of an item and draw the image
+        // for every row and col
+        //   go through every cell, draw box <-- context.strokeRect
+    }
+}
+///
+class State {
+    constructor(onActivation, update, onDeactivation) {
+        this.onActivation = onActivation;
+        //...
+    }
+}
+// When do we begin updating/executing the state machine? Which array do we keep it in?
+// What's the starting state? How do we know where to begin?
+class StateMachine {
+    constructor() {
+    }
+    addState(stateName, onActivation, update, onDeactivation) {
+    }
+    update(deltaTime) {
+
+    }
+}
+const sm = new StateMachine();
+const onRunningActivation = () => {
+    playerAnimated.playAnimation(AnimationNames.RunningBack);
+    this.myVariable = 5;
+};
+const onRunningUpdate = (deltaTime) => {
+    if (this.myVariable == 5) {
+    // if (deltaTime ....)
+        return PlayerStates.Ducking;
+    }
+};
+const onRunningDeactivation = () => {};
+sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
+sm.addState(PlayerStates.Running,
+    () => {
+        playerAnimated.playAnimation(AnimationNames.RunningBack);
+        this.myVariable = 5;
+    },
+    (deltaTime) => {
+        if (this.myVariable == 5) {
+        // if (deltaTime ....)
+            return PlayerStates.Ducking;
+        }
+    },
+    () => {}
+);
+
+//
 
 class PlayerCharacter {
     constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height){
