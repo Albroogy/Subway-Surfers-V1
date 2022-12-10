@@ -243,8 +243,18 @@ sm.addState(PlayerStates.Running,
     },
     () => {}
 );
-
-//
+// Next steps
+// 1. Complete the inventory
+//    - create the UI for the inventory
+//    - create several items and have them affect the game (extra health, extra speed, whatever)
+// 2. Complete the state machine
+//    - extract the "state machine" from the PlayerCharacter class into an actual state machine
+//    - create a state machine for a new type of obstacle
+//    - create a state machine for sound management
+//          - different sounds when the game begins and restarts, when you reach a certain high score
+// 3. Decide on the creative theme - LOTR-based? Something else?
+//    - let's pick some art
+//    - turn at least 1 type of obstacle into an animated spritesheet
 
 class PlayerCharacter {
     constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height){
