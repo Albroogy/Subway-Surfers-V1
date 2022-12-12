@@ -21,19 +21,26 @@ const music = new Audio('Game_Song.mp3')
 const itemList = {
     Spear: {
         Width: 1, 
-        Height: 2,
+        Height: 1,
         URL: "spear.png"
     },
     Bow: {
-        Width: 2,
+        Width: 1,
         Height: 2,
         URL: "bow.png"
+    },
+    Armor: {
+        Width: 2,
+        Height: 2,
+        URL: "armor.png"
     }
 }
 const spearImage = new Image;
 spearImage.src = itemList.Spear.URL;
 const bowImage = new Image;
 bowImage.src = itemList.Bow.URL;
+const armorImage = new Image;
+armorImage.src = itemList.Armor.URL;
 
 // const itemImage = {
 //     Spear: spearImage,
@@ -230,7 +237,12 @@ class Inventory {
     }
     placeItem(item, cellRow, cellCol){
         if (this.placeItemCheck(item)){
-            inventory.cells[cellRow][cellCol] = item.iconURL
+            for (let i = 0; i < item.width; i++){
+                for (let j = 0; j < item.height; j++){
+                    // this.cells[cellRow + i][cellCol + j] = item.iconURL
+                    this.cells[cellRow][cellCol]= item.iconURL;
+                }
+            }
         }
     }
     draw() {
@@ -251,6 +263,9 @@ class Inventory {
                     if (this.cells[i][j] == bow.iconURL){
                         context.drawImage(bowImage, 50 + i * 50, 200 + j * 50, 50 * bow.width, 50 * bow.height);
                     }
+                    if (this.cells[i][j] == armor.iconURL){
+                        context.drawImage(armorImage, 50 + i * 50, 200 + j * 50, 50 * armor.width, 50 * armor.height);
+                    }
                 }
             }
         }
@@ -259,8 +274,12 @@ class Inventory {
 const inventory = new Inventory(5,3);
 const spear = new InventoryItem(itemList.Spear.Width,itemList.Spear.Height,itemList.Spear.URL);
 const bow = new InventoryItem(itemList.Bow.Width,itemList.Bow.Height,itemList.Bow.URL);
-inventory.placeItem(bow,0,0);
+const armor = new InventoryItem(itemList.Armor.Width,itemList.Armor.Height,itemList.Armor.URL);
+inventory.placeItem(bow,1,0);
 inventory.placeItem(spear,0,0);
+inventory.placeItem(armor,4,2);
+console.log(inventory);
+
 
 ///State Machine Code
 class State {
