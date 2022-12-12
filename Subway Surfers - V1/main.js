@@ -239,7 +239,7 @@ class Inventory {
         for (let i = cellRow; i < cellRow + item.width; i++){
             for (let j = cellCol; j < cellCol + item.height; j++){
                 for (let j = 0; j < item.height; j++){
-                    // this.cells[cellRow + i][cellCol + j] = item.iconURL
+                    // this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item.iconURL;
                     this.cells[cellRow][cellCol]= item.iconURL;
                 }
             }
