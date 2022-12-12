@@ -16,6 +16,8 @@ const ORIGINAL_SPAWN_DELAY = 1000;
 
 const image = new Image();
 image.src = 'coin_01.png';
+const spearImage = new Image;
+spearImage.src = 'spear.png'
 const music = new Audio('Game_Song.mp3')
 
 // Player Information
@@ -175,16 +177,20 @@ const playerAnimationInfo = {
 };
 ///
 class InventoryItem {
-    constructor(width, height, iconURL) {}
+    constructor(width, height, iconURL) {
+        this.width = width;
+        this.height = height;
+        this.iconURL = iconURL;
+    }
 }
 class Inventory {
     constructor(width, height) {
         this.cells = [];
         this.width = width;
         this.height = height;
-        for (let i = 0; i < width; i++) {
+        for (let i = 0; i < this.width; i++) {
             this.cells[i] = [];
-            for (let j = 0; j < height; j++) {
+            for (let j = 0; j < this.height; j++) {
                 this.cells[i][j] = null;
             }
         }
@@ -202,13 +208,23 @@ class Inventory {
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
                 context.strokeRect(50 + i * 50, 200 + j * 50, 50, 50)
+                if (this.cells[i][j] != null){
+                    if (this.cells[i][j] == spear.iconURL){
+                        context.drawImage(spearImage,50 + i * 50, 200 + j * 50,50,50);
+                    }
+                }
             }
         }
     }
 }
 const inventory = new Inventory(5,3);
 console.log(inventory.cells);
-///
+const itemList = {
+    Spear: [1, 1, "spear.png"]
+}
+const spear = new InventoryItem(1, 1, "spear.png");
+inventory.cells[1][0] = spear.iconURL
+///State Machine Code
 class State {
     constructor(onActivation, update, onDeactivation) {
         this.onActivation = onActivation;
@@ -252,6 +268,7 @@ sm.addState(PlayerStates.Running,
     },
     () => {}
 );
+
 // Next steps
 // 1. Complete the inventory
 //    - create the UI for the inventory
