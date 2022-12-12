@@ -221,12 +221,12 @@ class Inventory {
             }
         }
     }
-    placeItemCheck(item) {
+    placeItemCheck(item, cellRow, cellCol) {
         // Go through all the coordinates of the item and figure out if the cells are null;
         // If they are, place the item AND apply some effect to the player
         // If even 1 cell is taken, do nothing 
-        for (let i = 0; i < item.width; i++){
-            for (let j = 0; j < item.height; j++){
+        for (let i = cellRow; i < cellRow + item.width; i++){
+            for (let j = cellCol; j < cellCol + item.height; j++){
                 if (this.cells[i][j] != null){
                     console.log("no")
                     return false;
@@ -236,8 +236,8 @@ class Inventory {
         return true;
     }
     placeItem(item, cellRow, cellCol){
-        if (this.placeItemCheck(item)){
-            for (let i = 0; i < item.width; i++){
+        for (let i = cellRow; i < cellRow + item.width; i++){
+            for (let j = cellCol; j < cellCol + item.height; j++){
                 for (let j = 0; j < item.height; j++){
                     // this.cells[cellRow + i][cellCol + j] = item.iconURL
                     this.cells[cellRow][cellCol]= item.iconURL;
@@ -277,7 +277,7 @@ const bow = new InventoryItem(itemList.Bow.Width,itemList.Bow.Height,itemList.Bo
 const armor = new InventoryItem(itemList.Armor.Width,itemList.Armor.Height,itemList.Armor.URL);
 inventory.placeItem(bow,1,0);
 inventory.placeItem(spear,0,0);
-inventory.placeItem(armor,4,2);
+inventory.placeItem(armor,3,1);
 console.log(inventory);
 
 
