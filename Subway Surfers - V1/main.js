@@ -16,10 +16,29 @@ const ORIGINAL_SPAWN_DELAY = 1000;
 
 const image = new Image();
 image.src = 'coin_01.png';
-const spearImage = new Image;
-spearImage.src = 'spear.png'
 const music = new Audio('Game_Song.mp3')
 
+const itemList = {
+    Spear: {
+        Width: 1, 
+        Height: 2,
+        URL: "spear.png"
+    },
+    Bow: {
+        Width: 2,
+        Height: 2,
+        URL: "bow.png"
+    }
+}
+const spearImage = new Image;
+spearImage.src = itemList.Spear.URL;
+const bowImage = new Image;
+bowImage.src = itemList.Bow.URL;
+
+// const itemImage = {
+//     Spear: spearImage,
+//     Bow: bowImage
+// }
 // Player Information
 const PlayerStates = {
     Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
@@ -195,10 +214,24 @@ class Inventory {
             }
         }
     }
-    placeItem(item, cellRow, cellCol) {
+    placeItemCheck(item) {
         // Go through all the coordinates of the item and figure out if the cells are null;
         // If they are, place the item AND apply some effect to the player
         // If even 1 cell is taken, do nothing 
+        for (let i = 0; i < item.width; i++){
+            for (let j = 0; j < item.height; j++){
+                if (this.cells[i][j] != null){
+                    console.log("no")
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    placeItem(item, cellRow, cellCol){
+        if (this.placeItemCheck(item)){
+            inventory.cells[cellRow][cellCol] = item.iconURL
+        }
     }
     draw() {
         // for every row and col
@@ -207,10 +240,16 @@ class Inventory {
         //   go through every cell, draw box <-- context.strokeRect
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
-                context.strokeRect(50 + i * 50, 200 + j * 50, 50, 50)
+                context.strokeRect(50 + i * 50, 200 + j * 50, 50, 50);
                 if (this.cells[i][j] != null){
+                    // const item = this.cells[i][j];
+                    // console.log(item);
+                    // context.drawImage(itemImage.item, 50 + i * 50, 200 + j * 50, 50 * item.width, 50 * item.height);
                     if (this.cells[i][j] == spear.iconURL){
-                        context.drawImage(spearImage,50 + i * 50, 200 + j * 50,50,50);
+                        context.drawImage(spearImage, 50 + i * 50, 200 + j * 50, 50 * spear.width, 50 * spear.height);
+                    }
+                    if (this.cells[i][j] == bow.iconURL){
+                        context.drawImage(bowImage, 50 + i * 50, 200 + j * 50, 50 * bow.width, 50 * bow.height);
                     }
                 }
             }
@@ -218,12 +257,11 @@ class Inventory {
     }
 }
 const inventory = new Inventory(5,3);
-console.log(inventory.cells);
-const itemList = {
-    Spear: [1, 1, "spear.png"]
-}
-const spear = new InventoryItem(1, 1, "spear.png");
-inventory.cells[1][0] = spear.iconURL
+const spear = new InventoryItem(itemList.Spear.Width,itemList.Spear.Height,itemList.Spear.URL);
+const bow = new InventoryItem(itemList.Bow.Width,itemList.Bow.Height,itemList.Bow.URL);
+inventory.placeItem(bow,0,0);
+inventory.placeItem(spear,0,0);
+
 ///State Machine Code
 class State {
     constructor(onActivation, update, onDeactivation) {
