@@ -180,6 +180,8 @@ class InventoryItem {
 class Inventory {
     constructor(width, height) {
         this.cells = [];
+        this.width = width;
+        this.height = height;
         for (let i = 0; i < width; i++) {
             this.cells[i] = [];
             for (let j = 0; j < height; j++) {
@@ -197,8 +199,15 @@ class Inventory {
         //   go through every cell, that is the top-left coordinate of an item and draw the image
         // for every row and col
         //   go through every cell, draw box <-- context.strokeRect
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                context.strokeRect(50 + i * 50, 200 + j * 50, 50, 50)
+            }
+        }
     }
 }
+const inventory = new Inventory(5,3);
+console.log(inventory.cells);
 ///
 class State {
     constructor(onActivation, update, onDeactivation) {
@@ -372,7 +381,7 @@ function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let object of objects){
-        object.draw()
+        object.draw();
     }
 
     context.fillStyle = "black";
@@ -384,6 +393,7 @@ function draw() {
     context.drawImage(image,200,50,50,50);
     playerAnimated.draw();
 
+    inventory.draw();
 }
 
 // These functions calculate a certain value
