@@ -18,7 +18,7 @@ const image = new Image();
 image.src = 'coin_01.png';
 const music = new Audio('Game_Song.mp3')
 
-const itemList = {
+const ItemList = {
     Spear: {
         Width: 1, 
         Height: 1,
@@ -35,12 +35,16 @@ const itemList = {
         URL: "armor.png"
     }
 }
+const Stats = {
+    Lives: 1
+}
+
 const spearImage = new Image;
-spearImage.src = itemList.Spear.URL;
+spearImage.src = ItemList.Spear.URL;
 const bowImage = new Image;
-bowImage.src = itemList.Bow.URL;
+bowImage.src = ItemList.Bow.URL;
 const armorImage = new Image;
-armorImage.src = itemList.Armor.URL;
+armorImage.src = ItemList.Armor.URL;
 
 // const itemImage = {
 //     Spear: spearImage,
@@ -236,11 +240,16 @@ class Inventory {
         return true;
     }
     placeItem(item, cellRow, cellCol){
-        for (let i = cellRow; i < cellRow + item.width; i++){
-            for (let j = cellCol; j < cellCol + item.height; j++){
-                for (let j = 0; j < item.height; j++){
-                    // this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item.iconURL;
-                    this.cells[cellRow][cellCol]= item.iconURL;
+        if (this.placeItemCheck(item)){
+            for (let i = cellRow; i < cellRow + item.width; i++){
+                for (let j = cellCol; j < cellCol + item.height; j++){
+                    for (let j = 0; j < item.height; j++){
+                        // this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item.iconURL;
+                        this.cells[cellRow][cellCol] = item.iconURL;
+                        if (item.iconURL == ItemList.Armor.URL){
+                            Stats.Lives = 2;
+                        }
+                    }
                 }
             }
         }
@@ -270,11 +279,14 @@ class Inventory {
             }
         }
     }
+
 }
+
+
 const inventory = new Inventory(5,3);
-const spear = new InventoryItem(itemList.Spear.Width,itemList.Spear.Height,itemList.Spear.URL);
-const bow = new InventoryItem(itemList.Bow.Width,itemList.Bow.Height,itemList.Bow.URL);
-const armor = new InventoryItem(itemList.Armor.Width,itemList.Armor.Height,itemList.Armor.URL);
+const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemList.Spear.URL);
+const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL);
+const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL);
 inventory.placeItem(bow,1,0);
 inventory.placeItem(spear,0,0);
 inventory.placeItem(armor,3,1);
@@ -433,6 +445,7 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
+    console.log(Stats.Lives)
 }
 
 function update(deltaTime){
@@ -519,6 +532,10 @@ function resetGame(){
     playerAnimated.changeLane();
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_SPEED;
+    if (score > highScore){
+        highScore = score;
+    }
+    score = 0;
 }
 
 function loop(deltaTime){
@@ -537,11 +554,12 @@ function loop(deltaTime){
         }
         else if (objects[i].constructor == Rects){
             if (objects[i].isColliding(playerAnimated) && !objects[i].isDodging(playerAnimated)){
-                resetGame()
-                if (score > highScore){
-                    highScore = score;
+                if (Stats.Lives <= 1){
+                    resetGame();
                 }
-                score = 0;
+                else {
+                    Stats.Lives -= 1;
+                }
             }
         }
     }
