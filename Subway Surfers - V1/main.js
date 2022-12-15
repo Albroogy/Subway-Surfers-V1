@@ -232,7 +232,6 @@ class Inventory {
         for (let i = cellRow; i < cellRow + item.width; i++){
             for (let j = cellCol; j < cellCol + item.height; j++){
                 if (this.cells[i][j] != null){
-                    console.log("no")
                     return false;
                 }
             }
@@ -240,15 +239,13 @@ class Inventory {
         return true;
     }
     placeItem(item, cellRow, cellCol){
-        if (this.placeItemCheck(item)){
-            for (let i = cellRow; i < cellRow + item.width; i++){
-                for (let j = cellCol; j < cellCol + item.height; j++){
-                    for (let j = 0; j < item.height; j++){
-                        // this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item.iconURL;
-                        this.cells[cellRow][cellCol] = item.iconURL;
-                        if (item.iconURL == ItemList.Armor.URL){
-                            Stats.Lives = 2;
-                        }
+        if (this.placeItemCheck(item,cellRow,cellCol)){
+            for (let i = 0; i < item.width; i++){
+                for (let j = 0; j < item.height; j++){
+                    this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item;
+                    this.cells[cellRow][cellCol] = item.iconURL;
+                    if (item.iconURL == ItemList.Armor.URL){
+                        Stats.Lives = 2;
                     }
                 }
             }
@@ -289,7 +286,7 @@ const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bo
 const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL);
 inventory.placeItem(bow,1,0);
 inventory.placeItem(spear,0,0);
-inventory.placeItem(armor,3,1);
+inventory.placeItem(armor,2,0);
 console.log(inventory);
 
 
@@ -304,11 +301,21 @@ class State {
 // What's the starting state? How do we know where to begin?
 class StateMachine {
     constructor() {
+        this.states = {};
+        this.activeState = null;
     }
     addState(stateName, onActivation, update, onDeactivation) {
+        this.states[stateName] = new State(onActivation, update, onDeactivation);
     }
     update(deltaTime) {
-
+        if (this.activeState){
+            const nextState = this.activeState.update(deltaTime);
+        }
+            if (nextState){
+                this.activeState.onDeactivation();
+                this.activeState = this.states[nextState];
+                this.activeState.onActivation;
+            }
     }
 }
 const sm = new StateMachine();
@@ -322,21 +329,11 @@ const onRunningUpdate = (deltaTime) => {
         return PlayerStates.Ducking;
     }
 };
-const onRunningDeactivation = () => {};
+const onRunningDeactivation = () => {
+    
+};
 sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
-sm.addState(PlayerStates.Running,
-    () => {
-        playerAnimated.playAnimation(AnimationNames.RunningBack);
-        this.myVariable = 5;
-    },
-    (deltaTime) => {
-        if (this.myVariable == 5) {
-        // if (deltaTime ....)
-            return PlayerStates.Ducking;
-        }
-    },
-    () => {}
-);
+
 
 // Next steps
 // 1. Complete the inventory
@@ -445,7 +442,7 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
-    console.log(Stats.Lives)
+    console.log(inventory)
 }
 
 function update(deltaTime){
