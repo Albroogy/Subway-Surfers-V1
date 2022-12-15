@@ -35,6 +35,9 @@ const ItemList = {
         URL: "armor.png"
     }
 }
+const Weapons = {
+    Spear: "spear"
+}
 const StartingItems = {
     Armor: null,
     Bow: null,
@@ -185,7 +188,7 @@ class Circles{
 }
 
 class PlayerCharacter {
-    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, StartingItems, StartingStats){
+    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, StartingItems, StartingStats, Weapons){
         this.x = x;
         this.y = y;
         this.spritesheet = new Image();
@@ -198,8 +201,10 @@ class PlayerCharacter {
         this.state = state;
         this.width = width;
         this.height = height;
-        this.equippedItems = StartingItems
-        this.Stats = StartingStats
+        this.equippedItems = StartingItems;
+        this.Stats = StartingStats;
+        this.weapon = null;
+        this.Weapons = Weapons;
     }
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
@@ -221,6 +226,9 @@ class PlayerCharacter {
     statsUpdate(){
         if (this.equippedItems.Armor == ItemList.Armor){
             this.Stats.Lives = 2;
+        }
+        if (this.equippedItems.Spear == ItemList.Spear){
+            this.weapon = this.Weapons.Spear;
         }
     }
     processInput(){ 
@@ -295,10 +303,10 @@ const playerAnimationInfo = {
 };
 
 // Player Animation
-const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT, StartingItems, StartingStats);
+const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT, StartingItems, StartingStats, Weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 
-///
+// Inventory
 class InventoryItem {
     constructor(width, height, iconURL) {
         this.width = width;
@@ -355,7 +363,6 @@ class Inventory {
                 context.strokeRect(50 + i * 50, 200 + j * 50, 50, 50);
                 if (this.cells[i][j] != null){
                     // const item = this.cells[i][j];
-                    // console.log(item);
                     // context.drawImage(itemImage.item, 50 + i * 50, 200 + j * 50, 50 * item.width, 50 * item.height);
                     if (this.cells[i][j] == spear.iconURL){
                         context.drawImage(spearImage, 50 + i * 50, 200 + j * 50, 50 * spear.width, 50 * spear.height);
@@ -395,7 +402,8 @@ console.log(inventory);
 class State {
     constructor(onActivation, update, onDeactivation) {
         this.onActivation = onActivation;
-        //...
+        this.update = update;
+        this.onDeactivation = onDeactivation;
     }
 }
 // When do we begin updating/executing the state machine? Which array do we keep it in?
@@ -407,6 +415,7 @@ class StateMachine {
     }
     addState(stateName, onActivation, update, onDeactivation) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
+        this.states.stateName.onActivation();
     }
     update(deltaTime) {
         if (this.activeState){
@@ -415,7 +424,7 @@ class StateMachine {
             if (nextState){
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
-                this.activeState.onActivation;
+                this.activeState.onActivation();
             }
     }
 }
@@ -423,6 +432,7 @@ const sm = new StateMachine();
 
 const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
+    console.log("yes")
 };
 const onRunningUpdate = (deltaTime) => {
     if (playerAnimated.State != PlayerStates.Running){
@@ -465,7 +475,6 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
-    console.log(sm.states)
 }
 
 function update(deltaTime){
