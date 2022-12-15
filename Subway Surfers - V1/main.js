@@ -35,7 +35,12 @@ const ItemList = {
         URL: "armor.png"
     }
 }
-const Stats = {
+const StartingItems = {
+    Armor: null,
+    Bow: null,
+    Spear: null
+}
+const StartingStats = {
     Lives: 1
 }
 
@@ -179,6 +184,89 @@ class Circles{
     }
 }
 
+class PlayerCharacter {
+    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, StartingItems, StartingStats){
+        this.x = x;
+        this.y = y;
+        this.spritesheet = new Image();
+        this.spritesheet.src = spritesheetURL;
+        this.animationInfo = animationInfo;
+        this.currentAnimation = null;
+        this.currentAnimationFrame = 0;
+        this.timeSinceLastFrame = 0;
+        this.lane = lane;
+        this.state = state;
+        this.width = width;
+        this.height = height;
+        this.equippedItems = StartingItems
+        this.Stats = StartingStats
+    }
+    playAnimation(name) {
+        this.currentAnimation = this.animationInfo[name];
+    }
+    changeLane(){
+        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
+    }
+    animationUpdate(deltaTime){
+        if (this.currentAnimation == null) {
+            return;
+        }
+        const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond;
+        this.timeSinceLastFrame += deltaTime;
+        if (this.timeSinceLastFrame >= timeBetweenFrames) {
+            this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
+            this.timeSinceLastFrame = 0;
+        }
+    }
+    statsUpdate(){
+        if (this.equippedItems.Armor == ItemList.Armor){
+            this.Stats.Lives = 2;
+        }
+    }
+    processInput(){ 
+        const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
+        if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
+            music.play()
+            if (lastClick <= Date.now() - CLICK_DELAY && this.lane + playerDirectionChange <= LANE.COUNT && this.lane + playerDirectionChange >= 1){
+                this.lane += playerDirectionChange;
+                lastClick = Date.now();
+                this.changeLane();
+                changeStateToRun();
+            }
+        }
+        if (this.state == PlayerStates.Running){
+            if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
+                changeState(PlayerStates.Ducking);
+                this.playAnimation(AnimationNames.Ducking)
+            }
+            else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
+                changeState(PlayerStates.Jumping);
+                this.playAnimation(AnimationNames.Jumping);
+            }
+        }
+    }
+    update(deltaTime) {
+        this.animationUpdate(deltaTime);
+    }
+    draw(){
+        if (this.currentAnimation == null) {
+            return;
+        }
+        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
+        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
+        console.assert(frameW > 0);
+        console.assert(frameH > 0);
+        const frameSX = this.currentAnimationFrame * frameW;
+        const frameSY = this.currentAnimation.rowIndex * frameH;
+        console.assert(frameW >= 0);
+        console.assert(frameH >= 0);
+
+        context.drawImage(this.spritesheet,
+            frameSX, frameSY, frameW, frameH,
+            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
+        );
+    }
+}
 // Animation Information
 const AnimationNames = {
     RunningBack: "runningBack",
@@ -205,6 +293,11 @@ const playerAnimationInfo = {
         framesPerSecond: 12
     }
 };
+
+// Player Animation
+const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT, StartingItems, StartingStats);
+playerAnimated.playAnimation(AnimationNames.RunningBack);
+
 ///
 class InventoryItem {
     constructor(width, height, iconURL) {
@@ -245,8 +338,9 @@ class Inventory {
                     this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item;
                     this.cells[cellRow][cellCol] = item.iconURL;
                     if (item.iconURL == ItemList.Armor.URL){
-                        Stats.Lives = 2;
+                        playerAnimated.equippedItems.Armor = ItemList.Armor;
                     }
+                    playerAnimated.statsUpdate();
                 }
             }
         }
@@ -276,7 +370,14 @@ class Inventory {
             }
         }
     }
-
+    resetInventory(){
+        for (let i = 0; i < this.width; i++) {
+            this.cells[i] = [];
+            for (let j = 0; j < this.height; j++) {
+                this.cells[i][j] = null;
+            }
+        }
+    }
 }
 
 
@@ -330,7 +431,7 @@ const onRunningUpdate = (deltaTime) => {
     }
 };
 const onRunningDeactivation = () => {
-    
+
 };
 sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
 
@@ -348,84 +449,6 @@ sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunnin
 //    - let's pick some art
 //    - turn at least 1 type of obstacle into an animated spritesheet
 
-class PlayerCharacter {
-    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height){
-        this.x = x;
-        this.y = y;
-        this.spritesheet = new Image();
-        this.spritesheet.src = spritesheetURL;
-        this.animationInfo = animationInfo;
-        this.currentAnimation = null;
-        this.currentAnimationFrame = 0;
-        this.timeSinceLastFrame = 0;
-        this.lane = lane;
-        this.state = state;
-        this.width = width;
-        this.height = height;
-    }
-    playAnimation(name) {
-        this.currentAnimation = this.animationInfo[name];
-    }
-    changeLane(){
-        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
-    }
-    processInput(){ 
-        const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
-        if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-            music.play()
-            if (lastClick <= Date.now() - CLICK_DELAY && this.lane + playerDirectionChange <= LANE.COUNT && this.lane + playerDirectionChange >= 1){
-                this.lane += playerDirectionChange;
-                lastClick = Date.now();
-                this.changeLane();
-                changeStateToRun();
-            }
-        }
-        if (this.state == PlayerStates.Running){
-            if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
-                changeState(PlayerStates.Ducking);
-                this.playAnimation(AnimationNames.Ducking)
-            }
-            else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
-                changeState(PlayerStates.Jumping);
-                this.playAnimation(AnimationNames.Jumping);
-            }
-        }
-    }
-    update(deltaTime) {
-        if (this.currentAnimation == null) {
-            return;
-        }
-        const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond;
-        this.timeSinceLastFrame += deltaTime;
-        if (this.timeSinceLastFrame >= timeBetweenFrames) {
-            this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
-            this.timeSinceLastFrame = 0;
-        }
-    }
-    draw(){
-        if (this.currentAnimation == null) {
-            return;
-        }
-        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
-        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
-        console.assert(frameW > 0);
-        console.assert(frameH > 0);
-        const frameSX = this.currentAnimationFrame * frameW;
-        const frameSY = this.currentAnimation.rowIndex * frameH;
-        console.assert(frameW >= 0);
-        console.assert(frameH >= 0);
-
-        context.drawImage(this.spritesheet,
-            frameSX, frameSY, frameW, frameH,
-            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
-        );
-    }
-}
-
-// Player Animation
-const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT);
-playerAnimated.playAnimation(AnimationNames.RunningBack);
-
 //Start Loop
 requestAnimationFrame(runFrame)
 
@@ -442,15 +465,16 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
-    console.log(inventory)
 }
 
 function update(deltaTime){
     score += SCORE_SPEED;
     checkSpawn();
     loop(deltaTime);
+    playerAnimated.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
+    console.log(playerAnimated.Stats.Lives)
 }
 
 
@@ -527,6 +551,11 @@ function resetGame(){
     objects.splice(0);
     playerAnimated.lane = 2;
     playerAnimated.changeLane();
+    playerAnimated.Stats = StartingStats;
+    inventory.resetInventory();
+    inventory.placeItem(bow,1,0);
+    inventory.placeItem(spear,0,0);
+    inventory.placeItem(armor,2,0);
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_SPEED;
     if (score > highScore){
@@ -551,14 +580,14 @@ function loop(deltaTime){
         }
         else if (objects[i].constructor == Rects){
             if (objects[i].isColliding(playerAnimated) && !objects[i].isDodging(playerAnimated)){
-                if (Stats.Lives <= 1){
+                if (playerAnimated.Stats.Lives <= 1){
                     resetGame();
                 }
                 else {
-                    Stats.Lives -= 1;
+                    playerAnimated.Stats.Lives -= 1;
+                    objects.splice(i,1);
                 }
             }
         }
     }
-    playerAnimated.update(deltaTime);
 }
