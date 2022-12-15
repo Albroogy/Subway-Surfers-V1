@@ -420,14 +420,13 @@ class StateMachine {
     }
 }
 const sm = new StateMachine();
+
 const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
-    this.myVariable = 5;
 };
 const onRunningUpdate = (deltaTime) => {
-    if (this.myVariable == 5) {
-    // if (deltaTime ....)
-        return PlayerStates.Ducking;
+    if (playerAnimated.State != PlayerStates.Running){
+        return playerAnimated.State
     }
 };
 const onRunningDeactivation = () => {
@@ -437,6 +436,7 @@ sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunnin
 
 
 // Next steps
+// Done = /
 // 1. Complete the inventory
 //    - create the UI for the inventory
 //    - create several items and have them affect the game (extra health, extra speed, whatever)
@@ -465,6 +465,7 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
+    console.log(sm.states)
 }
 
 function update(deltaTime){
@@ -474,7 +475,6 @@ function update(deltaTime){
     playerAnimated.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
-    console.log(playerAnimated.Stats.Lives)
 }
 
 
