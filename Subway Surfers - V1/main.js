@@ -13,8 +13,8 @@ const COIN_RADIUS = 25;
 const OFFSET = 1;
 const ORIGINAL_SPEED = 150;
 const ORIGINAL_SPAWN_DELAY = 1000;
-const JUMP_TIME = 1200;
-const DUCK_TIME = 1200;
+const JUMP_TIME = 800;
+const DUCK_TIME = 600;
 const CHANGING_LANE_TIME = 1000;
 
 const image = new Image();
@@ -69,7 +69,7 @@ const PlayerStates = {
     ChangingLane: "changingLane"
 };
 const PLAYER_SIZE = {
-    WIDTH: 65,
+    WIDTH: 100,
     HEIGHT: 100
 }
 
@@ -243,7 +243,8 @@ class PlayerCharacter {
         if (this.currentAnimation == null) {
             return;
         }
-        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
+        // const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
+        const frameW = this.spritesheet.width / 13;
         const frameH = this.spritesheet.height / this.animationInfo.animationCount;
         console.assert(frameW > 0);
         console.assert(frameH > 0);
@@ -251,7 +252,6 @@ class PlayerCharacter {
         const frameSY = this.currentAnimation.rowIndex * frameH;
         console.assert(frameW >= 0);
         console.assert(frameH >= 0);
-
         context.drawImage(this.spritesheet,
             frameSX, frameSY, frameW, frameH,
             this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
@@ -271,26 +271,26 @@ const AnimationNames = {
 // Should I combine the AnimationNames dictionary with the PlayerStates Dictionary?
 
 const playerAnimationInfo = {
-    animationCount: 4, 
+    animationCount: 21, 
     [AnimationNames.RunningBack]: {
-        rowIndex: 3,
-        frameCount: 12,
-        framesPerSecond: 12
+        rowIndex: 8,
+        frameCount: 8,
+        framesPerSecond: 6
     },
     [AnimationNames.Jumping]: {
-        rowIndex: 1,
-        frameCount: 12,
-        framesPerSecond: 12
+        rowIndex: 0,
+        frameCount: 6,
+        framesPerSecond: 6
     },
     [AnimationNames.Ducking]: {
-        rowIndex: 2,
-        frameCount: 12,
-        framesPerSecond: 12
+        rowIndex: 4,
+        frameCount: 7,
+        framesPerSecond: 6
     }
 };
 
 // Player Animation
-const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "hero.webp", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT, StartingItems, StartingStats, Weapons);
+const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "player.png", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT, StartingItems, StartingStats, Weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
