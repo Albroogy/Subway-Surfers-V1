@@ -235,28 +235,6 @@ class PlayerCharacter {
             this.weapon = this.Weapons.Spear;
         }
     }
-    processInput(){ 
-        const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
-        if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-            music.play()
-            if (lastClick <= Date.now() - CLICK_DELAY && this.lane + playerDirectionChange <= LANE.COUNT && this.lane + playerDirectionChange >= 1){
-                this.lane += playerDirectionChange;
-                lastClick = Date.now();
-                this.changeLane();
-                changeStateToRun();
-            }
-        }
-        if (this.state == PlayerStates.Running){
-            if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
-                changeState(PlayerStates.Ducking);
-                this.playAnimation(AnimationNames.Ducking)
-            }
-            else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
-                changeState(PlayerStates.Jumping);
-                this.playAnimation(AnimationNames.Jumping);
-            }
-        }
-    }
     update(deltaTime) {
         this.animationUpdate(deltaTime);
     }
@@ -570,9 +548,7 @@ function draw() {
 }
 
 // These functions calculate a certain value
-function isDodging(obstacle){
-    return obstacle.requiredState == playerAnimated.state;
-}
+
 function calculateLaneLocation(lane){
     return lane * LANE.WIDTH - LANE.WIDTH/2;
 }
@@ -591,14 +567,6 @@ function generateCoin(){
     objects.push(
         new Circles(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
     )
-}
-function changeState(state){
-    playerAnimated.state = state;
-    setTimeout(changeStateToRun, STATE_DURATION);
-}
-function changeStateToRun(){
-    playerAnimated.state = PlayerStates.Running;
-    playerAnimated.playAnimation(AnimationNames.RunningBack);
 }
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
