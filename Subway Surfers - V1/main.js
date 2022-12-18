@@ -273,6 +273,10 @@ class PlayerCharacter {
             frameSX, frameSY, frameW, frameH,
             this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
         );
+        if (this.weapon == this.Weapons.Spear){
+            return;
+            //Add something here
+        }
     }
 }
 // Animation Information
@@ -415,7 +419,8 @@ class StateMachine {
     }
     addState(stateName, onActivation, update, onDeactivation) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
-        this.states.stateName.onActivation();
+        this.activeState = this.states[stateName];
+        this.activeState.onActivation();
     }
     update(deltaTime) {
         if (this.activeState){
@@ -443,7 +448,6 @@ const onRunningDeactivation = () => {
 
 };
 sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
-
 
 // Next steps
 // Done = /
