@@ -13,8 +13,9 @@ const COIN_RADIUS = 25;
 const OFFSET = 1;
 const ORIGINAL_SPEED = 150;
 const ORIGINAL_SPAWN_DELAY = 1000;
-const JUMP_TIME = 1500;
-const DUCK_TIME = 1500;
+const JUMP_TIME = 1200;
+const DUCK_TIME = 1200;
+const CHANGING_LANE_TIME = 1000;
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -64,7 +65,8 @@ armorImage.src = ItemList.Armor.URL;
 const PlayerStates = {
     Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
     Jumping: "jumping",
-    Ducking: "ducking"
+    Ducking: "ducking",
+    ChangingLane: "changingLane"
 };
 const PLAYER_SIZE = {
     WIDTH: 65,
@@ -107,8 +109,7 @@ const SCORE = {
 let lastTime = Date.now();
 let lastClick = Date.now();
 let lastSpawn = Date.now();
-let lastJump = Date.now();
-let lastDuck = Date.now();
+let stateStart = Date.now();
 let spawnDelay = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score = 0;
 let highScore = 0;
@@ -420,7 +421,6 @@ const sm = new StateMachine();
 const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
     playerAnimated.state = PlayerStates.Running;
-    console.log(AnimationNames.RunningBack);
 };
 const onRunningUpdate = () => {
     const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
@@ -432,12 +432,19 @@ const onRunningUpdate = () => {
             playerAnimated.changeLane();
         }
     }
-        if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
-            return PlayerStates.Ducking;
-        }
-        else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
-            return PlayerStates.Jumping;
-        }
+    // const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
+    // if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
+    //     music.play()
+    //     if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerDirectionChange >= 1){
+    //         return PlayerStates.ChangingLane;
+    //     }
+    // }
+    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
+        return PlayerStates.Ducking;
+    }
+    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
+        return PlayerStates.Jumping;
+    }
 };
 const onRunningDeactivation = () => {
 };
@@ -445,11 +452,10 @@ const onRunningDeactivation = () => {
 const onJumpingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Jumping);
     playerAnimated.state = PlayerStates.Jumping;
-    lastJump = Date.now();
-    console.log(AnimationNames.Jumping)
+    stateStart = Date.now();
 }
 const onJumpingUpdate = () => {
-    if (lastJump <= Date.now() - JUMP_TIME) {
+    if (checkStateEnd(JUMP_TIME)) {
         return PlayerStates.Running;
     }
 }
@@ -459,20 +465,29 @@ const onJumpingDeactivation = () => {
 const onDuckingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Ducking);
     playerAnimated.state = PlayerStates.Ducking;
-    lastDuck = Date.now();
-    console.log(AnimationNames.Ducking)
+    stateStart = Date.now();
 }
 const onDuckingUpdate = () => {
-    if (lastDuck <= Date.now() - DUCK_TIME) {
+    if (checkStateEnd(DUCK_TIME)) {
         return PlayerStates.Running;
     }
 }
 const onDuckingDeactivation = () => {
 }
 
+const onChangingLaneActivation = () => {
+    
+}
+const onChangingLaneUpdate = () => {
+    
+}
+const onChangingLaneDeactivation = () => {
+}
+
 sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
 sm.addState(PlayerStates.Jumping, onJumpingActivation, onJumpingUpdate, onJumpingDeactivation);
 sm.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
+sm.addState(PlayerStates.ChangingLane, onChangingLaneActivation, onChangingLaneUpdate, onChangingLaneDeactivation);
 
 // Starting state machine
 sm.activeState = sm.states[PlayerStates.Running];
@@ -554,6 +569,9 @@ function calculateLaneLocation(lane){
 }
 function pickLane(){
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
+}
+function checkStateEnd(stateLength){
+    return stateStart <= Date.now() - stateLength;
 }
 
 // These functions carry out a certain action
