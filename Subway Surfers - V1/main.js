@@ -13,6 +13,8 @@ const COIN_RADIUS = 25;
 const OFFSET = 1;
 const ORIGINAL_SPEED = 150;
 const ORIGINAL_SPAWN_DELAY = 1000;
+const JUMP_TIME = 1500;
+const DUCK_TIME = 1500;
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -105,6 +107,8 @@ const SCORE = {
 let lastTime = Date.now();
 let lastClick = Date.now();
 let lastSpawn = Date.now();
+let lastJump = Date.now();
+let lastDuck = Date.now();
 let spawnDelay = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score = 0;
 let highScore = 0;
@@ -152,8 +156,8 @@ class Rects{
             this.y - this.height/2 <= player.y + PLAYER_SIZE.HEIGHT/2
         )
     }
-    isDodging(player){
-        return this.requiredState == player.state;
+    isDodging(playerAnimated){
+        return this.requiredState == playerAnimated.state;
     }
     move(deltaTime){
         this.y += this.speed * deltaTime / 1000;
@@ -419,35 +423,82 @@ class StateMachine {
     }
     addState(stateName, onActivation, update, onDeactivation) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
-        this.activeState = this.states[stateName];
-        this.activeState.onActivation();
     }
     update(deltaTime) {
         if (this.activeState){
-            const nextState = this.activeState.update(deltaTime);
-        }
+            const nextState = this.activeState.update(deltaTime)
             if (nextState){
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
                 this.activeState.onActivation();
             }
+        }
     }
 }
 const sm = new StateMachine();
 
+//Adding the states
+
 const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
-    console.log("yes")
+    playerAnimated.state = PlayerStates.Running;
+    console.log(AnimationNames.RunningBack);
 };
-const onRunningUpdate = (deltaTime) => {
-    if (playerAnimated.State != PlayerStates.Running){
-        return playerAnimated.State
+const onRunningUpdate = () => {
+    const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
+    if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
+        music.play()
+        if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerDirectionChange >= 1){
+            playerAnimated.lane += playerDirectionChange;
+            lastClick = Date.now();
+            playerAnimated.changeLane();
+        }
     }
+        if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
+            return PlayerStates.Ducking;
+        }
+        else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
+            return PlayerStates.Jumping;
+        }
 };
 const onRunningDeactivation = () => {
-
 };
+
+const onJumpingActivation = () => {
+    playerAnimated.playAnimation(AnimationNames.Jumping);
+    playerAnimated.state = PlayerStates.Jumping;
+    lastJump = Date.now();
+    console.log(AnimationNames.Jumping)
+}
+const onJumpingUpdate = () => {
+    if (lastJump <= Date.now() - JUMP_TIME) {
+        return PlayerStates.Running;
+    }
+}
+const onJumpingDeactivation = () => {
+}
+
+const onDuckingActivation = () => {
+    playerAnimated.playAnimation(AnimationNames.Ducking);
+    playerAnimated.state = PlayerStates.Ducking;
+    lastDuck = Date.now();
+    console.log(AnimationNames.Ducking)
+}
+const onDuckingUpdate = () => {
+    if (lastDuck <= Date.now() - DUCK_TIME) {
+        return PlayerStates.Running;
+    }
+}
+const onDuckingDeactivation = () => {
+}
+
 sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
+sm.addState(PlayerStates.Jumping, onJumpingActivation, onJumpingUpdate, onJumpingDeactivation);
+sm.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
+
+// Starting state machine
+sm.activeState = sm.states[PlayerStates.Running];
+sm.activeState.onActivation();
 
 // Next steps
 // Done = /
@@ -472,7 +523,7 @@ function runFrame() {
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime;
     // process input
-    playerAnimated.processInput();
+    // playerAnimated.processInput();
     // update state
     update(deltaTime);
     // draw the world
@@ -488,6 +539,7 @@ function update(deltaTime){
     playerAnimated.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
+    sm.update();
 }
 
 
