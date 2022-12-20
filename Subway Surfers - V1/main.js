@@ -42,23 +42,6 @@ const image = new Image();
 image.src = 'coin_01.png';
 const music = new Audio('Game_Song.mp3')
 
-const ItemList = {
-    Spear: {
-        Width: 1, 
-        Height: 1,
-        URL: "spear.png"
-    },
-    Bow: {
-        Width: 1,
-        Height: 2,
-        URL: "bow.png"
-    },
-    Armor: {
-        Width: 2,
-        Height: 2,
-        URL: "armor.png"
-    }
-}
 const Weapons = {
     Spear: "player.png",
     Bow: "playerBow.png"
@@ -73,11 +56,32 @@ const StartingStats = {
 }
 
 const spearImage = new Image;
-spearImage.src = ItemList.Spear.URL;
+spearImage.src = "spear.png";
 const bowImage = new Image;
-bowImage.src = ItemList.Bow.URL;
+bowImage.src = "bow.png";
 const armorImage = new Image;
-armorImage.src = ItemList.Armor.URL;
+armorImage.src = "armor.png";
+
+const ItemList = {
+    Spear: {
+        Width: 1, 
+        Height: 1,
+        URL: spearImage.src,
+        Image: spearImage
+    },
+    Bow: {
+        Width: 1,
+        Height: 2,
+        URL: bowImage.src,
+        Image: bowImage
+    },
+    Armor: {
+        Width: 2,
+        Height: 2,
+        URL: armorImage.src,
+        Image: armorImage
+    }
+}
 
 // Player Information
 const PlayerStates = {
@@ -113,6 +117,10 @@ const LANE = {
 const ARROW = {
     WIDTH: 7.5,
     HEIGHT: 45
+}
+const ITEM = {
+    WIDTH: 50,
+    HEIGHT: 50
 }
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
@@ -344,10 +352,11 @@ playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
 class InventoryItem {
-    constructor(width, height, iconURL) {
+    constructor(width, height, iconURL, image) {
         this.width = width;
         this.height = height;
         this.iconURL = iconURL;
+        this.image = image
     }
 }
 class Inventory {
@@ -376,11 +385,11 @@ class Inventory {
         return true;
     }
     placeItem(item, cellRow, cellCol){
-        if (this.placeItemCheck(item,cellRow,cellCol)){
+        if (this.placeItemCheck(item, cellRow, cellCol)){
             for (let i = 0; i < item.width; i++){
                 for (let j = 0; j < item.height; j++){
-                    this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item;
-                    this.cells[cellRow][cellCol] = item.iconURL;
+                    this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item.URL;
+                    this.cells[cellRow][cellCol] = item;
                     if (item.iconURL == ItemList.Armor.URL){
                         playerAnimated.equippedItems.Armor = ItemList.Armor;
                     }
@@ -402,19 +411,21 @@ class Inventory {
         //   go through every cell, draw box <-- context.strokeRect
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
-                context.strokeRect(50 + i * 50, 200 + j * 50, 50, 50);
+                context.strokeRect(50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50, 50);
                 if (this.cells[i][j] != null){
                     // const item = this.cells[i][j];
                     // context.drawImage(itemImage.item, 50 + i * 50, 200 + j * 50, 50 * item.width, 50 * item.height);
-                    if (this.cells[i][j] == spear.iconURL){
-                        context.drawImage(spearImage, 50 + i * 50, 200 + j * 50, 50 * spear.width, 50 * spear.height);
-                    }
-                    if (this.cells[i][j] == bow.iconURL){
-                        context.drawImage(bowImage, 50 + i * 50, 200 + j * 50, 50 * bow.width, 50 * bow.height);
-                    }
-                    if (this.cells[i][j] == armor.iconURL){
-                        context.drawImage(armorImage, 50 + i * 50, 200 + j * 50, 50 * armor.width, 50 * armor.height);
-                    }
+                    context.drawImage(this.cells[i][j].image, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * this.cells[i][j].width, 50 * this.cells[i][j].height)
+                    // if (this.cells[i][j] == spear.iconURL){
+                    //     context.drawImage(spearImage, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * spear.width, 50 * spear.height);
+                    // }
+                    // if (this.cells[i][j] == bow.iconURL){
+                    //     context.drawImage(bowImage, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * bow.width, 50 * bow.height);
+                    // }
+                    // if (this.cells[i][j] == armor.iconURL){
+                    //     context.drawImage(armorImage, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * armor.width, 50 * armor.height);
+                    // }
+                    // I need to figure out how to combine these lines of code into 1
                 }
             }
         }
@@ -431,12 +442,12 @@ class Inventory {
 
 
 const inventory = new Inventory(5,3);
-const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemList.Spear.URL);
-const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL);
-const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL);
-inventory.placeItem(bow,1,0);
-inventory.placeItem(spear,0,0);
-inventory.placeItem(armor,2,0);
+const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemList.Spear.URL, ItemList.Spear.Image);
+const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL, ItemList.Bow.Image);
+const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL, ItemList.Armor.Image);
+inventory.placeItem(bow, 1, 0);
+inventory.placeItem(spear, 0, 0);
+inventory.placeItem(armor, 2, 0);
 console.log(inventory);
 
 
@@ -730,17 +741,14 @@ function loop(deltaTime){
         else if (objects[i].constructor == Arrow){
             for (let j = 0; j < objects.length; j++){
                 if (objects[j].constructor == Rects){
-                    if (objects[i]){
-                        // Temporary fix. I need to figure out why objects[i] is undefined sometimes
                         console.assert(objects[i]);
                         console.assert(objects[j]);
                         if (objects[i].isColliding(objects[j])){
-                            console.log("isColliding");
                             destroyCollidingObjects(i, j);
                         }
+                        continue;
                         // For effiency's sake, should I split the objects array into 3 lane arrays? 
                         // This way for collisions I will only need to check the objects that are on the same lane.
-                    }
                 }
             }
         }
