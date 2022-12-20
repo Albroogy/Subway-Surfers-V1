@@ -16,6 +16,7 @@ const ORIGINAL_SPAWN_DELAY = 1000;
 const JUMP_TIME = 800;
 const DUCK_TIME = 600;
 const CHANGING_LANE_TIME = 1000;
+const COOLDOWN = 300;
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -109,7 +110,7 @@ const SCORE = {
 let lastTime = Date.now();
 let lastClick = Date.now();
 let lastSpawn = Date.now();
-let stateStart = Date.now();
+let timeStart = Date.now();
 let spawnDelay = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score = 0;
 let highScore = 0;
@@ -275,17 +276,17 @@ const playerAnimationInfo = {
     [AnimationNames.RunningBack]: {
         rowIndex: 8,
         frameCount: 8,
-        framesPerSecond: 6
+        framesPerSecond: 8
     },
     [AnimationNames.Jumping]: {
         rowIndex: 0,
-        frameCount: 6,
-        framesPerSecond: 6
+        frameCount: 7,
+        framesPerSecond: 7
     },
     [AnimationNames.Ducking]: {
         rowIndex: 4,
         frameCount: 7,
-        framesPerSecond: 6
+        framesPerSecond: 7
     }
 };
 
@@ -406,6 +407,7 @@ class StateMachine {
     update(deltaTime) {
         if (this.activeState){
             const nextState = this.activeState.update(deltaTime)
+            console.log(nextState)
             if (nextState){
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
@@ -421,6 +423,7 @@ const sm = new StateMachine();
 const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
     playerAnimated.state = PlayerStates.Running;
+    timeStart = Date.now();
 };
 const onRunningUpdate = () => {
     const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
@@ -439,10 +442,10 @@ const onRunningUpdate = () => {
     //         return PlayerStates.ChangingLane;
     //     }
     // }
-    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown]) {
+    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(COOLDOWN)) {
         return PlayerStates.Ducking;
     }
-    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp]) {
+    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(COOLDOWN)) {
         return PlayerStates.Jumping;
     }
 };
@@ -452,12 +455,15 @@ const onRunningDeactivation = () => {
 const onJumpingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Jumping);
     playerAnimated.state = PlayerStates.Jumping;
-    stateStart = Date.now();
+    timeStart = Date.now();
 }
 const onJumpingUpdate = () => {
-    if (checkStateEnd(JUMP_TIME)) {
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount -1){
         return PlayerStates.Running;
     }
+    // if (checkTime(JUMP_TIME)) {
+    //     return PlayerStates.Running;
+    // }
 }
 const onJumpingDeactivation = () => {
 }
@@ -465,12 +471,15 @@ const onJumpingDeactivation = () => {
 const onDuckingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Ducking);
     playerAnimated.state = PlayerStates.Ducking;
-    stateStart = Date.now();
+    timeStart = Date.now();
 }
 const onDuckingUpdate = () => {
-    if (checkStateEnd(DUCK_TIME)) {
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount -1){
         return PlayerStates.Running;
     }
+    // if (checkTime(DUCK_TIME)) {
+    //     return PlayerStates.Running;
+    // }
 }
 const onDuckingDeactivation = () => {
 }
@@ -570,8 +579,8 @@ function calculateLaneLocation(lane){
 function pickLane(){
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
-function checkStateEnd(stateLength){
-    return stateStart <= Date.now() - stateLength;
+function checkTime(stateLength){
+    return timeStart <= Date.now() - stateLength;
 }
 
 // These functions carry out a certain action
