@@ -449,6 +449,7 @@ const sm = new StateMachine();
 
 const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
+    playerAnimated.currentAnimationFrame = 0;
     playerAnimated.state = PlayerStates.Running;
     timeStart = Date.now();
 };
@@ -481,6 +482,7 @@ const onRunningDeactivation = () => {
 
 const onJumpingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Jumping);
+    playerAnimated.currentAnimationFrame = 0;
     playerAnimated.state = PlayerStates.Jumping;
     timeStart = Date.now();
 }
@@ -497,6 +499,7 @@ const onJumpingDeactivation = () => {
 
 const onDuckingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Ducking);
+    playerAnimated.currentAnimationFrame = 0;
     playerAnimated.state = PlayerStates.Ducking;
     timeStart = Date.now();
 }
@@ -537,13 +540,15 @@ sm.activeState.onActivation();
 //    - create the UI for the inventory
 //    - create several items and have them affect the game (extra health, extra speed, whatever)
 // 2. Complete the state machine
-//    - extract the "state machine" from the PlayerCharacter class into an actual state machine
+//    - extract the "state machine" from the PlayerCharacter class into an actual state machine /
 //    - create a state machine for a new type of obstacle
 //    - create a state machine for sound management
 //          - different sounds when the game begins and restarts, when you reach a certain high score
 // 3. Decide on the creative theme - LOTR-based? Something else?
 //    - let's pick some art
 //    - turn at least 1 type of obstacle into an animated spritesheet
+// Bugs to fix:
+// 1. Animation seems to vary. It doesn't always start at frame 0 /
 
 //Start Loop
 requestAnimationFrame(runFrame)
