@@ -1,3 +1,23 @@
+// Key Information
+const allPressedKeys = {};
+window.addEventListener("keydown", function (event) {
+    allPressedKeys[event.keyCode] = true;
+});
+window.addEventListener("keyup", function (event) {
+    allPressedKeys[event.keyCode] = false;
+});
+const KEYS = {
+    W: 87,
+    S: 83,
+    A: 65,
+    D: 68,
+    Space: 32,
+    ArrowLeft: 37,
+    ArrowRight: 39,
+    ArrowUp: 38,
+    ArrowDown: 40,
+};
+
 // Constant variables
 const canvas = document.getElementById("game-canvas");
 canvas.width = window.innerWidth;
@@ -116,26 +136,6 @@ let spawnDelay = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score = 0;
 let highScore = 0;
 let fallSpeed = ORIGINAL_SPEED;
-
-// Key Information
-const allPressedKeys = {};
-window.addEventListener("keydown", function (event) {
-    allPressedKeys[event.keyCode] = true;
-});
-window.addEventListener("keyup", function (event) {
-    allPressedKeys[event.keyCode] = false;
-});
-const KEYS = {
-    W: 87,
-    S: 83,
-    A: 65,
-    D: 68,
-    Space: 32,
-    ArrowLeft: 37,
-    ArrowRight: 39,
-    ArrowUp: 38,
-    ArrowDown: 40,
-};
 
 class Rects{
     constructor(x, y, width, height, color, requiredState, speed) {
@@ -549,6 +549,8 @@ sm.activeState.onActivation();
 //    - turn at least 1 type of obstacle into an animated spritesheet
 // Bugs to fix:
 // 1. Animation seems to vary. It doesn't always start at frame 0 /
+// Tasks:
+// 1. Figure out how to add changeLane state to player.
 
 //Start Loop
 requestAnimationFrame(runFrame)
