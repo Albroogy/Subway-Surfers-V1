@@ -79,10 +79,6 @@ bowImage.src = ItemList.Bow.URL;
 const armorImage = new Image;
 armorImage.src = ItemList.Armor.URL;
 
-// const itemImage = {
-//     Spear: spearImage,
-//     Bow: bowImage
-// }
 // Player Information
 const PlayerStates = {
     Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
@@ -115,8 +111,8 @@ const LANE = {
     COUNT: 3
 }
 const ARROW = {
-    WIDTH: 10,
-    HEIGHT: 60
+    WIDTH: 7.5,
+    HEIGHT: 45
 }
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
@@ -158,10 +154,10 @@ class Rects{
     }
     isColliding(player){
         return (
-            this.x - this.width/2 <= player.x + PLAYER_SIZE.WIDTH/2 &&
-            this.x + this.width/2 >= player.x - PLAYER_SIZE.WIDTH/2 &&
-            this.y + this.height/2 >= player.y - PLAYER_SIZE.HEIGHT/2 &&
-            this.y - this.height/2 <= player.y + PLAYER_SIZE.HEIGHT/2
+            this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
+            this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
+            this.y + this.height/2 >= player.y - playerAnimated.height/2 &&
+            this.y - this.height/2 <= player.y + playerAnimated.height/2
         )
     }
     isDodging(playerAnimated){
@@ -188,10 +184,10 @@ class Circles{
     }
     isColliding(player){
         return (
-            this.x - this.radius <= player.x + PLAYER_SIZE.WIDTH/2 &&
-            this.x + this.radius >= player.x - PLAYER_SIZE.WIDTH/2 &&
-            this.y + this.radius >= player.y - PLAYER_SIZE.HEIGHT/2 &&
-            this.y - this.radius <= player.y + PLAYER_SIZE.HEIGHT/2
+            this.x - this.radius <= player.x + playerAnimated.width/2 &&
+            this.x + this.radius >= player.x - playerAnimated.width/2 &&
+            this.y + this.radius >= player.y - playerAnimated.height/2 &&
+            this.y - this.radius <= player.y + playerAnimated.height/2
         )
     }
     move(deltaTime){
@@ -214,6 +210,14 @@ class Arrow {
     }
     move(deltaTime){
         this.y -= this.speed * deltaTime / 1000;
+    }
+    isColliding(object){
+        return (
+            this.x - this.width/2 <= object.x + object.width/2 &&
+            this.x + this.width/2 >= object.x - object.width/2 &&
+            this.y + this.height/2 >= object.y - object.height/2 &&
+            this.y - this.height/2 <= object.y + object.height/2
+        )
     }
 }
 
@@ -329,8 +333,8 @@ const playerBowAnimationInfo = {
     },
     [AnimationNames.Ducking]: {
         rowIndex: 16,
-        frameCount: 7,
-        framesPerSecond: 7
+        frameCount: 13,
+        framesPerSecond: 13
     }
 };
 
@@ -457,7 +461,6 @@ class StateMachine {
     update(deltaTime) {
         if (this.activeState){
             const nextState = this.activeState.update(deltaTime)
-            console.log(nextState)
             if (nextState){
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
@@ -510,12 +513,9 @@ const onJumpingActivation = () => {
     timeStart = Date.now();
 }
 const onJumpingUpdate = () => {
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount -1){
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
         return PlayerStates.Running;
     }
-    // if (checkTime(JUMP_TIME)) {
-    //     return PlayerStates.Running;
-    // }
 }
 const onJumpingDeactivation = () => {
 }
@@ -527,17 +527,21 @@ const onDuckingActivation = () => {
     timeStart = Date.now();
 }
 const onDuckingUpdate = () => {
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount -1){
+    // if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount){
+    //     objects.push(
+    //         new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
+    //     );
+    // }
+    // Why does this code not work?
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
         return PlayerStates.Running;
     }
-    // if (checkTime(DUCK_TIME)) {
-    //     return PlayerStates.Running;
-    // }
 }
 const onDuckingDeactivation = () => {
     objects.push(
         new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
     );
+    //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
 }
 
 const onChangingLaneActivation = () => {
@@ -604,7 +608,6 @@ function update(deltaTime){
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
     sm.update();
-    console.log(objects)
 }
 
 
@@ -686,12 +689,22 @@ function resetGame(){
     }
     score = 0;
 }
+function destroyCollidingObjects(object1, object2){
+    objects.splice(object1,1);
+    objects.splice(object2,1);
+}
 
 function loop(deltaTime){
     for (let i = 0; i < objects.length; i++){
         objects[i].move(deltaTime);
         objects[i].speed = fallSpeed;
-        if (objects[i].y >= canvas.height + OBJECT.HEIGHT/2){
+        if (objects[i].constructor == Arrow){
+            if (objects[i].y <= -objects[i].height){
+                objects.splice(i,1);
+                continue;
+            }
+        }
+        else if (objects[i].y >= canvas.height + objects[i].height/2){
             objects.splice(i,1);
             continue;
         }
@@ -699,6 +712,7 @@ function loop(deltaTime){
             if (objects[i].isColliding(playerAnimated)){
                 objects.splice(i,1);
                 score += COIN_VALUE;
+                continue;
             }
         }
         else if (objects[i].constructor == Rects){
@@ -709,6 +723,24 @@ function loop(deltaTime){
                 else {
                     playerAnimated.Stats.Lives -= 1;
                     objects.splice(i,1);
+                    continue;
+                }
+            }
+        }
+        else if (objects[i].constructor == Arrow){
+            for (let j = 0; j < objects.length; j++){
+                if (objects[j].constructor == Rects){
+                    if (objects[i]){
+                        // Temporary fix. I need to figure out why objects[i] is undefined sometimes
+                        console.assert(objects[i]);
+                        console.assert(objects[j]);
+                        if (objects[i].isColliding(objects[j])){
+                            console.log("isColliding");
+                            destroyCollidingObjects(i, j);
+                        }
+                        // For effiency's sake, should I split the objects array into 3 lane arrays? 
+                        // This way for collisions I will only need to check the objects that are on the same lane.
+                    }
                 }
             }
         }
