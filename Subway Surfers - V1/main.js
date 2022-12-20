@@ -413,19 +413,7 @@ class Inventory {
             for (let j = 0; j < this.height; j++) {
                 context.strokeRect(50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50, 50);
                 if (this.cells[i][j] != null){
-                    // const item = this.cells[i][j];
-                    // context.drawImage(itemImage.item, 50 + i * 50, 200 + j * 50, 50 * item.width, 50 * item.height);
                     context.drawImage(this.cells[i][j].image, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * this.cells[i][j].width, 50 * this.cells[i][j].height)
-                    // if (this.cells[i][j] == spear.iconURL){
-                    //     context.drawImage(spearImage, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * spear.width, 50 * spear.height);
-                    // }
-                    // if (this.cells[i][j] == bow.iconURL){
-                    //     context.drawImage(bowImage, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * bow.width, 50 * bow.height);
-                    // }
-                    // if (this.cells[i][j] == armor.iconURL){
-                    //     context.drawImage(armorImage, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * armor.width, 50 * armor.height);
-                    // }
-                    // I need to figure out how to combine these lines of code into 1
                 }
             }
         }
