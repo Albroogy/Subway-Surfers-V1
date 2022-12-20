@@ -114,6 +114,11 @@ const LANE = {
     WIDTH: canvas.width/3,
     COUNT: 3
 }
+const ARROW = {
+    WIDTH: 10,
+    HEIGHT: 60
+}
+
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 const objects = []
 
@@ -191,6 +196,24 @@ class Circles{
     }
     move(deltaTime){
         this.y += this.speed * deltaTime / 1000;
+    }
+}
+
+class Arrow {
+    constructor(x, y, imageUrl, width, height, speed){
+        this.x = x;
+        this.y = y;
+        this.image = new Image();
+        this.image.src = imageUrl;
+        this.width = width;
+        this.height = height;
+        this.speed = speed;
+    }
+    draw(){
+        context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+    }
+    move(deltaTime){
+        this.y -= this.speed * deltaTime / 1000;
     }
 }
 
@@ -512,6 +535,9 @@ const onDuckingUpdate = () => {
     // }
 }
 const onDuckingDeactivation = () => {
+    objects.push(
+        new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
+    );
 }
 
 const onChangingLaneActivation = () => {
@@ -578,6 +604,7 @@ function update(deltaTime){
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
     sm.update();
+    console.log(objects)
 }
 
 
@@ -662,8 +689,8 @@ function resetGame(){
 
 function loop(deltaTime){
     for (let i = 0; i < objects.length; i++){
-        objects[i].speed = fallSpeed;
         objects[i].move(deltaTime);
+        objects[i].speed = fallSpeed;
         if (objects[i].y >= canvas.height + OBJECT.HEIGHT/2){
             objects.splice(i,1);
             continue;
