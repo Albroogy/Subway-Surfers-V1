@@ -40,7 +40,8 @@ const ItemList = {
     }
 }
 const Weapons = {
-    Spear: "spear"
+    Spear: "player.png",
+    Bow: "playerBow.png"
 }
 const StartingItems = {
     Armor: null,
@@ -236,6 +237,12 @@ class PlayerCharacter {
         if (this.equippedItems.Spear == ItemList.Spear){
             this.weapon = this.Weapons.Spear;
         }
+        if (this.equippedItems.Bow == ItemList.Bow){
+            this.weapon = this.Weapons.Bow;
+            this.animationInfo = playerBowAnimationInfo;
+        }
+        console.log(this.weapon);
+        playerAnimated.spritesheet.src = this.weapon;
     }
     update(deltaTime) {
         this.animationUpdate(deltaTime);
@@ -257,10 +264,6 @@ class PlayerCharacter {
             frameSX, frameSY, frameW, frameH,
             this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
         );
-        if (this.weapon == this.Weapons.Spear){
-            return;
-            //Add something here
-        }
     }
 }
 // Animation Information
@@ -271,7 +274,7 @@ const AnimationNames = {
 }
 // Should I combine the AnimationNames dictionary with the PlayerStates Dictionary?
 
-const playerAnimationInfo = {
+const playerSpearAnimationInfo = {
     animationCount: 21, 
     [AnimationNames.RunningBack]: {
         rowIndex: 8,
@@ -289,9 +292,27 @@ const playerAnimationInfo = {
         framesPerSecond: 7
     }
 };
+const playerBowAnimationInfo = {
+    animationCount: 21, 
+    [AnimationNames.RunningBack]: {
+        rowIndex: 8,
+        frameCount: 8,
+        framesPerSecond: 8
+    },
+    [AnimationNames.Jumping]: {
+        rowIndex: 0,
+        frameCount: 7,
+        framesPerSecond: 7
+    },
+    [AnimationNames.Ducking]: {
+        rowIndex: 16,
+        frameCount: 7,
+        framesPerSecond: 7
+    }
+};
 
 // Player Animation
-const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "player.png", playerAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT, StartingItems, StartingStats, Weapons);
+const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "player.png", playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT, StartingItems, StartingStats, Weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
@@ -335,6 +356,12 @@ class Inventory {
                     this.cells[cellRow][cellCol] = item.iconURL;
                     if (item.iconURL == ItemList.Armor.URL){
                         playerAnimated.equippedItems.Armor = ItemList.Armor;
+                    }
+                    if (item.iconURL == ItemList.Spear.URL){
+                        playerAnimated.equippedItems.Spear = ItemList.Spear;
+                    }
+                    if (item.iconURL == ItemList.Bow.URL){
+                        playerAnimated.equippedItems.Bow = ItemList.Bow;
                     }
                     playerAnimated.statsUpdate();
                 }
@@ -485,10 +512,12 @@ const onDuckingDeactivation = () => {
 }
 
 const onChangingLaneActivation = () => {
-    
 }
 const onChangingLaneUpdate = () => {
-    
+    if (playerAnimated.x = playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2()){
+        return PlayerStates.Running;
+    }
+    playerAnimated.x += 1;
 }
 const onChangingLaneDeactivation = () => {
 }
