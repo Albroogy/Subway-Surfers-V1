@@ -180,7 +180,7 @@ class Rects{
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
             this.y + this.height/2 >= player.y &&
-            this.y - this.height/2 <= player.y
+            this.y - this.height/2 <= player.y + playerAnimated.height/2
         )
     }
     isDodging(playerAnimated){
@@ -210,7 +210,7 @@ class Circles{
             this.x - this.radius <= player.x + playerAnimated.width/2 &&
             this.x + this.radius >= player.x - playerAnimated.width/2 &&
             this.y + this.radius >= player.y &&
-            this.y - this.radius <= player.y
+            this.y - this.radius <= player.y + playerAnimated.height/2
         )
     }
     move(deltaTime){
@@ -604,7 +604,6 @@ const onPlayingActivation = () => {
     console.log(GameStates.Playing);
 }
 const onPlayingUpdate = () => {
-    console.log(allPressedKeys[KEYS.SpaceBar])
     if (allPressedKeys[KEYS.SpaceBar]){
         return GameStates.InventoryMenu;
     }
@@ -686,6 +685,7 @@ function update(deltaTime){
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
     playerSM.update(deltaTime);
+    gameSM.update(deltaTime);
 }
 
 
