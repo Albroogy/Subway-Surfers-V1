@@ -262,6 +262,7 @@ class PlayerCharacter {
         this.Stats = startingStats;
         this.weapon = null;
         this.weapons = weapons;
+        this.playerDirectionChange = null;
     }
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
@@ -517,19 +518,10 @@ const onRunningActivation = () => {
     timeStart = Date.now();
 };
 const onRunningUpdate = () => {
-    // const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
-    // if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-    //     // music.play()
-    //     if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerDirectionChange >= 1){
-    //         playerAnimated.lane += playerDirectionChange;
-    //         lastClick = Date.now();
-    //         playerAnimated.changeLane();
-    //     }
-    // }
-    window.playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
+    playerAnimated.playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerDirectionChange >= 1){
-            playerAnimated.lane += playerDirectionChange;
+        if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerAnimated.playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerAnimated.playerDirectionChange >= 1){
+            playerAnimated.lane += playerAnimated.playerDirectionChange;
             lastClick = Date.now();
             return PlayerStates.Roll;
         }
@@ -585,7 +577,7 @@ const onDuckingDeactivation = () => {
 }
 
 const onRollActivation = () => {
-    if (playerDirectionChange >= 1){
+    if (playerAnimated.playerDirectionChange >= 1){
         playerAnimated.playAnimation(AnimationNames.RollingRight);  
     }
     else{
@@ -593,17 +585,17 @@ const onRollActivation = () => {
     }
 }
 const onRollUpdate = (deltaTime) => {
-    if (playerDirectionChange >= 1){
+    if (playerAnimated.playerDirectionChange >= 1){
         if (playerAnimated.x >= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
             return PlayerStates.Running;
         }
     }
-    else if (playerDirectionChange <= -1){
+    else if (playerAnimated.playerDirectionChange <= -1){
         if (playerAnimated.x <= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
             return PlayerStates.Running;
         }
     }
-    playerAnimated.x += playerAnimated.Stats.RollSpeed * deltaTime/1000 * playerDirectionChange;
+    playerAnimated.x += playerAnimated.Stats.RollSpeed * deltaTime/1000 * playerAnimated.playerDirectionChange;
 }
 const onRollDeactivation = () => {
 }
