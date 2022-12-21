@@ -16,6 +16,8 @@ const KEYS = {
     ArrowRight: 39,
     ArrowUp: 38,
     ArrowDown: 40,
+    SpaceBar: 32,
+    Escape: 27
 };
 
 // Constant variables
@@ -49,10 +51,12 @@ const Weapons = {
 const StartingItems = {
     Armor: null,
     Bow: null,
-    Spear: null
+    Spear: null,
+    Boots: null
 }
 const StartingStats = {
-    Lives: 1
+    Lives: 1,
+    RollSpeed: 500
 }
 
 const spearImage = new Image;
@@ -61,10 +65,12 @@ const bowImage = new Image;
 bowImage.src = "bow.png";
 const armorImage = new Image;
 armorImage.src = "armor.png";
+const bootsImage = new Image;
+bootsImage.src = "boots.png";
 
 const ItemList = {
     Spear: {
-        Width: 1, 
+        Width: 2, 
         Height: 1,
         URL: spearImage.src,
         Image: spearImage
@@ -80,6 +86,12 @@ const ItemList = {
         Height: 2,
         URL: armorImage.src,
         Image: armorImage
+    },
+    Boots: {
+        Width: 1,
+        Height: 1,
+        URL: bootsImage.src,
+        Image: bootsImage
     }
 }
 
@@ -90,11 +102,15 @@ const PlayerStates = {
     Ducking: "ducking",
     ChangingLane: "changingLane"
 };
-const PLAYER_SIZE = {
+const PLAYER = {
     WIDTH: 100,
-    HEIGHT: 100
+    HEIGHT: 100,
 }
-
+// Game States Information
+const GameStates = {
+    Playing: "playing",
+    InventoryMenu: "inventoryMenu"
+}
 // Obstacle Information
 const OBJECT = {
     WIDTH: 50,
@@ -185,7 +201,7 @@ class Circles{
     }
     draw(){
         context.beginPath();
-        context.arc(this.x, this.y, this.radius, 0, 2*Math.PI, false);
+        context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
         context.closePath();
         context.fillStyle = this.color;
         context.fill();
@@ -230,7 +246,7 @@ class Arrow {
 }
 
 class PlayerCharacter {
-    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, StartingItems, StartingStats, Weapons){
+    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, startingItems, startingStats, weapons){
         this.x = x;
         this.y = y;
         this.spritesheet = new Image();
@@ -243,10 +259,10 @@ class PlayerCharacter {
         this.state = state;
         this.width = width;
         this.height = height;
-        this.equippedItems = StartingItems;
-        this.Stats = StartingStats;
+        this.equippedItems = startingItems;
+        this.Stats = startingStats;
         this.weapon = null;
-        this.Weapons = Weapons;
+        this.weapons = weapons;
     }
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
@@ -269,12 +285,16 @@ class PlayerCharacter {
         if (this.equippedItems.Armor == ItemList.Armor){
             this.Stats.Lives = 2;
         }
-        if (this.equippedItems.Spear == ItemList.Spear){
-            this.weapon = this.Weapons.Spear;
+        if (this.equippedItems.Boots == ItemList.Boots){
+            this.Stats.RollSpeed = 600;
         }
         if (this.equippedItems.Bow == ItemList.Bow){
-            this.weapon = this.Weapons.Bow;
+            this.weapon = this.weapons.Bow;
             this.animationInfo = playerBowAnimationInfo;
+        }
+        if (this.equippedItems.Spear == ItemList.Spear){
+            this.weapon = this.weapons.Spear;
+            this.animationInfo = playerSpearAnimationInfo;
         }
         console.log(this.weapon);
         playerAnimated.spritesheet.src = this.weapon;
@@ -347,7 +367,7 @@ const playerBowAnimationInfo = {
 };
 
 // Player Animation
-const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "player.png", playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER_SIZE.WIDTH, PLAYER_SIZE.HEIGHT, StartingItems, StartingStats, Weapons);
+const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "player.png", playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, Weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
@@ -399,6 +419,9 @@ class Inventory {
                     if (item.iconURL == ItemList.Bow.URL){
                         playerAnimated.equippedItems.Bow = ItemList.Bow;
                     }
+                    if (item.iconURL == ItemList.Boots.URL){
+                        playerAnimated.equippedItems.Boots = ItemList.Boots;
+                    }
                     playerAnimated.statsUpdate();
                 }
             }
@@ -433,9 +456,11 @@ const inventory = new Inventory(5,3);
 const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemList.Spear.URL, ItemList.Spear.Image);
 const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL, ItemList.Bow.Image);
 const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL, ItemList.Armor.Image);
+const boots = new InventoryItem(ItemList.Boots.Width,ItemList.Boots.Height,ItemList.Boots.URL, ItemList.Boots.Image);
 inventory.placeItem(bow, 1, 0);
-inventory.placeItem(spear, 0, 0);
+// inventory.placeItem(spear, 0, 0);
 inventory.placeItem(armor, 2, 0);
+inventory.placeItem(boots, 0, 0);
 console.log(inventory);
 
 
@@ -459,7 +484,8 @@ class StateMachine {
     }
     update(deltaTime) {
         if (this.activeState){
-            const nextState = this.activeState.update(deltaTime)
+            const nextState = this.activeState.update(deltaTime);
+            // Is there any better way to let laneChanging update have playerDirectionChange defined than simply putting playerDirectionChange as an argument?
             if (nextState){
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
@@ -468,7 +494,8 @@ class StateMachine {
         }
     }
 }
-const sm = new StateMachine();
+const playerSM = new StateMachine();
+const gameSM = new StateMachine();
 
 //Adding the states
 
@@ -479,22 +506,23 @@ const onRunningActivation = () => {
     timeStart = Date.now();
 };
 const onRunningUpdate = () => {
-    const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
+    // const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
+    // if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
+    //     // music.play()
+    //     if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerDirectionChange >= 1){
+    //         playerAnimated.lane += playerDirectionChange;
+    //         lastClick = Date.now();
+    //         playerAnimated.changeLane();
+    //     }
+    // }
+    window.playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        music.play()
         if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerDirectionChange >= 1){
             playerAnimated.lane += playerDirectionChange;
             lastClick = Date.now();
-            playerAnimated.changeLane();
+            return PlayerStates.ChangingLane;
         }
     }
-    // const playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight])
-    // if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-    //     music.play()
-    //     if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerDirectionChange >= 1){
-    //         return PlayerStates.ChangingLane;
-    //     }
-    // }
     if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(COOLDOWN)) {
         return PlayerStates.Ducking;
     }
@@ -532,36 +560,80 @@ const onDuckingUpdate = () => {
     //     );
     // }
     // Why does this code not work?
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount + OFFSET){
+        objects.push(
+            new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
+        );
+    }
+    else if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
         return PlayerStates.Running;
     }
 }
 const onDuckingDeactivation = () => {
-    objects.push(
-        new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
-    );
+    if (playerAnimated.weapon == playerAnimated.weapons.Bow){
+        objects.push(
+            new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
+        );
+    }
     //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
 }
 
 const onChangingLaneActivation = () => {
 }
-const onChangingLaneUpdate = () => {
-    if (playerAnimated.x = playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2()){
-        return PlayerStates.Running;
+const onChangingLaneUpdate = (deltaTime) => {
+    if (playerDirectionChange >= 1){
+        if (playerAnimated.x >= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
+            return PlayerStates.Running;
+        }
     }
-    playerAnimated.x += 1;
+    else if (playerDirectionChange <= -1){
+        if (playerAnimated.x <= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
+            return PlayerStates.Running;
+        }
+    }
+    playerAnimated.x += playerAnimated.Stats.RollSpeed * deltaTime/1000 * playerDirectionChange;
 }
 const onChangingLaneDeactivation = () => {
 }
 
-sm.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
-sm.addState(PlayerStates.Jumping, onJumpingActivation, onJumpingUpdate, onJumpingDeactivation);
-sm.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
-sm.addState(PlayerStates.ChangingLane, onChangingLaneActivation, onChangingLaneUpdate, onChangingLaneDeactivation);
+const onPlayingActivation = () => {
+    
+}
+const onPlayingUpdate = () => {
+    if (allPressedKeys[KEYS.SpaceBar]){
+        return GameStates.InventoryMenu;
+    }
+}
+const onPlayingDeactivation = () => {
+}
+const onInventoryMenuActivation = () => {
+    // addEventListener to see if mouse clicked
+}
+const onInventoryMenuUpdate = () => {
+    if (allPressedKeys[KEYS.Escape]){
+        return GameStates.Playing;
+    }
+}
+const onInventoryMenuDeactivation = () => {
+    // remove mouse clicked listener to save computer computing power
+}
 
-// Starting state machine
-sm.activeState = sm.states[PlayerStates.Running];
-sm.activeState.onActivation();
+// Setting up state machines
+
+playerSM.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
+playerSM.addState(PlayerStates.Jumping, onJumpingActivation, onJumpingUpdate, onJumpingDeactivation);
+playerSM.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
+playerSM.addState(PlayerStates.ChangingLane, onChangingLaneActivation, onChangingLaneUpdate, onChangingLaneDeactivation);
+
+gameSM.addState(GameStates.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
+gameSM.addState(GameStates.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
+
+// Starting state machines
+playerSM.activeState = playerSM.states[PlayerStates.Running];
+playerSM.activeState.onActivation();
+
+gameSM.activeState = gameSM.states[GameStates.Playing];
+gameSM.activeState.onActivation();
 
 // Next steps
 // Done = /
@@ -606,7 +678,7 @@ function update(deltaTime){
     playerAnimated.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
-    sm.update();
+    playerSM.update(deltaTime);
 }
 
 
@@ -679,8 +751,9 @@ function resetGame(){
     playerAnimated.Stats = StartingStats;
     inventory.resetInventory();
     inventory.placeItem(bow,1,0);
-    inventory.placeItem(spear,0,0);
+    // inventory.placeItem(spear,0,0);
     inventory.placeItem(armor,2,0);
+    inventory.placeItem(boots, 0, 0);
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_SPEED;
     if (score > highScore){
@@ -709,8 +782,8 @@ function loop(deltaTime){
         }
         if (objects[i].constructor == Circles){
             if (objects[i].isColliding(playerAnimated)){
-                objects.splice(i,1);
                 score += COIN_VALUE;
+                objects.splice(i,1);
                 continue;
             }
         }
@@ -729,14 +802,17 @@ function loop(deltaTime){
         else if (objects[i].constructor == Arrow){
             for (let j = 0; j < objects.length; j++){
                 if (objects[j].constructor == Rects){
-                        console.assert(objects[i]);
-                        console.assert(objects[j]);
-                        if (objects[i].isColliding(objects[j])){
-                            destroyCollidingObjects(i, j);
-                        }
-                        continue;
-                        // For effiency's sake, should I split the objects array into 3 lane arrays? 
-                        // This way for collisions I will only need to check the objects that are on the same lane.
+                    if (objects[i]){
+                    //There's a bug sometimes when firing arrows. Seems to happen if there are two arrows in the air
+                    console.assert(objects[i]);
+                    console.assert(objects[j]);
+                    if (objects[i].isColliding(objects[j])){
+                        destroyCollidingObjects(i, j);
+                    }
+                    continue;
+                    // For effiency's sake, should I split the objects array into 3 lane arrays? 
+                    // This way for collisions I will only need to check the objects that are on the same lane.
+                    }
                 }
             }
         }
