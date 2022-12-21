@@ -109,7 +109,7 @@ const PLAYER = {
 // Game States Information
 const GameStates = {
     Playing: "playing",
-    InventoryMenu: "inventoryMenu"
+    InventoryMenu: "equippedInventoryMenu"
 }
 // Obstacle Information
 const OBJECT = {
@@ -245,6 +245,21 @@ class Arrow {
         )
     }
 }
+// class Image {
+//     constructor(x, y, spritesheetURL, width, height){
+//         this.x = x;
+//         this.y = y;
+//         this.spritesheet = new Image();
+//         this.spritesheet.src = spritesheetURL;
+//         this.width = width;
+//         this.height = height;
+//     }
+// }
+// class StillImage extends Image {
+//     draw(){
+//         context.drawImage(this.spritesheet,this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+//     }
+// }
 
 class PlayerCharacter {
     constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, startingItems, startingStats, weapons){
@@ -415,10 +430,12 @@ class InventoryItem {
     }
 }
 class Inventory {
-    constructor(width, height) {
+    constructor(width, height, x, y) {
         this.cells = [];
         this.width = width;
         this.height = height;
+        this.x = x;
+        this.y = y;
         for (let i = 0; i < this.width; i++) {
             this.cells[i] = [];
             for (let j = 0; j < this.height; j++) {
@@ -469,9 +486,9 @@ class Inventory {
         //   go through every cell, draw box <-- context.strokeRect
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
-                context.strokeRect(50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50, 50);
+                context.strokeRect(this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH, ITEM.HEIGHT);
                 if (this.cells[i][j] != null){
-                    context.drawImage(this.cells[i][j].image, 50 + i * ITEM.WIDTH, 200 + j * ITEM.HEIGHT, 50 * this.cells[i][j].width, 50 * this.cells[i][j].height)
+                    context.drawImage(this.cells[i][j].image, this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH * this.cells[i][j].width, ITEM.HEIGHT * this.cells[i][j].height)
                 }
             }
         }
@@ -487,16 +504,17 @@ class Inventory {
 }
 
 
-const inventory = new Inventory(5,3);
+const equippedInventory = new Inventory(5, 3, 50, 200);
+const itemsFound = new Inventory(10, 5, canvas.width/2, 0);
 const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemList.Spear.URL, ItemList.Spear.Image);
 const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL, ItemList.Bow.Image);
 const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL, ItemList.Armor.Image);
 const boots = new InventoryItem(ItemList.Boots.Width,ItemList.Boots.Height,ItemList.Boots.URL, ItemList.Boots.Image);
-inventory.placeItem(bow, 1, 0);
-// inventory.placeItem(spear, 0, 0);
-inventory.placeItem(armor, 2, 0);
-inventory.placeItem(boots, 0, 0);
-console.log(inventory);
+equippedInventory.placeItem(bow, 1, 0);
+// equippedInventory.placeItem(spear, 0, 0);
+equippedInventory.placeItem(armor, 2, 0);
+equippedInventory.placeItem(boots, 0, 0);
+console.log(equippedInventory);
 
 
 ///State Machine Code
@@ -525,6 +543,7 @@ class StateMachine {
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
                 this.activeState.onActivation();
+                playerAnimated.currentAnimationFrame = 0;
             }
         }
     }
@@ -536,9 +555,7 @@ const gameSM = new StateMachine();
 
 const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
-    playerAnimated.currentAnimationFrame = 0;
     playerAnimated.state = PlayerStates.Running;
-    timeStart = Date.now();
 };
 const onRunningUpdate = () => {
     playerAnimated.directionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
@@ -567,9 +584,7 @@ const onRunningDeactivation = () => {
 
 const onJumpingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Jumping);
-    playerAnimated.currentAnimationFrame = 0;
     playerAnimated.state = PlayerStates.Jumping;
-    timeStart = Date.now();
 }
 const onJumpingUpdate = () => {
     if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
@@ -581,9 +596,7 @@ const onJumpingDeactivation = () => {
 
 const onDuckingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Ducking);
-    playerAnimated.currentAnimationFrame = 0;
     playerAnimated.state = PlayerStates.Ducking;
-    timeStart = Date.now();
 }
 const onDuckingUpdate = () => {
     // if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount){
@@ -612,8 +625,6 @@ const onRollActivation = () => {
     else{
         playerAnimated.playAnimation(AnimationNames.RollingLeft);  
     }
-    // If both 
-    playerAnimated.currentAnimationFrame = 0;
 }
 const onRollUpdate = (deltaTime) => {
     if (playerAnimated.directionChange >= 1){
@@ -632,7 +643,6 @@ const onRollDeactivation = () => {
 }
 const onDyingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Dying);
-    playerAnimated.currentAnimationFrame = 0;
 }
 const onDyingUpdate = () => {
     if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
@@ -657,13 +667,13 @@ const onPlayingDeactivation = () => {
 const onInventoryMenuActivation = () => {
     gameState = GameStates.InventoryMenu;
     // EventListener to see if mouse clicked
-    document.addEventListener('click', logKey);
+    document.addEventListener('click', mouseClicked);
     let mouseX = null;
     let mouseY = null;
-    function logKey(e) {
+    function mouseClicked(e) {
         mouseX = e.clientX;
         mouseY = e.clientY;
-        console.log(mouseX+ ", " + mouseY);
+        console.log(e.clientX+ ", " + e.clientY);
     }
     console.log(GameStates.InventoryMenu);
 }
@@ -697,8 +707,8 @@ console.log(gameSM.activeState)
 
 // Next steps
 // Done = /
-// 1. Complete the inventory
-//    - create the UI for the inventory
+// 1. Complete the equippedInventory
+//    - create the UI for the equippedInventory
 //    - create several items and have them affect the game (extra health, extra speed, whatever)
 // 2. Complete the state machine
 //    - extract the "state machine" from the PlayerCharacter class into an actual state machine /
@@ -754,21 +764,24 @@ function draw() {
     // before we start drawing, clear the canvas
 
     context.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (let object of objects){
-        object.draw();
+    if (gameState != GameStates.InventoryMenu){
+        for (let object of objects){
+            object.draw();
+        }
+    
+        context.fillStyle = "black";
+        context.font = "20px Arial";
+        context.fillText("SCORE: " + score, SCORE.x, SCORE.y);
+        context.font = "20px Arial";
+        context.fillText("HIGH SCORE: " + highScore, HIGH_SCORE.x, HIGH_SCORE.y);
+    
+        context.drawImage(image,200,50,50,50);
+        playerAnimated.draw();
     }
-
-    context.fillStyle = "black";
-    context.font = "20px Arial";
-    context.fillText("SCORE: " + score, SCORE.x, SCORE.y);
-    context.font = "20px Arial";
-    context.fillText("HIGH SCORE: " + highScore, HIGH_SCORE.x, HIGH_SCORE.y);
-
-    context.drawImage(image,200,50,50,50);
-    playerAnimated.draw();
-
-    inventory.draw();
+    else{
+        equippedInventory.draw();
+        itemsFound.draw();
+    }
 }
 
 // These functions calculate a certain value
@@ -819,11 +832,11 @@ function resetGame(){
     playerAnimated.lane = 2;
     playerAnimated.changeLane();
     playerAnimated.Stats = StartingStats;
-    inventory.resetInventory();
-    inventory.placeItem(bow,1,0);
-    // inventory.placeItem(spear,0,0);
-    inventory.placeItem(armor,2,0);
-    inventory.placeItem(boots, 0, 0);
+    equippedInventory.resetInventory();
+    equippedInventory.placeItem(bow,1,0);
+    // equippedInventory.placeItem(spear,0,0);
+    equippedInventory.placeItem(armor,2,0);
+    equippedInventory.placeItem(boots, 0, 0);
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_SPEED;
     if (score > highScore){
