@@ -37,7 +37,6 @@ const ORIGINAL_SPEED = 150;
 const ORIGINAL_SPAWN_DELAY = 1000;
 const JUMP_TIME = 800;
 const DUCK_TIME = 600;
-const CHANGING_LANE_TIME = 1000;
 const COOLDOWN = 300;
 
 const image = new Image();
@@ -100,7 +99,7 @@ const PlayerStates = {
     Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
     Jumping: "jumping",
     Ducking: "ducking",
-    ChangingLane: "changingLane"
+    Roll: "Roll"
 };
 const PLAYER = {
     WIDTH: 100,
@@ -180,8 +179,8 @@ class Rects{
         return (
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
-            this.y + this.height/2 >= player.y - playerAnimated.height/2 &&
-            this.y - this.height/2 <= player.y + playerAnimated.height/2
+            this.y + this.height/2 >= player.y &&
+            this.y - this.height/2 <= player.y
         )
     }
     isDodging(playerAnimated){
@@ -210,8 +209,8 @@ class Circles{
         return (
             this.x - this.radius <= player.x + playerAnimated.width/2 &&
             this.x + this.radius >= player.x - playerAnimated.width/2 &&
-            this.y + this.radius >= player.y - playerAnimated.height/2 &&
-            this.y - this.radius <= player.y + playerAnimated.height/2
+            this.y + this.radius >= player.y &&
+            this.y - this.radius <= player.y
         )
     }
     move(deltaTime){
@@ -325,7 +324,9 @@ class PlayerCharacter {
 const AnimationNames = {
     RunningBack: "runningBack",
     Jumping: "jumping",
-    Ducking: "ducking"
+    Ducking: "ducking",
+    RollingLeft: "rollingLeft",
+    RollingRight: "rollingRight"
 }
 // Should I combine the AnimationNames dictionary with the PlayerStates Dictionary?
 
@@ -363,6 +364,16 @@ const playerBowAnimationInfo = {
         rowIndex: 16,
         frameCount: 13,
         framesPerSecond: 13
+    },
+    [AnimationNames.RollingLeft]: {
+        rowIndex: 9,
+        frameCount: 9,
+        framesPerSecond: 9
+    },
+    [AnimationNames.RollingRight]: {
+        rowIndex: 11,
+        frameCount: 9,
+        framesPerSecond: 9
     }
 };
 
@@ -520,7 +531,7 @@ const onRunningUpdate = () => {
         if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerDirectionChange >= 1){
             playerAnimated.lane += playerDirectionChange;
             lastClick = Date.now();
-            return PlayerStates.ChangingLane;
+            return PlayerStates.Roll;
         }
     }
     if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(COOLDOWN)) {
@@ -560,12 +571,7 @@ const onDuckingUpdate = () => {
     //     );
     // }
     // Why does this code not work?
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount + OFFSET){
-        objects.push(
-            new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
-        );
-    }
-    else if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
         return PlayerStates.Running;
     }
 }
@@ -578,9 +584,15 @@ const onDuckingDeactivation = () => {
     //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
 }
 
-const onChangingLaneActivation = () => {
+const onRollActivation = () => {
+    if (playerDirectionChange >= 1){
+        playerAnimated.playAnimation(AnimationNames.RollingRight);  
+    }
+    else{
+        playerAnimated.playAnimation(AnimationNames.RollingLeft);  
+    }
 }
-const onChangingLaneUpdate = (deltaTime) => {
+const onRollUpdate = (deltaTime) => {
     if (playerDirectionChange >= 1){
         if (playerAnimated.x >= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
             return PlayerStates.Running;
@@ -593,13 +605,14 @@ const onChangingLaneUpdate = (deltaTime) => {
     }
     playerAnimated.x += playerAnimated.Stats.RollSpeed * deltaTime/1000 * playerDirectionChange;
 }
-const onChangingLaneDeactivation = () => {
+const onRollDeactivation = () => {
 }
 
 const onPlayingActivation = () => {
-    
+    console.log(GameStates.Playing);
 }
 const onPlayingUpdate = () => {
+    console.log(allPressedKeys[KEYS.SpaceBar])
     if (allPressedKeys[KEYS.SpaceBar]){
         return GameStates.InventoryMenu;
     }
@@ -608,6 +621,7 @@ const onPlayingDeactivation = () => {
 }
 const onInventoryMenuActivation = () => {
     // addEventListener to see if mouse clicked
+    console.log(GameStates.InventoryMenu);
 }
 const onInventoryMenuUpdate = () => {
     if (allPressedKeys[KEYS.Escape]){
@@ -623,7 +637,7 @@ const onInventoryMenuDeactivation = () => {
 playerSM.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
 playerSM.addState(PlayerStates.Jumping, onJumpingActivation, onJumpingUpdate, onJumpingDeactivation);
 playerSM.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
-playerSM.addState(PlayerStates.ChangingLane, onChangingLaneActivation, onChangingLaneUpdate, onChangingLaneDeactivation);
+playerSM.addState(PlayerStates.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
 
 gameSM.addState(GameStates.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
 gameSM.addState(GameStates.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
@@ -634,6 +648,7 @@ playerSM.activeState.onActivation();
 
 gameSM.activeState = gameSM.states[GameStates.Playing];
 gameSM.activeState.onActivation();
+console.log(gameSM.activeState)
 
 // Next steps
 // Done = /
