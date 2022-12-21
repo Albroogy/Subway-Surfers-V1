@@ -37,7 +37,7 @@ const ORIGINAL_SPEED = 150;
 const ORIGINAL_SPAWN_DELAY = 1000;
 const JUMP_TIME = 800;
 const DUCK_TIME = 600;
-const COOLDOWN = 300;
+const COOLDOWN = 100;
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -99,7 +99,8 @@ const PlayerStates = {
     Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
     Jumping: "jumping",
     Ducking: "ducking",
-    Roll: "Roll"
+    Roll: "roll",
+    Dying: "dying"
 };
 const PLAYER = {
     WIDTH: 100,
@@ -160,6 +161,7 @@ let spawnDelay = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score = 0;
 let highScore = 0;
 let fallSpeed = ORIGINAL_SPEED;
+let gameState = GameStates.Playing;
 
 class Rects{
     constructor(x, y, width, height, color, requiredState, speed) {
@@ -262,7 +264,7 @@ class PlayerCharacter {
         this.Stats = startingStats;
         this.weapon = null;
         this.weapons = weapons;
-        this.playerDirectionChange = null;
+        this.directionChange = null;
     }
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
@@ -327,7 +329,8 @@ const AnimationNames = {
     Jumping: "jumping",
     Ducking: "ducking",
     RollingLeft: "rollingLeft",
-    RollingRight: "rollingRight"
+    RollingRight: "rollingRight",
+    Dying: "dying"
 }
 // Should I combine the AnimationNames dictionary with the PlayerStates Dictionary?
 
@@ -347,6 +350,21 @@ const playerSpearAnimationInfo = {
         rowIndex: 4,
         frameCount: 7,
         framesPerSecond: 7
+    },
+    [AnimationNames.RollingLeft]: {
+        rowIndex: 9,
+        frameCount: 9,
+        framesPerSecond: 9
+    },
+    [AnimationNames.RollingRight]: {
+        rowIndex: 11,
+        frameCount: 9,
+        framesPerSecond: 9
+    },
+    [AnimationNames.Dying]: {
+        rowIndex: 20,
+        frameCount: 6,
+        framesPerSecond: 6
     }
 };
 const playerBowAnimationInfo = {
@@ -375,6 +393,11 @@ const playerBowAnimationInfo = {
         rowIndex: 11,
         frameCount: 9,
         framesPerSecond: 9
+    },
+    [AnimationNames.Dying]: {
+        rowIndex: 20,
+        frameCount: 6,
+        framesPerSecond: 6
     }
 };
 
@@ -497,7 +520,7 @@ class StateMachine {
     update(deltaTime) {
         if (this.activeState){
             const nextState = this.activeState.update(deltaTime);
-            // Is there any better way to let laneChanging update have playerDirectionChange defined than simply putting playerDirectionChange as an argument?
+            // Is there any better way to let laneChanging update have directionChange defined than simply putting directionChange as an argument?
             if (nextState){
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
@@ -518,12 +541,15 @@ const onRunningActivation = () => {
     timeStart = Date.now();
 };
 const onRunningUpdate = () => {
-    playerAnimated.playerDirectionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
+    playerAnimated.directionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerAnimated.playerDirectionChange <= LANE.COUNT && playerAnimated.lane + playerAnimated.playerDirectionChange >= 1){
-            playerAnimated.lane += playerAnimated.playerDirectionChange;
-            lastClick = Date.now();
-            return PlayerStates.Roll;
+        if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerAnimated.directionChange <= LANE.COUNT && playerAnimated.lane + playerAnimated.directionChange >= 1){
+            if (playerAnimated.directionChange != 0){
+                playerAnimated.lane += playerAnimated.directionChange;
+                lastClick = Date.now();
+                return PlayerStates.Roll;
+            }
+
         }
     }
     if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(COOLDOWN)) {
@@ -531,6 +557,9 @@ const onRunningUpdate = () => {
     }
     else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(COOLDOWN)) {
         return PlayerStates.Jumping;
+    }
+    if (playerAnimated.Stats.Lives <= 0){
+        return PlayerStates.Dying;
     }
 };
 const onRunningDeactivation = () => {
@@ -577,30 +606,45 @@ const onDuckingDeactivation = () => {
 }
 
 const onRollActivation = () => {
-    if (playerAnimated.playerDirectionChange >= 1){
+    if (playerAnimated.directionChange >= 1){
         playerAnimated.playAnimation(AnimationNames.RollingRight);  
     }
     else{
         playerAnimated.playAnimation(AnimationNames.RollingLeft);  
     }
+    // If both 
+    playerAnimated.currentAnimationFrame = 0;
 }
 const onRollUpdate = (deltaTime) => {
-    if (playerAnimated.playerDirectionChange >= 1){
+    if (playerAnimated.directionChange >= 1){
         if (playerAnimated.x >= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
             return PlayerStates.Running;
         }
     }
-    else if (playerAnimated.playerDirectionChange <= -1){
+    else if (playerAnimated.directionChange <= -1){
         if (playerAnimated.x <= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
             return PlayerStates.Running;
         }
     }
-    playerAnimated.x += playerAnimated.Stats.RollSpeed * deltaTime/1000 * playerAnimated.playerDirectionChange;
+    playerAnimated.x += playerAnimated.Stats.RollSpeed * deltaTime/1000 * playerAnimated.directionChange;
 }
 const onRollDeactivation = () => {
 }
-
+const onDyingActivation = () => {
+    playerAnimated.playAnimation(AnimationNames.Dying);
+    playerAnimated.currentAnimationFrame = 0;
+}
+const onDyingUpdate = () => {
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
+        sleep(1000);
+        return PlayerStates.Running; 
+    }
+}
+const onDyingDeactivation = () => {
+    resetGame();
+}
 const onPlayingActivation = () => {
+    gameState = GameStates.Playing;
     console.log(GameStates.Playing);
 }
 const onPlayingUpdate = () => {
@@ -611,7 +655,16 @@ const onPlayingUpdate = () => {
 const onPlayingDeactivation = () => {
 }
 const onInventoryMenuActivation = () => {
-    // addEventListener to see if mouse clicked
+    gameState = GameStates.InventoryMenu;
+    // EventListener to see if mouse clicked
+    document.addEventListener('click', logKey);
+    let mouseX = null;
+    let mouseY = null;
+    function logKey(e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        console.log(mouseX+ ", " + mouseY);
+    }
     console.log(GameStates.InventoryMenu);
 }
 const onInventoryMenuUpdate = () => {
@@ -629,6 +682,7 @@ playerSM.addState(PlayerStates.Running, onRunningActivation, onRunningUpdate, on
 playerSM.addState(PlayerStates.Jumping, onJumpingActivation, onJumpingUpdate, onJumpingDeactivation);
 playerSM.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
 playerSM.addState(PlayerStates.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
+playerSM.addState(PlayerStates.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
 
 gameSM.addState(GameStates.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
 gameSM.addState(GameStates.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
@@ -670,11 +724,14 @@ function runFrame() {
     // process input
     // playerAnimated.processInput();
     // update state
-    update(deltaTime);
+    if (gameState == GameStates.Playing){
+        update(deltaTime);        
+    }
     // draw the world
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
+    gameSM.update(deltaTime);
 }
 
 function update(deltaTime){
@@ -685,7 +742,6 @@ function update(deltaTime){
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
     playerSM.update(deltaTime);
-    gameSM.update(deltaTime);
 }
 
 
@@ -726,6 +782,13 @@ function pickLane(){
 function checkTime(stateLength){
     return timeStart <= Date.now() - stateLength;
 }
+function sleep(time) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < time);
+  }
 
 // These functions carry out a certain action
 function generateObstacle(){
@@ -796,14 +859,9 @@ function loop(deltaTime){
         }
         else if (objects[i].constructor == Rects){
             if (objects[i].isColliding(playerAnimated) && !objects[i].isDodging(playerAnimated)){
-                if (playerAnimated.Stats.Lives <= 1){
-                    resetGame();
-                }
-                else {
                     playerAnimated.Stats.Lives -= 1;
                     objects.splice(i,1);
                     continue;
-                }
             }
         }
         else if (objects[i].constructor == Arrow){
