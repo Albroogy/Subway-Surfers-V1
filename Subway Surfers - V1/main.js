@@ -265,10 +265,12 @@ class Arrow {
 //     }
 // }
 
-class PlayerCharacter {
-    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, startingItems, startingStats, weapons){
+class AnimatedObject {
+    constructor(x, y, width, height, spritesheetURL, animationInfo, lane, state){
         this.x = x;
         this.y = y;
+        this.width = width;
+        this.height = height;
         this.spritesheet = new Image();
         this.spritesheet.src = spritesheetURL;
         this.animationInfo = animationInfo;
@@ -277,19 +279,9 @@ class PlayerCharacter {
         this.timeSinceLastFrame = 0;
         this.lane = lane;
         this.state = state;
-        this.width = width;
-        this.height = height;
-        this.equippedItems = startingItems;
-        this.Stats = startingStats;
-        this.weapon = null;
-        this.weapons = weapons;
-        this.directionChange = null;
     }
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
-    }
-    changeLane(){
-        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
     }
     animationUpdate(deltaTime){
         if (this.currentAnimation == null) {
@@ -301,24 +293,6 @@ class PlayerCharacter {
             this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
             this.timeSinceLastFrame = 0;
         }
-    }
-    statsUpdate(){
-        if (this.equippedItems.Armor == ItemList.Armor){
-            this.Stats.Lives = 2;
-        }
-        if (this.equippedItems.Boots == ItemList.Boots){
-            this.Stats.RollSpeed = 600;
-        }
-        if (this.equippedItems.Bow == ItemList.Bow){
-            this.weapon = this.weapons.Bow;
-            this.animationInfo = playerBowAnimationInfo;
-        }
-        if (this.equippedItems.Spear == ItemList.Spear){
-            this.weapon = this.weapons.Spear;
-            this.animationInfo = playerSpearAnimationInfo;
-        }
-        console.log(this.weapon);
-        playerAnimated.spritesheet.src = this.weapon;
     }
     update(deltaTime) {
         this.animationUpdate(deltaTime);
@@ -340,6 +314,42 @@ class PlayerCharacter {
             frameSX, frameSY, frameW, frameH,
             this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
         );
+    }
+}
+class DragonEnemy extends AnimatedObject{
+    constructor(x, y, width, height, spritesheetURL, animationInfo, lane, state){
+        super(x, y, width, height, spritesheetURL, animationInfo, lane, state);
+    }
+}
+class PlayerCharacter extends AnimatedObject{
+    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, startingItems, startingStats, weapons){
+        super(x, y, width, height, spritesheetURL, animationInfo, lane, state);
+        this.equippedItems = startingItems;
+        this.Stats = startingStats;
+        this.weapon = null;
+        this.weapons = weapons;
+        this.directionChange = null;
+    }
+    changeLane(){
+        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
+    }
+    statsUpdate(){
+        if (this.equippedItems.Armor == ItemList.Armor){
+            this.Stats.Lives = 2;
+        }
+        if (this.equippedItems.Boots == ItemList.Boots){
+            this.Stats.RollSpeed = 600;
+        }
+        if (this.equippedItems.Bow == ItemList.Bow){
+            this.weapon = this.weapons.Bow;
+            this.animationInfo = playerBowAnimationInfo;
+        }
+        if (this.equippedItems.Spear == ItemList.Spear){
+            this.weapon = this.weapons.Spear;
+            this.animationInfo = playerSpearAnimationInfo;
+        }
+        console.log(this.weapon);
+        playerAnimated.spritesheet.src = this.weapon;
     }
 }
 // Animation Information
@@ -553,6 +563,7 @@ class StateMachine {
     }
 }
 const playerSM = new StateMachine();
+const dragonSM = new StateMachine();
 const gameSM = new StateMachine();
 
 //Adding the states
@@ -678,7 +689,7 @@ const onInventoryMenuActivation = () => {
     function mouseClicked(e) {
         mouseX = e.clientX;
         mouseY = e.clientY;
-        console.log(e.clientX+ ", " + e.clientY);
+        console.log(`${e.clientX} ${e.clientY}`);
     }
     console.log(GameStates.InventoryMenu);
 }
@@ -689,6 +700,15 @@ const onInventoryMenuUpdate = () => {
 }
 const onInventoryMenuDeactivation = () => {
     // remove mouse clicked listener to save computer computing power
+}
+
+const onFlyingActivation = () => {
+
+}
+const onFlyingUpdate = () => {
+
+}
+const onFlyingDeactivation = () => {
 }
 
 // Setting up state machines
@@ -712,9 +732,9 @@ console.log(gameSM.activeState)
 
 // Next steps
 // Done = /
-// 1. Complete the equippedInventory
-//    - create the UI for the equippedInventory
-//    - create several items and have them affect the game (extra health, extra speed, whatever)
+// 1. Complete the equippedInventory/
+//    - create the UI for the equippedInventory/
+//    - create several items and have them affect the game (extra health, extra speed, whatever)/
 // 2. Complete the state machine
 //    - extract the "state machine" from the PlayerCharacter class into an actual state machine /
 //    - create a state machine for a new type of obstacle
@@ -776,12 +796,12 @@ function draw() {
     
         context.fillStyle = "black";
         context.font = "20px Arial";
-        context.fillText("SCORE: " + score, SCORE.x, SCORE.y);
+        context.fillText(`SCORE: ${score}`, SCORE.x, SCORE.y);
         context.font = "20px Arial";
-        context.fillText("HIGH SCORE: " + highScore, HIGH_SCORE.x, HIGH_SCORE.y);
+        context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE.x, HIGH_SCORE.y);
         if (playerAnimated.Stats.Lives > 0){
             context.font = "20px Arial";
-            context.fillText("LIVES: " + playerAnimated.Stats.Lives, LIVES.x, LIVES.y);
+            context.fillText(`LIVES: ${playerAnimated.Stats.Lives}`, LIVES.x, LIVES.y);
         }
         else{
             context.fillStyle = "red";
