@@ -48,11 +48,13 @@ const Weapons = {
     Bow: "playerBow.png"
 }
 const StartingItems = {
-    Armor: null,
+    Armor: "Leather_leather",
     Bow: null,
-    Spear: null,
+    Spear: "Thrust_spear_2",
     Boots: null
 }
+const playerImage = `https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Body_color_zombie_green&head=Goblin_zombie_green&wrinkes=Wrinkles_zombie_green&beard=Beard_brown&hair=Bangslong_raven&shoulders=Legion_steel&arms=Armour_iron&chainmail=Chainmail_gray&legs=Armour_steel&weapon=${StartingItems.Spear}&quiver=Quiver_quiver&ammo=Ammo_arrow&armour=${StartingItems.Armor}`
+
 const StartingStats = {
     Lives: 1,
     RollSpeed: 500
@@ -186,7 +188,7 @@ class Rects{
         return (
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
-            this.y + this.height/2 >= player.y &&
+            this.y + this.height/2 >= player.y - calculatePlayerStateHeight()&&
             this.y - this.height/2 <= player.y + playerAnimated.height/2
         )
     }
@@ -216,7 +218,7 @@ class Circles{
         return (
             this.x - this.radius <= player.x + playerAnimated.width/2 &&
             this.x + this.radius >= player.x - playerAnimated.width/2 &&
-            this.y + this.radius >= player.y &&
+            this.y + this.radius >= player.y - calculatePlayerStateHeight()&&
             this.y - this.radius <= player.y + playerAnimated.height/2
         )
     }
@@ -350,6 +352,7 @@ class PlayerCharacter extends AnimatedObject{
         this.attacking = false;
         this.lane = lane;
         this.state = state;
+        this.PREPARE_SPEAR_FRAMES = 4;
     }
     changeLane(){
         this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
@@ -468,7 +471,7 @@ const playerBowAnimationInfo = {
 };
 
 // Player Animation
-const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, "player.png", playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, Weapons);
+const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, Weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
@@ -516,17 +519,25 @@ class Inventory {
                     if (item.iconURL == ItemList.Armor.URL){
                         playerAnimated.equippedItems.Armor = ItemList.Armor;
                     }
+                    if (item.iconURL == ItemList.Boots.URL){
+                        playerAnimated.equippedItems.Boots = ItemList.Boots;
+                    }
                     if (item.iconURL == ItemList.Spear.URL){
                         playerAnimated.equippedItems.Spear = ItemList.Spear;
                     }
                     if (item.iconURL == ItemList.Bow.URL){
                         playerAnimated.equippedItems.Bow = ItemList.Bow;
                     }
-                    if (item.iconURL == ItemList.Boots.URL){
-                        playerAnimated.equippedItems.Boots = ItemList.Boots;
-                    }
                     playerAnimated.statsUpdate();
                 }
+            }
+        }
+    }
+    removeItem(item, cellRow, cellCol){
+        for (let i = 0; i < item.width; i++){
+            for (let j = 0; j < item.height; j++){
+                this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = null;
+                playerAnimated.statsUpdate();
             }
         }
     }
@@ -589,7 +600,6 @@ class StateMachine {
     update(deltaTime) {
         if (this.activeState){
             const nextState = this.activeState.update(deltaTime);
-            // Is there any better way to let laneChanging update have directionChange defined than simply putting directionChange as an argument?
             if (nextState){
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
@@ -653,7 +663,7 @@ const onDuckingActivation = () => {
 }
 const onDuckingUpdate = () => {
     if (playerAnimated.weapon == playerAnimated.weapons.Spear){
-        if (playerAnimated.currentAnimationFrame >= 4 - OFFSET){
+        if (playerAnimated.currentAnimationFrame >= playerAnimated.PREPARE_SPEAR_FRAMES - OFFSET){
             playerAnimated.attacking = true;
         }
     }
@@ -689,12 +699,14 @@ const onRollActivation = () => {
 }
 const onRollUpdate = (deltaTime) => {
     if (playerAnimated.directionChange >= 1){
-        if (playerAnimated.x >= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
+        if (playerAnimated.x > playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
+            playerAnimated.x = playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2;
             return PlayerStates.Running;
         }
     }
     else if (playerAnimated.directionChange <= -1){
-        if (playerAnimated.x <= playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
+        if (playerAnimated.x < playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
+            playerAnimated.x = playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2;
             return PlayerStates.Running;
         }
     }
@@ -795,7 +807,7 @@ console.log(gameSM.activeState)
 // Bugs to fix:
 // 1. Animation seems to vary. It doesn't always start at frame 0 /
 // Tasks:
-// 1. Figure out how to add changeLane state to player.
+// 1. Figure out how to add changeLane state to player. /
 
 //Start Loop
 requestAnimationFrame(runFrame)
@@ -827,6 +839,7 @@ function update(deltaTime){
     fallSpeed += FALL_INCREMENT;
     playerSM.update(deltaTime);
 }
+
 
 
 function draw() {
@@ -886,6 +899,12 @@ function sleep(time) {
   }
 
 // These functions carry out a certain action
+function calculatePlayerStateHeight(){
+    if (playerAnimated.attacking == true){
+        return playerAnimated.height/2;
+    }
+    return 0;
+}
 function generateObstacle(){
     type = Math.floor(Math.random() * LANE.COUNT);
     objects.push(
@@ -900,7 +919,7 @@ function generateCoin(){
 
 function generateDragon(){
     objects.push(
-        new DragonEnemy(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, "dragon.png", DragonAnimationInfo, fallSpeed)
+        new DragonEnemy(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 100, 100, "dragon.png", DragonAnimationInfo, fallSpeed)
     )
 }
 generateDragon();
