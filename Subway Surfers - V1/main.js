@@ -138,6 +138,10 @@ const ITEM = {
     WIDTH: 50,
     HEIGHT: 50
 }
+const LIVES = {
+    x: 50,
+    y: 150
+}
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
 const objects = []
@@ -577,6 +581,7 @@ const onRunningUpdate = () => {
     }
     if (playerAnimated.Stats.Lives <= 0){
         return PlayerStates.Dying;
+        // Game mechanic: As long as you keep on moving, you will never die, no matter your lives count.
     }
 };
 const onRunningDeactivation = () => {
@@ -774,7 +779,15 @@ function draw() {
         context.fillText("SCORE: " + score, SCORE.x, SCORE.y);
         context.font = "20px Arial";
         context.fillText("HIGH SCORE: " + highScore, HIGH_SCORE.x, HIGH_SCORE.y);
-    
+        if (playerAnimated.Stats.Lives > 0){
+            context.font = "20px Arial";
+            context.fillText("LIVES: " + playerAnimated.Stats.Lives, LIVES.x, LIVES.y);
+        }
+        else{
+            context.fillStyle = "red";
+            context.font = "20px Arial";
+            context.fillText("CERTAIN DEATH (MOVE TO STAY ALIVE)", LIVES.x, LIVES.y);
+        }
         context.drawImage(image,200,50,50,50);
         playerAnimated.draw();
     }
