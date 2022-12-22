@@ -335,7 +335,7 @@ const DragonAnimationInfo = {
     [DragonAnimationNames.Flying]: {
         rowIndex: 0,
         frameCount: 4,
-        framesPerSecond: 12
+        framesPerSecond: 8
     }
 };
 
@@ -347,6 +347,7 @@ class PlayerCharacter extends AnimatedObject{
         this.weapon = null;
         this.weapons = weapons;
         this.directionChange = null;
+        this.attacking = false;
         this.lane = lane;
         this.state = state;
     }
@@ -651,6 +652,11 @@ const onDuckingActivation = () => {
     playerAnimated.state = PlayerStates.Ducking;
 }
 const onDuckingUpdate = () => {
+    if (playerAnimated.weapon == playerAnimated.weapons.Spear){
+        if (playerAnimated.currentAnimationFrame >= 4 - OFFSET){
+            playerAnimated.attacking = true;
+        }
+    }
     // if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount){
     //     objects.push(
     //         new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
@@ -668,6 +674,9 @@ const onDuckingDeactivation = () => {
         );
     }
     //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
+    if (playerAnimated.attacking != false){
+        playerAnimated.attacking = false;
+    }
 }
 
 const onRollActivation = () => {
@@ -739,7 +748,11 @@ const onInventoryMenuDeactivation = () => {
 }
 
 const onFlyingActivation = () => {
-
+    for (object in objects){
+        if (object.constructor == DragonEnemy){
+            
+        }
+    }
 }
 const onFlyingUpdate = () => {
 
@@ -909,10 +922,10 @@ function resetGame(){
     playerAnimated.changeLane();
     playerAnimated.Stats = StartingStats;
     equippedInventory.resetInventory();
-    equippedInventory.placeItem(bow,1,0);
-    // equippedInventory.placeItem(spear,0,0);
+    // equippedInventory.placeItem(bow,1,0);
     equippedInventory.placeItem(armor,2,0);
-    equippedInventory.placeItem(boots, 0, 0);
+    equippedInventory.placeItem(boots,4,0);
+    equippedInventory.placeItem(spear,0,0);
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_SPEED;
     if (score > highScore){
@@ -952,9 +965,11 @@ function loop(deltaTime){
         }
         else if (objects[i].constructor == Rects){
             if (objects[i].isColliding(playerAnimated) && !objects[i].isDodging(playerAnimated)){
+                if (playerAnimated.attacking != true){
                     playerAnimated.Stats.Lives -= 1;
-                    objects.splice(i,1);
-                    continue;
+                }
+                objects.splice(i,1);
+                continue;
             }
         }
         else if (objects[i].constructor == Arrow){
