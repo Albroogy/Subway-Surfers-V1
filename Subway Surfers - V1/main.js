@@ -125,6 +125,7 @@ const obstacleColors = {
 const spawnType = {
     generateObstacle: "generateObstacle",
     generateCoin: "generateCoin",
+    Dragon: "dragon"
 }
 const LANE = {
     WIDTH: canvas.width/3,
@@ -266,7 +267,7 @@ class Arrow {
 // }
 
 class AnimatedObject {
-    constructor(x, y, width, height, spritesheetURL, animationInfo, lane, state){
+    constructor(x, y, width, height, spritesheetURL, animationInfo){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -277,8 +278,6 @@ class AnimatedObject {
         this.currentAnimation = null;
         this.currentAnimationFrame = 0;
         this.timeSinceLastFrame = 0;
-        this.lane = lane;
-        this.state = state;
     }
     playAnimation(name) {
         this.currentAnimation = this.animationInfo[name];
@@ -302,7 +301,7 @@ class AnimatedObject {
             return;
         }
         // const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
-        const frameW = this.spritesheet.width / 13;
+        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
         const frameH = this.spritesheet.height / this.animationInfo.animationCount;
         console.assert(frameW > 0);
         console.assert(frameH > 0);
@@ -317,18 +316,39 @@ class AnimatedObject {
     }
 }
 class DragonEnemy extends AnimatedObject{
-    constructor(x, y, width, height, spritesheetURL, animationInfo, lane, state){
-        super(x, y, width, height, spritesheetURL, animationInfo, lane, state);
+    constructor(x, y, width, height, spritesheetURL, animationInfo, speed){
+        super(x, y, width, height, spritesheetURL, animationInfo);
+        this.speed = speed;
+        this.currentAnimation = this.animationInfo[DragonAnimationNames.Flying];
+    }
+    move(deltaTime){
+        this.y += this.speed * deltaTime / 1000;
     }
 }
+// Dragon Animation Info
+const DragonAnimationNames = {
+    Flying: "flying",
+}
+
+const DragonAnimationInfo = {
+    animationCount: 4, 
+    [DragonAnimationNames.Flying]: {
+        rowIndex: 0,
+        frameCount: 4,
+        framesPerSecond: 12
+    }
+};
+
 class PlayerCharacter extends AnimatedObject{
     constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, startingItems, startingStats, weapons){
-        super(x, y, width, height, spritesheetURL, animationInfo, lane, state);
+        super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
         this.Stats = startingStats;
         this.weapon = null;
         this.weapons = weapons;
         this.directionChange = null;
+        this.lane = lane;
+        this.state = state;
     }
     changeLane(){
         this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
@@ -351,8 +371,26 @@ class PlayerCharacter extends AnimatedObject{
         console.log(this.weapon);
         playerAnimated.spritesheet.src = this.weapon;
     }
+    draw(){
+        if (this.currentAnimation == null) {
+            return;
+        }
+        // const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
+        const frameW = this.spritesheet.width / 13;
+        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
+        console.assert(frameW > 0);
+        console.assert(frameH > 0);
+        const frameSX = this.currentAnimationFrame * frameW;
+        const frameSY = this.currentAnimation.rowIndex * frameH;
+        console.assert(frameW >= 0);
+        console.assert(frameH >= 0);
+        context.drawImage(this.spritesheet,
+            frameSX, frameSY, frameW, frameH,
+            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
+        );
+    }
 }
-// Animation Information
+// Player Animation Information
 const AnimationNames = {
     RunningBack: "runningBack",
     Jumping: "jumping",
@@ -361,8 +399,6 @@ const AnimationNames = {
     RollingRight: "rollingRight",
     Dying: "dying"
 }
-// Should I combine the AnimationNames dictionary with the PlayerStates Dictionary?
-
 const playerSpearAnimationInfo = {
     animationCount: 21, 
     [AnimationNames.RunningBack]: {
@@ -848,9 +884,16 @@ function generateCoin(){
         new Circles(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
     )
 }
+
+function generateDragon(){
+    objects.push(
+        new DragonEnemy(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, "dragon.png", DragonAnimationInfo, fallSpeed)
+    )
+}
+generateDragon();
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
-        let generateType = Object.keys(spawnType)[Math.round(Math.random())];
+        let generateType = Object.keys(spawnType)[Math.floor(Math.random() * 2)];
         if (generateType == spawnType.generateObstacle){
             generateObstacle()
         }
@@ -883,9 +926,13 @@ function destroyCollidingObjects(object1, object2){
 }
 
 function loop(deltaTime){
+    console.log(objects);
     for (let i = 0; i < objects.length; i++){
         objects[i].move(deltaTime);
         objects[i].speed = fallSpeed;
+        if (objects[i].constructor == DragonEnemy){
+            objects[i].update(deltaTime);
+        }
         if (objects[i].constructor == Arrow){
             if (objects[i].y <= -objects[i].height){
                 objects.splice(i,1);
