@@ -177,6 +177,7 @@ let score = 0;
 let highScore = 0;
 let fallSpeed = ORIGINAL_SPEED;
 let gameState = GameStates.Playing;
+let gameSpeed = 1;
 
 class Rects{
     constructor(x, y, width, height, color, requiredState, speed) {
@@ -200,11 +201,8 @@ class Rects{
             this.y - this.height/2 <= player.y + playerAnimated.height/2
         )
     }
-    isDodging(playerAnimated){
-        return this.requiredState == playerAnimated.state;
-    }
     move(deltaTime){
-        this.y += this.speed * deltaTime / 1000;
+        this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
 }
 class Circles{
@@ -231,7 +229,7 @@ class Circles{
         )
     }
     move(deltaTime){
-        this.y += this.speed * deltaTime / 1000;
+        this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
 }
 
@@ -249,7 +247,7 @@ class Arrow {
         context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
     }
     move(deltaTime){
-        this.y -= this.speed * deltaTime / 1000;
+        this.y -= this.speed * deltaTime / 1000 * gameSpeed;
     }
     isColliding(object){
         return (
@@ -335,7 +333,7 @@ class DragonEnemy extends AnimatedObject{
         this.stateMachine.activeState.onActivation();
     }
     move(deltaTime){
-        this.y += this.speed * deltaTime / 1000;
+        this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
     update(deltaTime){
         this.animationUpdate(deltaTime);
@@ -716,6 +714,7 @@ const onRollActivation = () => {
         playerAnimated.playAnimation(AnimationNames.RollingLeft);  
     }
     playerAnimated.currentAnimationFrame = 0;
+    playerAnimated.state = PlayerStates.Roll;
 }
 const onRollUpdate = (deltaTime) => {
     if (playerAnimated.directionChange >= 1){
@@ -787,7 +786,7 @@ const onFlyingActivation = () => {
     // this.currentAnimation = this.animationInfo[DragonAnimationNames.Flying];
 }
 const onFlyingUpdate = () => {
-    
+
 }
 const onFlyingDeactivation = () => {
 }
@@ -839,6 +838,12 @@ function runFrame() {
     const currentTime = Date.now();
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime;
+    if (playerAnimated.state == PlayerStates.Running){
+        gameSpeed = 0.5;
+    }
+    else{
+        gameSpeed = 1;
+    }
     // process input
     // playerAnimated.processInput();
     // update state
@@ -1005,7 +1010,7 @@ function loop(deltaTime){
             }
         }
         else if (objects[i].constructor == Rects){
-            if (objects[i].isColliding(playerAnimated) && !objects[i].isDodging(playerAnimated)){
+            if (objects[i].isColliding(playerAnimated)){
                 if (playerAnimated.attacking != true){
                     playerAnimated.Stats.Lives -= 1;
                 }
