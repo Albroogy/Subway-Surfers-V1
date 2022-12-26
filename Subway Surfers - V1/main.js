@@ -54,6 +54,7 @@ const StartingItems = {
     Boots: null
 }
 const playerImage = `https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Body_color_zombie_green&head=Goblin_zombie_green&wrinkes=Wrinkles_zombie_green&beard=Beard_brown&hair=Bangslong_raven&shoulders=Legion_steel&arms=Armour_iron&chainmail=Chainmail_gray&legs=Armour_steel&weapon=${StartingItems.Spear}&quiver=Quiver_quiver&ammo=Ammo_arrow&armour=${StartingItems.Armor}`
+console.log(playerImage)
 
 const StartingStats = {
     Lives: 1,
@@ -747,6 +748,9 @@ const onInventoryMenuActivation = () => {
         mouseX = e.clientX;
         mouseY = e.clientY;
         console.log(`${e.clientX} ${e.clientY}`);
+        if (equippedInventory.isColliding(e.clientX, e.clientY)){
+            
+        }
     }
     console.log(GameStates.InventoryMenu);
 }
@@ -958,7 +962,6 @@ function destroyCollidingObjects(object1, object2){
 }
 
 function loop(deltaTime){
-    console.log(objects);
     for (let i = 0; i < objects.length; i++){
         objects[i].move(deltaTime);
         objects[i].speed = fallSpeed;
@@ -992,19 +995,22 @@ function loop(deltaTime){
             }
         }
         else if (objects[i].constructor == Arrow){
+            const currentObject1 = objects[i];
             for (let j = 0; j < objects.length; j++){
+                //There's a bug sometimes when firing arrows. SOLVED
+                // Apparently in javascript, the coding language doesn't wait for the loop to finish running before going on to the next object. 
+                // In order to solve this, I just defined a constant after the loops start to ensure the value stays the same.
+                // I don't know why the value of i becomes undefined though as the loop continues... Can you explain this to me?
                 if (objects[j].constructor == Rects){
-                    if (objects[i]){
-                    //There's a bug sometimes when firing arrows. Seems to happen if there are two arrows in the air
-                    console.assert(objects[i]);
-                    console.assert(objects[j]);
-                    if (objects[i].isColliding(objects[j])){
-                        destroyCollidingObjects(i, j);
+                    const currentObject2 = objects[j];
+                    console.assert(currentObject1);
+                    console.assert(currentObject2);
+                    if (currentObject1.isColliding(currentObject2)){
+                        destroyCollidingObjects(objects.indexOf(currentObject1), objects.indexOf(currentObject2));
                     }
-                    continue;
-                    // For effiency's sake, should I split the objects array into 3 lane arrays? 
-                    // This way for collisions I will only need to check the objects that are on the same lane.
-                    }
+                continue;
+                // For effiency's sake, should I split the objects array into 3 lane arrays? 
+                // This way for collisions I will only need to check the objects that are on the same lane.
                 }
             }
         }
