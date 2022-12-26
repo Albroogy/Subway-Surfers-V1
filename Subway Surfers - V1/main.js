@@ -29,7 +29,7 @@ const STATE_DURATION = 1500;
 const SCORE_SPEED = 1;
 const COIN_VALUE = 300;
 const CLICK_DELAY = 300; //This is in milliseconds
-const SPAWN_INCREMENT = 0.2;
+const SPAWN_INCREMENT = 0.1;
 const FALL_INCREMENT = 0.02;
 const COIN_RADIUS = 25;
 const OFFSET = 1;
@@ -149,13 +149,18 @@ const ITEM = {
     WIDTH: 50,
     HEIGHT: 50
 }
-const LIVES = {
+const GOLD = {
     x: 50,
     y: 150
 }
+const LIVES = {
+    x: 50,
+    y: 200
+}
 
-const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"]
-const objects = []
+const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
+const objects = [];
+const stillObjects = [];
 
 // Score Information
 const HIGH_SCORE = {
@@ -175,6 +180,7 @@ let timeStart = Date.now();
 let spawnDelay = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score = 0;
 let highScore = 0;
+let gold = 0;
 let fallSpeed = ORIGINAL_SPEED;
 let gameState = GameStates.Playing;
 let gameSpeed = 1;
@@ -323,6 +329,24 @@ class AnimatedObject {
         );
     }
 }
+class Necromancer extends AnimatedObject{
+    constructor(x, y, width, height, spritesheetURL, animationInfo){
+        super(x, y, width, height, spritesheetURL, animationInfo);
+        this.currentAnimation = this.animationInfo[necromancerAnimationNames.Levitating];
+    }
+}
+const necromancerAnimationNames = {
+    Levitating: "levitating"
+}
+const necromancerInfo = {
+    animationCount: 1, 
+    [necromancerAnimationNames.Levitating]: {
+        rowIndex: 0,
+        frameCount: 8,
+        framesPerSecond: 8
+    },
+};
+
 class DragonEnemy extends AnimatedObject{
     constructor(x, y, width, height, spritesheetURL, animationInfo, speed, stateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
@@ -767,9 +791,9 @@ const onInventoryMenuActivation = () => {
         mouseX = e.clientX;
         mouseY = e.clientY;
         console.log(`${e.clientX} ${e.clientY}`);
-        if (equippedInventory.isColliding(e.clientX, e.clientY)){
+        // if (equippedInventory.isColliding(e.clientX, e.clientY)){
             
-        }
+        // }
     }
     console.log(GameStates.InventoryMenu);
 }
@@ -779,7 +803,7 @@ const onInventoryMenuUpdate = () => {
     }
 }
 const onInventoryMenuDeactivation = () => {
-    // remove mouse clicked listener to save computer computing power
+    document.removeEventListener('click', mouseClicked);
 }
 
 const onFlyingActivation = () => {
@@ -833,7 +857,7 @@ console.log(gameSM.activeState)
 //Start Loop
 requestAnimationFrame(runFrame)
 
-// Main processing loop 
+// Main processing objectsLoop 
 function runFrame() {
     const currentTime = Date.now();
     const deltaTime = currentTime - lastTime;
@@ -850,6 +874,12 @@ function runFrame() {
     if (gameState == GameStates.Playing){
         update(deltaTime);        
     }
+    else{
+        stillObjects.push(
+            new AnimatedObject(100, 100, 300, 300, "Necromancer.png", necromancerInfo)
+        )
+    }
+    stillObjectsLoop();
     // draw the world
     draw();
     // be called one more time
@@ -860,7 +890,7 @@ function runFrame() {
 function update(deltaTime){
     score += SCORE_SPEED;
     checkSpawn();
-    loop(deltaTime);
+    objectsLoop(deltaTime);
     playerAnimated.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
@@ -888,6 +918,8 @@ function draw() {
         context.fillText(`SCORE: ${score}`, SCORE.x, SCORE.y);
         context.font = "20px Arial";
         context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE.x, HIGH_SCORE.y);
+        context.fillText(`GOLD: ${gold}`, GOLD.x, GOLD.y);
+        context.font = "20px Arial";
         if (playerAnimated.Stats.Lives > 0){
             context.font = "20px Arial";
             context.fillText(`LIVES: ${playerAnimated.Stats.Lives}`, LIVES.x, LIVES.y);
@@ -984,8 +1016,7 @@ function destroyCollidingObjects(object1, object2){
     objects.splice(object2,1);
 }
 
-function loop(deltaTime){
-    console.log(objects)
+function objectsLoop(deltaTime){
     for (let i = 0; i < objects.length; i++){
         objects[i].move(deltaTime);
         objects[i].speed = fallSpeed;
@@ -1005,6 +1036,7 @@ function loop(deltaTime){
         if (objects[i].constructor == Circles){
             if (objects[i].isColliding(playerAnimated)){
                 score += COIN_VALUE;
+                gold += 1;
                 objects.splice(i,1);
                 continue;
             }
@@ -1021,12 +1053,12 @@ function loop(deltaTime){
         else if (objects[i].constructor == Arrow){
             const currentObject1 = objects[i];
             for (let j = 0; j < objects.length; j++){
-                const currentObject2 = objects[j];
                 //There's a bug sometimes when firing arrows. SOLVED
-                // Apparently in javascript, the coding language doesn't wait for the loop to finish running before going on to the next object. 
-                // In order to solve this, I just defined a constant after the loops start to ensure the value stays the same.
-                // I don't know why the value of i becomes undefined though as the loop continues... Can you explain this to me?
+                // Apparently in javascript, the coding language doesn't wait for the objectsLoop to finish running before going on to the next object. 
+                // In order to solve this, I just defined a constant after the objectsLoops start to ensure the value stays the same.
+                // I don't know why the value of i becomes undefined though as the objectsLoop continues... Can you explain this to me?
                 if (objects[j].constructor == Rects){
+                    const currentObject2 = objects[j];
                     console.assert(currentObject1);
                     console.assert(currentObject2);
                     if (currentObject1.isColliding(currentObject2)){
@@ -1039,4 +1071,7 @@ function loop(deltaTime){
             }
         }
     }
+}
+function stillObjectsLoop(){
+
 }
