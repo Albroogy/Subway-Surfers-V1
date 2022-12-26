@@ -48,12 +48,12 @@ const Weapons = {
     Bow: "playerBow.png"
 }
 const StartingItems = {
-    Armor: "Leather_leather",
+    Armor: "&weapon=Leather_leather",
     Bow: null,
-    Spear: "Thrust_spear_2",
+    Spear: "&armour=Thrust_spear_2",
     Boots: null
 }
-const playerImage = `https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Body_color_zombie_green&head=Goblin_zombie_green&wrinkes=Wrinkles_zombie_green&beard=Beard_brown&hair=Bangslong_raven&shoulders=Legion_steel&arms=Armour_iron&chainmail=Chainmail_gray&legs=Armour_steel&weapon=${StartingItems.Spear}&quiver=Quiver_quiver&ammo=Ammo_arrow&armour=${StartingItems.Armor}`
+const playerImage = `https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Body_color_zombie_green&head=Goblin_zombie_green&wrinkes=Wrinkles_zombie_green&beard=Beard_brown&hair=Bangslong_raven&shoulders=Legion_steel&arms=Armour_iron&chainmail=Chainmail_gray&legs=Armour_steel${StartingItems.Spear}&quiver=Quiver_quiver&ammo=Ammo_arrow${StartingItems.Armor}`
 console.log(playerImage)
 
 const StartingStats = {
@@ -75,25 +75,29 @@ const ItemList = {
         Width: 2, 
         Height: 1,
         URL: spearImage.src,
-        Image: spearImage
+        Image: spearImage,
+        Name: "Spear"
     },
     Bow: {
         Width: 1,
         Height: 2,
         URL: bowImage.src,
-        Image: bowImage
+        Image: bowImage,
+        Name: "Bow"
     },
     Armor: {
         Width: 2,
         Height: 2,
         URL: armorImage.src,
-        Image: armorImage
+        Image: armorImage,
+        Name: "Armor"
     },
     Boots: {
         Width: 1,
         Height: 1,
         URL: bootsImage.src,
-        Image: bootsImage
+        Image: bootsImage,
+        Name: "Boots"
     }
 }
 
@@ -105,14 +109,17 @@ const PlayerStates = {
     Roll: "roll",
     Dying: "dying"
 };
-const PLAYER = {
-    WIDTH: 100,
-    HEIGHT: 100,
-}
-// Game States Information
 const GameStates = {
     Playing: "playing",
     InventoryMenu: "equippedInventoryMenu"
+}
+const DragonStates = {
+    Flying: "flying"
+}
+
+const PLAYER = {
+    WIDTH: 100,
+    HEIGHT: 100,
 }
 // Obstacle Information
 const OBJECT = {
@@ -319,13 +326,20 @@ class AnimatedObject {
     }
 }
 class DragonEnemy extends AnimatedObject{
-    constructor(x, y, width, height, spritesheetURL, animationInfo, speed){
+    constructor(x, y, width, height, spritesheetURL, animationInfo, speed, stateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.speed = speed;
         this.currentAnimation = this.animationInfo[DragonAnimationNames.Flying];
+        this.stateMachine = stateMachine;
+        this.stateMachine.activeState = this.stateMachine.states[DragonStates.Flying];
+        this.stateMachine.activeState.onActivation();
     }
     move(deltaTime){
         this.y += this.speed * deltaTime / 1000;
+    }
+    update(deltaTime){
+        this.animationUpdate(deltaTime);
+        this.stateMachine.update(deltaTime);
     }
 }
 // Dragon Animation Info
@@ -470,6 +484,7 @@ const playerBowAnimationInfo = {
         framesPerSecond: 6
     }
 };
+// Figure out how to combine these two animation info dictionaries
 
 // Player Animation
 const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, Weapons);
@@ -477,11 +492,12 @@ playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
 class InventoryItem {
-    constructor(width, height, iconURL, image) {
+    constructor(width, height, iconURL, image, name) {
         this.width = width;
         this.height = height;
         this.iconURL = iconURL;
-        this.image = image
+        this.image = image;
+        this.name = name;
     }
 }
 class Inventory {
@@ -515,7 +531,7 @@ class Inventory {
         if (this.placeItemCheck(item, cellRow, cellCol)){
             for (let i = 0; i < item.width; i++){
                 for (let j = 0; j < item.height; j++){
-                    this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item.URL;
+                    this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item.name;
                     this.cells[cellRow][cellCol] = item;
                     if (item.iconURL == ItemList.Armor.URL){
                         playerAnimated.equippedItems.Armor = ItemList.Armor;
@@ -569,10 +585,10 @@ class Inventory {
 
 const equippedInventory = new Inventory(5, 3, 50, 200);
 const itemsFound = new Inventory(10, 5, canvas.width/2, 0);
-const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemList.Spear.URL, ItemList.Spear.Image);
-const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL, ItemList.Bow.Image);
-const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL, ItemList.Armor.Image);
-const boots = new InventoryItem(ItemList.Boots.Width,ItemList.Boots.Height,ItemList.Boots.URL, ItemList.Boots.Image);
+const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemList.Spear.URL, ItemList.Spear.Image, ItemList.Spear.Name);
+const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL, ItemList.Bow.Image, ItemList.Bow.Name);
+const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL, ItemList.Armor.Image, ItemList.Armor.Name);
+const boots = new InventoryItem(ItemList.Boots.Width,ItemList.Boots.Height,ItemList.Boots.URL, ItemList.Boots.Image, ItemList.Boots.Name);
 equippedInventory.placeItem(bow, 1, 0);
 // equippedInventory.placeItem(spear, 0, 0);
 equippedInventory.placeItem(armor, 2, 0);
@@ -605,7 +621,6 @@ class StateMachine {
                 this.activeState.onDeactivation();
                 this.activeState = this.states[nextState];
                 this.activeState.onActivation();
-                playerAnimated.currentAnimationFrame = 0;
             }
         }
     }
@@ -619,6 +634,7 @@ const gameSM = new StateMachine();
 const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
     playerAnimated.state = PlayerStates.Running;
+    playerAnimated.currentAnimationFrame = 0;
 };
 const onRunningUpdate = () => {
     playerAnimated.directionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
@@ -649,6 +665,7 @@ const onRunningDeactivation = () => {
 const onJumpingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Jumping);
     playerAnimated.state = PlayerStates.Jumping;
+    playerAnimated.currentAnimationFrame = 0;
 }
 const onJumpingUpdate = () => {
     if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
@@ -661,6 +678,7 @@ const onJumpingDeactivation = () => {
 const onDuckingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Ducking);
     playerAnimated.state = PlayerStates.Ducking;
+    playerAnimated.currentAnimationFrame = 0;
 }
 const onDuckingUpdate = () => {
     if (playerAnimated.weapon == playerAnimated.weapons.Spear){
@@ -697,6 +715,7 @@ const onRollActivation = () => {
     else{
         playerAnimated.playAnimation(AnimationNames.RollingLeft);  
     }
+    playerAnimated.currentAnimationFrame = 0;
 }
 const onRollUpdate = (deltaTime) => {
     if (playerAnimated.directionChange >= 1){
@@ -717,6 +736,7 @@ const onRollDeactivation = () => {
 }
 const onDyingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Dying);
+    playerAnimated.currentAnimationFrame = 0;
 }
 const onDyingUpdate = () => {
     if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
@@ -764,14 +784,10 @@ const onInventoryMenuDeactivation = () => {
 }
 
 const onFlyingActivation = () => {
-    for (object in objects){
-        if (object.constructor == DragonEnemy){
-            
-        }
-    }
+    // this.currentAnimation = this.animationInfo[DragonAnimationNames.Flying];
 }
 const onFlyingUpdate = () => {
-
+    
 }
 const onFlyingDeactivation = () => {
 }
@@ -783,6 +799,8 @@ playerSM.addState(PlayerStates.Jumping, onJumpingActivation, onJumpingUpdate, on
 playerSM.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
 playerSM.addState(PlayerStates.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
 playerSM.addState(PlayerStates.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
+
+dragonSM.addState(DragonStates.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
 
 gameSM.addState(GameStates.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
 gameSM.addState(GameStates.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
@@ -923,7 +941,7 @@ function generateCoin(){
 
 function generateDragon(){
     objects.push(
-        new DragonEnemy(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 100, 100, "dragon.png", DragonAnimationInfo, fallSpeed)
+        new DragonEnemy(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 100, 100, "dragon.png", DragonAnimationInfo, fallSpeed, dragonSM)
     )
 }
 generateDragon();
@@ -962,6 +980,7 @@ function destroyCollidingObjects(object1, object2){
 }
 
 function loop(deltaTime){
+    console.log(objects)
     for (let i = 0; i < objects.length; i++){
         objects[i].move(deltaTime);
         objects[i].speed = fallSpeed;
@@ -997,12 +1016,12 @@ function loop(deltaTime){
         else if (objects[i].constructor == Arrow){
             const currentObject1 = objects[i];
             for (let j = 0; j < objects.length; j++){
+                const currentObject2 = objects[j];
                 //There's a bug sometimes when firing arrows. SOLVED
                 // Apparently in javascript, the coding language doesn't wait for the loop to finish running before going on to the next object. 
                 // In order to solve this, I just defined a constant after the loops start to ensure the value stays the same.
                 // I don't know why the value of i becomes undefined though as the loop continues... Can you explain this to me?
                 if (objects[j].constructor == Rects){
-                    const currentObject2 = objects[j];
                     console.assert(currentObject1);
                     console.assert(currentObject2);
                     if (currentObject1.isColliding(currentObject2)){
