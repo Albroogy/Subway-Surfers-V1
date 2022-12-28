@@ -553,7 +553,7 @@ class Inventory {
         if (this.placeItemCheck(item, cellRow, cellCol)){
             for (let i = 0; i < item.width; i++){
                 for (let j = 0; j < item.height; j++){
-                    this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = item.name;
+                    this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = undefined;
                     this.cells[cellRow][cellCol] = item;
                     if (item.iconURL == ItemList.Armor.URL){
                         playerAnimated.equippedItems.Armor = ItemList.Armor;
