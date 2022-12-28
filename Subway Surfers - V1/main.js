@@ -17,7 +17,8 @@ const KEYS = {
     ArrowUp: 38,
     ArrowDown: 40,
     SpaceBar: 32,
-    Escape: 27
+    Escape: 27,
+    E: 69
 };
 
 // Constant variables
@@ -114,7 +115,8 @@ const GameStates = {
     InventoryMenu: "equippedInventoryMenu"
 }
 const DragonStates = {
-    Flying: "flying"
+    Flying: "flying",
+    Firing: "firing"
 }
 
 const PLAYER = {
@@ -127,6 +129,9 @@ const OBJECT = {
     HEIGHT: 50,
     SPAWN_LOCATION: -50
 }
+const DRAGON = {
+    SIGHT: 300
+}
 const obstacleColors = {
     Orange: "orange",
     Brown: "brown",
@@ -134,8 +139,7 @@ const obstacleColors = {
 }
 const spawnType = {
     generateObstacle: "generateObstacle",
-    generateCoin: "generateCoin",
-    Dragon: "dragon"
+    generateCoin: "generateCoin"
 }
 const LANE = {
     WIDTH: canvas.width/3,
@@ -239,7 +243,7 @@ class Circles{
     }
 }
 
-class Arrow {
+class Projectile {
     constructor(x, y, imageUrl, width, height, speed){
         this.x = x;
         this.y = y;
@@ -252,34 +256,39 @@ class Arrow {
     draw(){
         context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
     }
-    move(deltaTime){
-        this.y -= this.speed * deltaTime / 1000 * gameSpeed;
-    }
     isColliding(object){
         return (
             this.x - this.width/2 <= object.x + object.width/2 &&
             this.x + this.width/2 >= object.x - object.width/2 &&
             this.y + this.height/2 >= object.y - object.height/2 &&
             this.y - this.height/2 <= object.y + object.height/2
-        )
+        );
     }
 }
-// class Image {
-//     constructor(x, y, spritesheetURL, width, height){
-//         this.x = x;
-//         this.y = y;
-//         this.spritesheet = new Image();
-//         this.spritesheet.src = spritesheetURL;
-//         this.width = width;
-//         this.height = height;
-//     }
-// }
-// class StillImage extends Image {
-//     draw(){
-//         context.drawImage(this.spritesheet,this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-//     }
-// }
-
+class Arrow extends Projectile {
+    constructor(x, y, imageUrl, width, height, speed){
+        super(x, y, imageUrl, width, height, speed);
+    }
+    move(deltaTime){
+        this.y -= this.speed * deltaTime / 1000 * gameSpeed;
+    }
+}
+class Fireball extends Projectile {
+    constructor(x, y, imageUrl, width, height, speed){
+        super(x, y, imageUrl, width, height, speed);
+    }
+    move(deltaTime){
+        this.y += this.speed * deltaTime / 1000 * gameSpeed;
+    }
+    isColliding(player){
+        return (
+            this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
+            this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
+            this.y + this.height/2 >= player.y - calculatePlayerStateHeight()&&
+            this.y - this.height/2 <= player.y + playerAnimated.height/2
+        );
+    }
+}
 class AnimatedObject {
     constructor(x, y, width, height, spritesheetURL, animationInfo){
         this.x = x;
@@ -321,8 +330,8 @@ class AnimatedObject {
         console.assert(frameH > 0);
         const frameSX = this.currentAnimationFrame * frameW;
         const frameSY = this.currentAnimation.rowIndex * frameH;
-        console.assert(frameW >= 0);
-        console.assert(frameH >= 0);
+        console.assert(frameSX >= 0);
+        console.assert(frameSY >= 0);
         context.drawImage(this.spritesheet,
             frameSX, frameSY, frameW, frameH,
             this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
@@ -333,6 +342,28 @@ class Necromancer extends AnimatedObject{
     constructor(x, y, width, height, spritesheetURL, animationInfo){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.currentAnimation = this.animationInfo[necromancerAnimationNames.Levitating];
+    }
+    draw(){
+        if (this.currentAnimation == null) {
+            return;
+        }
+        // const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
+        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
+        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
+        console.assert(frameW > 0);
+        console.assert(frameH > 0);
+        const frameSX = this.currentAnimationFrame * frameW;
+        const frameSY = this.currentAnimation.rowIndex * frameH;
+        console.assert(frameSX >= 0);
+        console.assert(frameSY >= 0);
+        context.drawImage(this.spritesheet,
+            frameSX, frameSY, frameW, frameH,
+            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
+        );
+        console.log(this.spritesheet,
+            frameSX, frameSY, frameW, frameH,
+            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
+        );
     }
 }
 const necromancerAnimationNames = {
@@ -351,17 +382,24 @@ class DragonEnemy extends AnimatedObject{
     constructor(x, y, width, height, spritesheetURL, animationInfo, speed, stateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.speed = speed;
-        this.currentAnimation = this.animationInfo[DragonAnimationNames.Flying];
         this.stateMachine = stateMachine;
         this.stateMachine.activeState = this.stateMachine.states[DragonStates.Flying];
-        this.stateMachine.activeState.onActivation();
+        this.stateMachine.activeState.onActivation(this);
     }
     move(deltaTime){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
     update(deltaTime){
         this.animationUpdate(deltaTime);
-        this.stateMachine.update(deltaTime);
+        this.stateMachine.update(deltaTime, this);
+    }
+    isColliding(player){
+        return (
+            this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
+            this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
+            this.y + this.height/2 >= player.y - calculatePlayerStateHeight()&&
+            this.y - this.height/2 <= player.y + playerAnimated.height/2
+        )
     }
 }
 // Dragon Animation Info
@@ -636,19 +674,18 @@ class StateMachine {
     addState(stateName, onActivation, update, onDeactivation) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
     }
-    update(deltaTime) {
+    update(deltaTime, currentObject) {
         if (this.activeState){
-            const nextState = this.activeState.update(deltaTime);
+            const nextState = this.activeState.update(deltaTime, currentObject);
             if (nextState){
-                this.activeState.onDeactivation();
+                this.activeState.onDeactivation(currentObject);
                 this.activeState = this.states[nextState];
-                this.activeState.onActivation();
+                this.activeState.onActivation(currentObject);
             }
         }
     }
 }
 const playerSM = new StateMachine();
-const dragonSM = new StateMachine();
 const gameSM = new StateMachine();
 
 //Adding the states
@@ -796,6 +833,9 @@ const onInventoryMenuActivation = () => {
         // }
     }
     console.log(GameStates.InventoryMenu);
+    stillObjects.push(
+        new Necromancer(200, 200, 300, 300, "Necromancer.png", necromancerInfo)
+    )
 }
 const onInventoryMenuUpdate = () => {
     if (allPressedKeys[KEYS.Escape]){
@@ -803,16 +843,37 @@ const onInventoryMenuUpdate = () => {
     }
 }
 const onInventoryMenuDeactivation = () => {
-    document.removeEventListener('click', mouseClicked);
+    // document.removeEventListener('click', mouseClicked);
+    // mouseClicked is not defined
 }
 
-const onFlyingActivation = () => {
-    // this.currentAnimation = this.animationInfo[DragonAnimationNames.Flying];
+const onFlyingActivation = (currentObject) => {
+    currentObject.currentAnimation = currentObject.animationInfo[DragonAnimationNames.Flying]
 }
-const onFlyingUpdate = () => {
-
+const onFlyingUpdate = (deltatime, currentObject) => {
+    if (playerAnimated.x == currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y){
+        return DragonStates.Firing;
+    }
 }
 const onFlyingDeactivation = () => {
+}
+const onFiringActivation = (currentObject) => {
+    currentObject.currentAnimation = currentObject.animationInfo[DragonAnimationNames.Flying];
+    currentObject.speed = 0;
+    timeStart = Date.now();
+    objects.push(
+        new Fireball(currentObject.x, currentObject.y, "fireball.png", 50, 50, 300)
+    );
+}
+const onFiringUpdate = (deltatime, currentObject) => {
+    if (checkTime(1000)){
+        if (playerAnimated.x != currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y || checkTime(3000)){
+            return DragonStates.Flying;
+        }
+    }
+}
+const onFiringDeactivation = (currentObject) => {
+    currentObject.speed = fallSpeed;
 }
 
 // Setting up state machines
@@ -823,7 +884,12 @@ playerSM.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, on
 playerSM.addState(PlayerStates.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
 playerSM.addState(PlayerStates.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
 
-dragonSM.addState(DragonStates.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
+const generateDragonSM = () => {
+    const dragonSM = new StateMachine();
+    dragonSM.addState(DragonStates.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
+    dragonSM.addState(DragonStates.Firing, onFiringActivation, onFiringUpdate, onFiringDeactivation)
+    return dragonSM;
+}
 
 gameSM.addState(GameStates.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
 gameSM.addState(GameStates.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
@@ -851,6 +917,7 @@ console.log(gameSM.activeState)
 //    - turn at least 1 type of obstacle into an animated spritesheet
 // Bugs to fix:
 // 1. Animation seems to vary. It doesn't always start at frame 0 /
+// 2. Figure out why necromancer is not appearing on screen
 // Tasks:
 // 1. Figure out how to add changeLane state to player. /
 
@@ -862,22 +929,17 @@ function runFrame() {
     const currentTime = Date.now();
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime;
-    if (playerAnimated.state == PlayerStates.Running){
-        gameSpeed = 0.5;
+    if (playerAnimated.state != PlayerStates.Running || allPressedKeys[KEYS.E]){
+        gameSpeed = 1;
     }
     else{
-        gameSpeed = 1;
+        gameSpeed = 0.5;
     }
     // process input
     // playerAnimated.processInput();
     // update state
     if (gameState == GameStates.Playing){
         update(deltaTime);        
-    }
-    else{
-        stillObjects.push(
-            new AnimatedObject(100, 100, 300, 300, "Necromancer.png", necromancerInfo)
-        )
     }
     stillObjectsLoop();
     // draw the world
@@ -978,15 +1040,15 @@ function generateCoin(){
 
 function generateDragon(){
     objects.push(
-        new DragonEnemy(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 100, 100, "dragon.png", DragonAnimationInfo, fallSpeed, dragonSM)
+        new DragonEnemy(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 100, 100, "dragon.png", DragonAnimationInfo, fallSpeed, generateDragonSM())
     )
 }
-generateDragon();
+
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
         let generateType = Object.keys(spawnType)[Math.floor(Math.random() * 2)];
         if (generateType == spawnType.generateObstacle){
-            generateObstacle()
+            generateDragon()
         }
         else if (generateType == spawnType.generateCoin){
             generateCoin();
@@ -1012,16 +1074,18 @@ function resetGame(){
     score = 0;
 }
 function destroyCollidingObjects(object1, object2){
-    objects.splice(object1,1);
-    objects.splice(object2,1);
+    objects.splice(objects.indexOf(object1),1);
+    objects.splice(objects.indexOf(object2),1);
 }
 
 function objectsLoop(deltaTime){
     for (let i = 0; i < objects.length; i++){
         objects[i].move(deltaTime);
-        objects[i].speed = fallSpeed;
+        if (objects[i].constructor != Arrow || Fireball){
+            objects[i].speed += FALL_INCREMENT;
+        }
         if (objects[i].constructor == DragonEnemy){
-            objects[i].update(deltaTime);
+            objects[i].update(deltaTime, objects[i]);
         }
         if (objects[i].constructor == Arrow){
             if (objects[i].y <= -objects[i].height){
@@ -1041,7 +1105,7 @@ function objectsLoop(deltaTime){
                 continue;
             }
         }
-        else if (objects[i].constructor == Rects){
+        else if (objects[i].constructor == DragonEnemy || objects[i].constructor == Fireball){
             if (objects[i].isColliding(playerAnimated)){
                 if (playerAnimated.attacking != true){
                     playerAnimated.Stats.Lives -= 1;
@@ -1052,17 +1116,14 @@ function objectsLoop(deltaTime){
         }
         else if (objects[i].constructor == Arrow){
             const currentObject1 = objects[i];
+            // When I removed the current object lines, the game sometimes bugged out when arrows collided with objects, so I'm keeping this code in.
             for (let j = 0; j < objects.length; j++){
-                //There's a bug sometimes when firing arrows. SOLVED
-                // Apparently in javascript, the coding language doesn't wait for the objectsLoop to finish running before going on to the next object. 
-                // In order to solve this, I just defined a constant after the objectsLoops start to ensure the value stays the same.
-                // I don't know why the value of i becomes undefined though as the objectsLoop continues... Can you explain this to me?
-                if (objects[j].constructor == Rects){
+                if (objects[j].constructor == DragonEnemy){
                     const currentObject2 = objects[j];
                     console.assert(currentObject1);
                     console.assert(currentObject2);
                     if (currentObject1.isColliding(currentObject2)){
-                        destroyCollidingObjects(objects.indexOf(currentObject1), objects.indexOf(currentObject2));
+                        destroyCollidingObjects(objects[i], objects[j]);
                     }
                 continue;
                 // For effiency's sake, should I split the objects array into 3 lane arrays? 
@@ -1073,5 +1134,8 @@ function objectsLoop(deltaTime){
     }
 }
 function stillObjectsLoop(){
-
+    for (let object of stillObjects){
+        object.draw();
+        object.animationUpdate();
+    }
 }
