@@ -448,7 +448,7 @@ class PlayerCharacter extends AnimatedObject{
             this.animationInfo = playerSpearAnimationInfo;
         }
         console.log(this.weapon);
-        playerAnimated.spritesheet.src = this.weapon;
+        playerAnimated.spritesheet.src = playerImage;
     }
     draw(){
         if (this.currentAnimation == null) {
@@ -862,7 +862,7 @@ const onFiringActivation = (currentObject) => {
     currentObject.speed = 0;
     timeStart = Date.now();
     objects.push(
-        new Fireball(currentObject.x, currentObject.y, "fireball.png", 50, 50, 300)
+        new Fireball(currentObject.x, currentObject.y, "fireball.png", OBJECT.WIDTH, OBJECT.HEIGHT, 250)
     );
 }
 const onFiringUpdate = (deltatime, currentObject) => {
