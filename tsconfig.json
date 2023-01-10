@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist",
+        "target": "ESNext",
+        "noImplicitAny": true,
+        "strictFunctionTypes": true,
+        "strict": true,
+    },
+        "include": [
+        "./Subway Surfers - V1/**/*"
+    ]
+}

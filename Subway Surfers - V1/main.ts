@@ -290,7 +290,7 @@ class Fireball extends Projectile {
     }
 }
 class AnimatedObject {
-    constructor(x, y, width, height, spritesheetURL, animationInfo){
+    constructor(x: number, y: number, width, height, spritesheetURL, animationInfo){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -448,7 +448,7 @@ class PlayerCharacter extends AnimatedObject{
             this.animationInfo = playerSpearAnimationInfo;
         }
         console.log(this.weapon);
-        playerAnimated.spritesheet.src = playerImage;
+        playerAnimated.spritesheet.src = this.weapon;
     }
     draw(){
         if (this.currentAnimation == null) {
