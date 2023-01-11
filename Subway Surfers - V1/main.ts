@@ -26,19 +26,19 @@ const canvas = document.getElementById("game-canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext("2d");
-const STATE_DURATION: Number = 1500;
-const SCORE_SPEED: Number = 1;
-const COIN_VALUE: Number = 300;
-const CLICK_DELAY: Number = 300; //This is in milliseconds
-const SPAWN_INCREMENT: Number = 0.1;
-const FALL_INCREMENT: Number = 0.02;
-const COIN_RADIUS: Number = 25;
-const OFFSET: Number = 1;
-const ORIGINAL_SPEED: Number = 150;
-const ORIGINAL_SPAWN_DELAY: Number = 1000;
-const JUMP_TIME: Number = 800;
-const DUCK_TIME: Number = 600;
-const COOLDOWN: Number = 100;
+const STATE_DURATION: number = 1500;
+const SCORE_SPEED: number = 1;
+const COIN_VALUE: number = 300;
+const CLICK_DELAY: number = 300; //This is in milliseconds
+const SPAWN_INCREMENT: number = 0.1;
+const FALL_INCREMENT: number = 0.02;
+const COIN_RADIUS: number = 25;
+const OFFSET: number = 1;
+const ORIGINAL_SPEED: number = 150;
+const ORIGINAL_SPAWN_DELAY: number = 1000;
+const JUMP_TIME: number = 800;
+const DUCK_TIME: number = 600;
+const COOLDOWN: number = 100;
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -103,12 +103,12 @@ const ItemList = {
 }
 
 // Player Information
-const PlayerStates = {
-    Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
-    Jumping: "jumping",
-    Ducking: "ducking",
-    Roll: "roll",
-    Dying: "dying"
+enum PlayerStates {
+    Running, // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
+    Jumping,
+    Ducking,
+    Roll,
+    Dying
 };
 const GameStates = {
     Playing: "playing",
@@ -163,8 +163,8 @@ const LIVES = {
 }
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
-const objects = [];
-const stillObjects = [];
+const objects: Array<Object> = [];
+const stillObjects: Array<Object> = [];
 
 // Score Information
 const HIGH_SCORE = {
@@ -177,20 +177,20 @@ const SCORE = {
 }
 
 // Changeble variables
-let lastTime: Number = Date.now();
-let lastClick: Number = Date.now();
-let lastSpawn: Number = Date.now();
-let timeStart: Number = Date.now();
-let spawnDelay: Number = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
-let score: Number = 0;
-let highScore: Number = 0;
-let gold: Number = 0;
-let fallSpeed: Number = ORIGINAL_SPEED;
+let lastTime: number = Date.now();
+let lastClick: number = Date.now();
+let lastSpawn: number = Date.now();
+let timeStart: number = Date.now();
+let spawnDelay: number = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
+let score: number = 0;
+let highScore: number = 0;
+let gold: number = 0;
+let fallSpeed: number = ORIGINAL_SPEED;
 let gameState: String = GameStates.Playing;
-let gameSpeed: Number = 1;
+let gameSpeed: number = 1;
 
 class Rects{
-    constructor(x: number, y: number, width: number, height: number, color, requiredState, speed: number) {
+    constructor(x: number, y: number, width: number, height: number, color: string, requiredState: string, speed: number) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -216,7 +216,7 @@ class Rects{
     }
 }
 class Circles{
-    constructor(x: number, y: number, radius: number, color, speed: number){
+    constructor(x: number, y: number, radius: number, color: string, speed: number){
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -244,7 +244,7 @@ class Circles{
 }
 
 class Projectile {
-    constructor(x: number, y: number, imageUrl, width: number, height: number, speed: number){
+    constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         this.x = x;
         this.y = y;
         this.image = new Image();
@@ -266,7 +266,7 @@ class Projectile {
     }
 }
 class Arrow extends Projectile {
-    constructor(x: number, y: number, imageUrl, width: number, height: number, speed: number){
+    constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
     }
     move(deltaTime){
@@ -274,7 +274,7 @@ class Arrow extends Projectile {
     }
 }
 class Fireball extends Projectile {
-    constructor(x: number, y: number, imageUrl, width: number, height: number, speed: number){
+    constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
     }
     move(deltaTime){
@@ -290,7 +290,7 @@ class Fireball extends Projectile {
     }
 }
 class AnimatedObject {
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL, animationInfo){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -339,7 +339,7 @@ class AnimatedObject {
     }
 }
 class Necromancer extends AnimatedObject{
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL, animationInfo){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.currentAnimation = this.animationInfo[necromancerAnimationNames.Levitating];
     }
@@ -379,7 +379,7 @@ const necromancerInfo = {
 };
 
 class DragonEnemy extends AnimatedObject{
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL, animationInfo, speed: number, stateMachine){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo, speed: number, stateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.speed = speed;
         this.stateMachine = stateMachine;
@@ -417,7 +417,7 @@ const DragonAnimationInfo = {
 };
 
 class PlayerCharacter extends AnimatedObject{
-    constructor(x: number, y: number, spritesheetURL, animationInfo, lane: number, state, width: number, height: number, startingItems, startingStats, weapons){
+    constructor(x: number, y: number, spritesheetURL: string, animationInfo, lane: number, state: string, width: number, height: number, startingItems, startingStats, weapons){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
         this.Stats = startingStats;
@@ -552,7 +552,7 @@ playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
 class InventoryItem {
-    constructor(width: number, height: number, iconURL, image, name) {
+    constructor(width: number, height: number, iconURL: string, image, name) {
         this.width = width;
         this.height = height;
         this.iconURL = iconURL;
@@ -1073,7 +1073,7 @@ function resetGame(){
     }
     score = 0;
 }
-function destroyCollidingObjects(object1, object2){
+function destroyCollidingObjects(object1: object, object2: object){
     objects.splice(objects.indexOf(object1),1);
     objects.splice(objects.indexOf(object2),1);
 }
@@ -1120,8 +1120,8 @@ function objectsLoop(deltaTime){
             for (let j = 0; j < objects.length; j++){
                 if (objects[j].constructor == DragonEnemy){
                     const currentObject2 = objects[j];
-                    console.assert(currentObject1);
-                    console.assert(currentObject2);
+                    console.assert(currentObject1 == !undefined);
+                    console.assert(currentObject2 == !undefined);
                     if (currentObject1.isColliding(currentObject2)){
                         destroyCollidingObjects(objects[i], objects[j]);
                     }
