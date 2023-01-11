@@ -26,19 +26,19 @@ const canvas = document.getElementById("game-canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext("2d");
-const STATE_DURATION = 1500;
-const SCORE_SPEED = 1;
-const COIN_VALUE = 300;
-const CLICK_DELAY = 300; //This is in milliseconds
-const SPAWN_INCREMENT = 0.1;
-const FALL_INCREMENT = 0.02;
-const COIN_RADIUS = 25;
-const OFFSET = 1;
-const ORIGINAL_SPEED = 150;
-const ORIGINAL_SPAWN_DELAY = 1000;
-const JUMP_TIME = 800;
-const DUCK_TIME = 600;
-const COOLDOWN = 100;
+const STATE_DURATION: Number = 1500;
+const SCORE_SPEED: Number = 1;
+const COIN_VALUE: Number = 300;
+const CLICK_DELAY: Number = 300; //This is in milliseconds
+const SPAWN_INCREMENT: Number = 0.1;
+const FALL_INCREMENT: Number = 0.02;
+const COIN_RADIUS: Number = 25;
+const OFFSET: Number = 1;
+const ORIGINAL_SPEED: Number = 150;
+const ORIGINAL_SPAWN_DELAY: Number = 1000;
+const JUMP_TIME: Number = 800;
+const DUCK_TIME: Number = 600;
+const COOLDOWN: Number = 100;
 
 const image = new Image();
 image.src = 'coin_01.png';
@@ -177,20 +177,20 @@ const SCORE = {
 }
 
 // Changeble variables
-let lastTime = Date.now();
-let lastClick = Date.now();
-let lastSpawn = Date.now();
-let timeStart = Date.now();
-let spawnDelay = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
-let score = 0;
-let highScore = 0;
-let gold = 0;
-let fallSpeed = ORIGINAL_SPEED;
-let gameState = GameStates.Playing;
-let gameSpeed = 1;
+let lastTime: Number = Date.now();
+let lastClick: Number = Date.now();
+let lastSpawn: Number = Date.now();
+let timeStart: Number = Date.now();
+let spawnDelay: Number = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
+let score: Number = 0;
+let highScore: Number = 0;
+let gold: Number = 0;
+let fallSpeed: Number = ORIGINAL_SPEED;
+let gameState: String = GameStates.Playing;
+let gameSpeed: Number = 1;
 
 class Rects{
-    constructor(x, y, width, height, color, requiredState, speed) {
+    constructor(x: number, y: number, width: number, height: number, color, requiredState, speed: number) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -216,7 +216,7 @@ class Rects{
     }
 }
 class Circles{
-    constructor(x, y, radius, color, speed){
+    constructor(x: number, y: number, radius: number, color, speed: number){
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -244,7 +244,7 @@ class Circles{
 }
 
 class Projectile {
-    constructor(x, y, imageUrl, width, height, speed){
+    constructor(x: number, y: number, imageUrl, width: number, height: number, speed: number){
         this.x = x;
         this.y = y;
         this.image = new Image();
@@ -266,7 +266,7 @@ class Projectile {
     }
 }
 class Arrow extends Projectile {
-    constructor(x, y, imageUrl, width, height, speed){
+    constructor(x: number, y: number, imageUrl, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
     }
     move(deltaTime){
@@ -274,7 +274,7 @@ class Arrow extends Projectile {
     }
 }
 class Fireball extends Projectile {
-    constructor(x, y, imageUrl, width, height, speed){
+    constructor(x: number, y: number, imageUrl, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
     }
     move(deltaTime){
@@ -290,7 +290,7 @@ class Fireball extends Projectile {
     }
 }
 class AnimatedObject {
-    constructor(x: number, y: number, width, height, spritesheetURL, animationInfo){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL, animationInfo){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -339,7 +339,7 @@ class AnimatedObject {
     }
 }
 class Necromancer extends AnimatedObject{
-    constructor(x, y, width, height, spritesheetURL, animationInfo){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL, animationInfo){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.currentAnimation = this.animationInfo[necromancerAnimationNames.Levitating];
     }
@@ -379,7 +379,7 @@ const necromancerInfo = {
 };
 
 class DragonEnemy extends AnimatedObject{
-    constructor(x, y, width, height, spritesheetURL, animationInfo, speed, stateMachine){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL, animationInfo, speed: number, stateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.speed = speed;
         this.stateMachine = stateMachine;
@@ -417,7 +417,7 @@ const DragonAnimationInfo = {
 };
 
 class PlayerCharacter extends AnimatedObject{
-    constructor(x, y, spritesheetURL, animationInfo, lane, state, width, height, startingItems, startingStats, weapons){
+    constructor(x: number, y: number, spritesheetURL, animationInfo, lane: number, state, width: number, height: number, startingItems, startingStats, weapons){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
         this.Stats = startingStats;
@@ -552,7 +552,7 @@ playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
 class InventoryItem {
-    constructor(width, height, iconURL, image, name) {
+    constructor(width: number, height: number, iconURL, image, name) {
         this.width = width;
         this.height = height;
         this.iconURL = iconURL;
@@ -561,7 +561,7 @@ class InventoryItem {
     }
 }
 class Inventory {
-    constructor(width, height, x, y) {
+    constructor(width: number, height: number, x: number, y: number) {
         this.cells = [];
         this.width = width;
         this.height = height;
