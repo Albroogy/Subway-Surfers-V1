@@ -22,7 +22,7 @@ const KEYS = {
 };
 
 // Constant variables
-const canvas = document.getElementById("game-canvas");
+const canvas = document.getElementById("game-canvas"); // I don't know why canvas can also be null...
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext("2d");
@@ -110,13 +110,13 @@ enum PlayerStates {
     Roll,
     Dying
 };
-const GameStates = {
-    Playing: "playing",
-    InventoryMenu: "equippedInventoryMenu"
+enum GameStates {
+    Playing,
+    InventoryMenu
 }
-const DragonStates = {
-    Flying: "flying",
-    Firing: "firing"
+enum DragonStates {
+    Flying,
+    Firing
 }
 
 const PLAYER = {
@@ -132,14 +132,14 @@ const OBJECT = {
 const DRAGON = {
     SIGHT: 300
 }
-const obstacleColors = {
-    Orange: "orange",
-    Brown: "brown",
-    Black: "black"
+enum obstacleColors {
+    Orange,
+    Brown,
+    Black
 }
-const spawnType = {
-    generateObstacle: "generateObstacle",
-    generateCoin: "generateCoin"
+enum spawnType {
+    generateObstacle,
+    generateCoin
 }
 const LANE = {
     WIDTH: canvas.width/3,
@@ -186,10 +186,17 @@ let score: number = 0;
 let highScore: number = 0;
 let gold: number = 0;
 let fallSpeed: number = ORIGINAL_SPEED;
-let gameState: String = GameStates.Playing;
+let gameState: Object = GameStates.Playing;
 let gameSpeed: number = 1;
 
 class Rects{
+    public x: number;
+    public y: number;
+    public width: number;
+    public height: number;
+    public color: string;
+    public requiredState: string;
+    public speed: number;
     constructor(x: number, y: number, width: number, height: number, color: string, requiredState: string, speed: number) {
         this.x = x;
         this.y = y;
@@ -216,6 +223,11 @@ class Rects{
     }
 }
 class Circles{
+    public x: number;
+    public y: number;
+    public radius: number;
+    public color: string;
+    public speed: number;
     constructor(x: number, y: number, radius: number, color: string, speed: number){
         this.x = x;
         this.y = y;
@@ -244,6 +256,12 @@ class Circles{
 }
 
 class Projectile {
+    public x: number;
+    public y: number;
+    public width: number;
+    public height: number;
+    public image: HTMLImageElement;
+    public speed: number;
     constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         this.x = x;
         this.y = y;
@@ -290,6 +308,15 @@ class Fireball extends Projectile {
     }
 }
 class AnimatedObject {
+    public x: number;
+    public y: number;
+    public width: number;
+    public height: number;
+    public spritesheet: HTMLImageElement;
+    public animationInfo: object;
+    public currentAnimation: object | null;
+    public currentAnimationFrame: number;
+    private timeSinceLastFrame: number;
     constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo){
         this.x = x;
         this.y = y;
@@ -379,6 +406,8 @@ const necromancerInfo = {
 };
 
 class DragonEnemy extends AnimatedObject{
+    public speed: number;
+    private stateMachine: any; // I don't know what to input here
     constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo, speed: number, stateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.speed = speed;
@@ -417,20 +446,24 @@ const DragonAnimationInfo = {
 };
 
 class PlayerCharacter extends AnimatedObject{
-    constructor(x: number, y: number, spritesheetURL: string, animationInfo, lane: number, state: string, width: number, height: number, startingItems, startingStats, weapons){
+    public equippedItems: object;
+    public Stats: object;
+    public weapon: string | null;
+    public Weapons: object;
+    constructor(x: number, y: number, spritesheetURL: string, animationInfo, lane: number, state: string, width: number, height: number, startingItems: object, startingStats: object, Weapons){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
         this.Stats = startingStats;
         this.weapon = null;
-        this.weapons = weapons;
+        this.Weapons = Weapons;
         this.directionChange = null;
         this.attacking = false;
         this.lane = lane;
         this.state = state;
         this.PREPARE_SPEAR_FRAMES = 4;
     }
-    changeLane(){
-        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
+    roll(deltaTime){
+        this.x = += this.Stats.RollSpeed * deltaTime/1000 * this.directionChange;
     }
     statsUpdate(){
         if (this.equippedItems.Armor == ItemList.Armor){
@@ -440,11 +473,11 @@ class PlayerCharacter extends AnimatedObject{
             this.Stats.RollSpeed = 600;
         }
         if (this.equippedItems.Bow == ItemList.Bow){
-            this.weapon = this.weapons.Bow;
+            this.weapon = this.Weapons.Bow;
             this.animationInfo = playerBowAnimationInfo;
         }
         if (this.equippedItems.Spear == ItemList.Spear){
-            this.weapon = this.weapons.Spear;
+            this.weapon = this.Weapons.Spear;
             this.animationInfo = playerSpearAnimationInfo;
         }
         console.log(this.weapon);
@@ -658,7 +691,10 @@ console.log(equippedInventory);
 
 ///State Machine Code
 class State {
-    constructor(onActivation, update, onDeactivation) {
+    public onActivation: object;
+    public update: object;
+    public onDeactivation: object;
+    constructor(onActivation: object, update: object, onDeactivation: object) {
         this.onActivation = onActivation;
         this.update = update;
         this.onDeactivation = onDeactivation;
@@ -740,7 +776,7 @@ const onDuckingActivation = () => {
     playerAnimated.currentAnimationFrame = 0;
 }
 const onDuckingUpdate = () => {
-    if (playerAnimated.weapon == playerAnimated.weapons.Spear){
+    if (playerAnimated.weapon == playerAnimated.Weapons.Spear){
         if (playerAnimated.currentAnimationFrame >= playerAnimated.PREPARE_SPEAR_FRAMES - OFFSET){
             playerAnimated.attacking = true;
         }
@@ -756,7 +792,7 @@ const onDuckingUpdate = () => {
     }
 }
 const onDuckingDeactivation = () => {
-    if (playerAnimated.weapon == playerAnimated.weapons.Bow){
+    if (playerAnimated.weapon == playerAnimated.Weapons.Bow){
         objects.push(
             new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
         );
@@ -790,7 +826,7 @@ const onRollUpdate = (deltaTime) => {
             return PlayerStates.Running;
         }
     }
-    playerAnimated.x += playerAnimated.Stats.RollSpeed * deltaTime/1000 * playerAnimated.directionChange;
+    playerAnimated.roll(deltaTime);
 }
 const onRollDeactivation = () => {
 }
