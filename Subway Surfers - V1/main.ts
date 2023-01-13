@@ -270,7 +270,6 @@ class Projectile {
         this.width = width;
         this.height = height;
         this.speed = speed;
-        console.log("yes");
     }
     draw(){
         context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
@@ -287,6 +286,7 @@ class Projectile {
 class Arrow extends Projectile {
     constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
+        console.log("arrow")
     }
     move(deltaTime: number){
         this.y -= this.speed * deltaTime / 1000 * gameSpeed;
@@ -429,6 +429,11 @@ class PlayerCharacter extends AnimatedObject{
     public Stats: object;
     public weapon: string | null;
     public Weapons: object;
+    public directionChange: number | null;
+    public attacking: boolean;
+    public lane: number;
+    public state: string;
+    public PREPARE_SPEAR_FRAMES: number;
     constructor(x: number, y: number, spritesheetURL: string, animationInfo, lane: number, state: string, width: number, height: number, startingItems: object, startingStats: object, Weapons){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
@@ -753,6 +758,7 @@ const onDuckingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Ducking);
     playerAnimated.state = PlayerStates.Ducking;
     playerAnimated.currentAnimationFrame = 0;
+    console.log(playerAnimated.state);
 }
 const onDuckingUpdate = () => {
     if (playerAnimated.weapon == playerAnimated.Weapons.Spear){
@@ -766,6 +772,7 @@ const onDuckingUpdate = () => {
     //     );
     // }
     // Why does this code not work?
+    console.log(playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET)
     if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
         return PlayerStates.Running;
     }
@@ -775,6 +782,7 @@ const onDuckingDeactivation = () => {
         objects.push(
             new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
         );
+        console.log("arrow fired");
     }
     //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
     if (playerAnimated.attacking != false){
