@@ -22,7 +22,7 @@ const KEYS = {
 };
 
 // Constant variables
-const canvas = document.getElementById("game-canvas"); // I don't know why canvas can also be null...
+const canvas: HTMLCanvasElement = document.getElementById("game-canvas"); // I don't know why canvas can also be null...
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext("2d");
@@ -163,8 +163,8 @@ const LIVES = {
 }
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
-const objects: Array<Object> = [];
-const stillObjects: Array<Object> = [];
+const objects: Array<object> = [];
+const stillObjects: Array<object> = [];
 
 // Score Information
 const HIGH_SCORE = {
@@ -210,7 +210,7 @@ class Rects{
         context.fillStyle = this.color;
         context.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
     }
-    isColliding(player){
+    isColliding(player: PlayerCharacter){
         return (
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
@@ -218,7 +218,7 @@ class Rects{
             this.y - this.height/2 <= player.y + playerAnimated.height/2
         )
     }
-    move(deltaTime){
+    move(deltaTime: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
 }
@@ -242,7 +242,7 @@ class Circles{
         context.fillStyle = this.color;
         context.fill();
     }
-    isColliding(player){
+    isColliding(player: PlayerCharacter){
         return (
             this.x - this.radius <= player.x + playerAnimated.width/2 &&
             this.x + this.radius >= player.x - playerAnimated.width/2 &&
@@ -250,7 +250,7 @@ class Circles{
             this.y - this.radius <= player.y + playerAnimated.height/2
         )
     }
-    move(deltaTime){
+    move(deltaTime: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
 }
@@ -270,11 +270,12 @@ class Projectile {
         this.width = width;
         this.height = height;
         this.speed = speed;
+        console.log("yes");
     }
     draw(){
         context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
     }
-    isColliding(object){
+    isColliding(object: DragonEnemy){
         return (
             this.x - this.width/2 <= object.x + object.width/2 &&
             this.x + this.width/2 >= object.x - object.width/2 &&
@@ -287,7 +288,7 @@ class Arrow extends Projectile {
     constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
     }
-    move(deltaTime){
+    move(deltaTime: number){
         this.y -= this.speed * deltaTime / 1000 * gameSpeed;
     }
 }
@@ -295,10 +296,10 @@ class Fireball extends Projectile {
     constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
     }
-    move(deltaTime){
+    move(deltaTime: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
-    isColliding(player){
+    isColliding(player: PlayerCharacter){
         return (
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
@@ -313,11 +314,11 @@ class AnimatedObject {
     public width: number;
     public height: number;
     public spritesheet: HTMLImageElement;
-    public animationInfo: object;
-    public currentAnimation: object | null;
+    public animationInfo: Record<string, Record<string, number>>;
+    public currentAnimation: Record<string, number> | null;
     public currentAnimationFrame: number;
     private timeSinceLastFrame: number;
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -329,10 +330,10 @@ class AnimatedObject {
         this.currentAnimationFrame = 0;
         this.timeSinceLastFrame = 0;
     }
-    playAnimation(name) {
+    playAnimation(name: string) {
         this.currentAnimation = this.animationInfo[name];
     }
-    animationUpdate(deltaTime){
+    animationUpdate(deltaTime: number){
         if (this.currentAnimation == null) {
             return;
         }
@@ -343,7 +344,7 @@ class AnimatedObject {
             this.timeSinceLastFrame = 0;
         }
     }
-    update(deltaTime) {
+    update(deltaTime: number) {
         this.animationUpdate(deltaTime);
     }
     draw(){
@@ -366,31 +367,9 @@ class AnimatedObject {
     }
 }
 class Necromancer extends AnimatedObject{
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, number | Record<string, number>>){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.currentAnimation = this.animationInfo[necromancerAnimationNames.Levitating];
-    }
-    draw(){
-        if (this.currentAnimation == null) {
-            return;
-        }
-        // const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
-        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
-        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
-        console.assert(frameW > 0);
-        console.assert(frameH > 0);
-        const frameSX = this.currentAnimationFrame * frameW;
-        const frameSY = this.currentAnimation.rowIndex * frameH;
-        console.assert(frameSX >= 0);
-        console.assert(frameSY >= 0);
-        context.drawImage(this.spritesheet,
-            frameSX, frameSY, frameW, frameH,
-            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
-        );
-        console.log(this.spritesheet,
-            frameSX, frameSY, frameW, frameH,
-            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
-        );
     }
 }
 const necromancerAnimationNames = {
@@ -408,17 +387,17 @@ const necromancerInfo = {
 class DragonEnemy extends AnimatedObject{
     public speed: number;
     private stateMachine: any; // I don't know what to input here
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo, speed: number, stateMachine){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, number | Record<string, number>>, speed: number, stateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.speed = speed;
         this.stateMachine = stateMachine;
         this.stateMachine.activeState = this.stateMachine.states[DragonStates.Flying];
         this.stateMachine.activeState.onActivation(this);
     }
-    move(deltaTime){
+    move(deltaTime: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
-    update(deltaTime){
+    update(deltaTime: number){
         this.animationUpdate(deltaTime);
         this.stateMachine.update(deltaTime, this);
     }
@@ -462,8 +441,8 @@ class PlayerCharacter extends AnimatedObject{
         this.state = state;
         this.PREPARE_SPEAR_FRAMES = 4;
     }
-    roll(deltaTime){
-        this.x = += this.Stats.RollSpeed * deltaTime/1000 * this.directionChange;
+    roll(deltaTime: number){
+        this.x += this.Stats.RollSpeed * deltaTime/1000 * this.directionChange;
     }
     statsUpdate(){
         if (this.equippedItems.Armor == ItemList.Armor){
@@ -911,6 +890,8 @@ const onFiringUpdate = (deltatime, currentObject) => {
 const onFiringDeactivation = (currentObject) => {
     currentObject.speed = fallSpeed;
 }
+
+// Make dragon stop moving when near to another obstacle
 
 // Setting up state machines
 
