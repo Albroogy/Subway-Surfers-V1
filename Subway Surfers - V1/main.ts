@@ -1,5 +1,5 @@
 // Key Information
-const allPressedKeys = {};
+const allPressedKeys: Record<string, boolean> = {};
 window.addEventListener("keydown", function (event) {
     allPressedKeys[event.keyCode] = true;
 });
@@ -22,10 +22,10 @@ const KEYS = {
 };
 
 // Constant variables
-const canvas: HTMLCanvasElement = document.getElementById("game-canvas"); // I don't know why canvas can also be null...
+const canvas: HTMLCanvasElement = document.getElementById("game-canvas")! as HTMLCanvasElement; // I don't know why canvas can also be null...
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-const context = canvas.getContext("2d");
+const context: CanvasRenderingContext2D = canvas.getContext("2d")! as CanvasRenderingContext2D;
 const STATE_DURATION: number = 1500;
 const SCORE_SPEED: number = 1;
 const COIN_VALUE: number = 300;
@@ -367,7 +367,7 @@ class AnimatedObject {
     }
 }
 class Necromancer extends AnimatedObject{
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, number | Record<string, number>>){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.currentAnimation = this.animationInfo[necromancerAnimationNames.Levitating];
     }
@@ -387,7 +387,7 @@ const necromancerInfo = {
 class DragonEnemy extends AnimatedObject{
     public speed: number;
     private stateMachine: any; // I don't know what to input here
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, number | Record<string, number>>, speed: number, stateMachine){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>, speed: number, stateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.speed = speed;
         this.stateMachine = stateMachine;
@@ -401,7 +401,7 @@ class DragonEnemy extends AnimatedObject{
         this.animationUpdate(deltaTime);
         this.stateMachine.update(deltaTime, this);
     }
-    isColliding(player){
+    isColliding(player: PlayerCharacter){
         return (
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
@@ -425,47 +425,49 @@ const DragonAnimationInfo = {
 };
 
 class PlayerCharacter extends AnimatedObject{
-    public equippedItems: object;
-    public Stats: object;
+    public equippedItems: Record <string, string>;
+    public Stats: Record <string, number>;
     public weapon: string | null;
-    public Weapons: object;
-    public directionChange: number | null;
+    public Weapons: Record <string, string>;
+    public directionChange: number;
     public attacking: boolean;
     public lane: number;
-    public state: string;
+    public state: number;
     public PREPARE_SPEAR_FRAMES: number;
-    constructor(x: number, y: number, spritesheetURL: string, animationInfo, lane: number, state: string, width: number, height: number, startingItems: object, startingStats: object, Weapons){
+    constructor(x: number, y: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>, lane: number, state: string, width: number, height: number, startingItems: Record <string, string>, startingStats: Record <string, number>, Weapons){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
         this.Stats = startingStats;
         this.weapon = null;
         this.Weapons = Weapons;
-        this.directionChange = null;
+        this.directionChange = 0;
         this.attacking = false;
         this.lane = lane;
         this.state = state;
         this.PREPARE_SPEAR_FRAMES = 4;
     }
     roll(deltaTime: number){
-        this.x += this.Stats.RollSpeed * deltaTime/1000 * this.directionChange;
+            this.x += this.Stats.RollSpeed * deltaTime/1000 * this.directionChange;
     }
     statsUpdate(){
-        if (this.equippedItems.Armor == ItemList.Armor){
+        if (this.equippedItems.Armor != null){
             this.Stats.Lives = 2;
         }
-        if (this.equippedItems.Boots == ItemList.Boots){
+        if (this.equippedItems.Boots != null){
             this.Stats.RollSpeed = 600;
         }
-        if (this.equippedItems.Bow == ItemList.Bow){
+        if (this.equippedItems.Bow != null){
             this.weapon = this.Weapons.Bow;
             this.animationInfo = playerBowAnimationInfo;
         }
-        if (this.equippedItems.Spear == ItemList.Spear){
+        if (this.equippedItems.Spear != null){
             this.weapon = this.Weapons.Spear;
             this.animationInfo = playerSpearAnimationInfo;
         }
         console.log(this.weapon);
-        playerAnimated.spritesheet.src = this.weapon;
+        if (this.weapon != null){
+            playerAnimated.spritesheet.src = this.weapon;
+        }
     }
     draw(){
         if (this.currentAnimation == null) {
@@ -569,7 +571,12 @@ playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
 class InventoryItem {
-    constructor(width: number, height: number, iconURL: string, image, name) {
+    public width: number;
+    public height: number;
+    public iconURL: string;
+    public image: string;
+    public name: string
+    constructor(width: number, height: number, iconURL: string, image: string, name: string) {
         this.width = width;
         this.height = height;
         this.iconURL = iconURL;
@@ -578,6 +585,10 @@ class InventoryItem {
     }
 }
 class Inventory {
+    public width: number;
+    public height: number;
+    public x: number;
+    public y: number;
     constructor(width: number, height: number, x: number, y: number) {
         this.cells = [];
         this.width = width;
@@ -591,7 +602,7 @@ class Inventory {
             }
         }
     }
-    placeItemCheck(item, cellRow, cellCol) {
+    placeItemCheck(item: InventoryItem, cellRow: number, cellCol: number) {
         // Go through all the coordinates of the item and figure out if the cells are null;
         // If they are, place the item AND apply some effect to the player
         // If even 1 cell is taken, do nothing 
@@ -604,7 +615,7 @@ class Inventory {
         }
         return true;
     }
-    placeItem(item, cellRow, cellCol){
+    placeItem(item: InventoryItem, cellRow: number, cellCol: number){
         if (this.placeItemCheck(item, cellRow, cellCol)){
             for (let i = 0; i < item.width; i++){
                 for (let j = 0; j < item.height; j++){
@@ -687,14 +698,16 @@ class State {
 // When do we begin updating/executing the state machine? Which array do we keep it in?
 // What's the starting state? How do we know where to begin?
 class StateMachine {
+    public states: Record <number, State>;
+    public activeState: null | State;
     constructor() {
         this.states = {};
         this.activeState = null;
     }
-    addState(stateName, onActivation, update, onDeactivation) {
+    addState(stateName: number, onActivation: object, update: object, onDeactivation: object) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
     }
-    update(deltaTime, currentObject) {
+    update(deltaTime: number, currentObject: State) {
         if (this.activeState){
             const nextState = this.activeState.update(deltaTime, currentObject);
             if (nextState){
@@ -705,6 +718,7 @@ class StateMachine {
         }
     }
 }
+
 const playerSM = new StateMachine();
 const gameSM = new StateMachine();
 
@@ -800,7 +814,7 @@ const onRollActivation = () => {
     playerAnimated.currentAnimationFrame = 0;
     playerAnimated.state = PlayerStates.Roll;
 }
-const onRollUpdate = (deltaTime) => {
+const onRollUpdate = (deltaTime: number) => {
     if (playerAnimated.directionChange >= 1){
         if (playerAnimated.x > playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
             playerAnimated.x = playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2;
@@ -870,17 +884,17 @@ const onInventoryMenuDeactivation = () => {
     // mouseClicked is not defined
 }
 
-const onFlyingActivation = (currentObject) => {
+const onFlyingActivation = (currentObject: DragonEnemy) => {
     currentObject.currentAnimation = currentObject.animationInfo[DragonAnimationNames.Flying]
 }
-const onFlyingUpdate = (deltatime, currentObject) => {
+const onFlyingUpdate = (deltatime: number, currentObject: DragonEnemy) => {
     if (playerAnimated.x == currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y){
         return DragonStates.Firing;
     }
 }
 const onFlyingDeactivation = () => {
 }
-const onFiringActivation = (currentObject) => {
+const onFiringActivation = (currentObject: DragonEnemy) => {
     currentObject.currentAnimation = currentObject.animationInfo[DragonAnimationNames.Flying];
     currentObject.speed = 0;
     timeStart = Date.now();
@@ -888,14 +902,14 @@ const onFiringActivation = (currentObject) => {
         new Fireball(currentObject.x, currentObject.y, "fireball.png", OBJECT.WIDTH, OBJECT.HEIGHT, 250)
     );
 }
-const onFiringUpdate = (deltatime, currentObject) => {
+const onFiringUpdate = (deltatime: number, currentObject: DragonEnemy) => {
     if (checkTime(1000)){
         if (playerAnimated.x != currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y || checkTime(3000)){
             return DragonStates.Flying;
         }
     }
 }
-const onFiringDeactivation = (currentObject) => {
+const onFiringDeactivation = (currentObject: DragonEnemy) => {
     currentObject.speed = fallSpeed;
 }
 
@@ -974,7 +988,7 @@ function runFrame() {
     gameSM.update(deltaTime);
 }
 
-function update(deltaTime){
+function update(deltaTime: number){
     score += SCORE_SPEED;
     checkSpawn();
     objectsLoop(deltaTime);
@@ -982,6 +996,7 @@ function update(deltaTime){
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
     playerSM.update(deltaTime);
+    console.log(playerSM.states);
 }
 
 
@@ -1027,16 +1042,16 @@ function draw() {
 
 // These functions calculate a certain value
 
-function calculateLaneLocation(lane){
+function calculateLaneLocation(lane: number){
     return lane * LANE.WIDTH - LANE.WIDTH/2;
 }
 function pickLane(){
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
-function checkTime(stateLength){
+function checkTime(stateLength: number){
     return timeStart <= Date.now() - stateLength;
 }
-function sleep(time) {
+function sleep(time: number) {
     const date = Date.now();
     let currentDate = null;
     do {
@@ -1052,7 +1067,7 @@ function calculatePlayerStateHeight(){
     return 0;
 }
 function generateObstacle(){
-    type = Math.floor(Math.random() * LANE.COUNT);
+    const type = Math.floor(Math.random() * LANE.COUNT);
     objects.push(
         new Rects(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , OBJECT.WIDTH, OBJECT.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
     )
