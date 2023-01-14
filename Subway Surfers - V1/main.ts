@@ -137,9 +137,9 @@ enum obstacleColors {
     Brown,
     Black
 }
-enum spawnType {
-    generateObstacle,
-    generateCoin
+const spawnType = {
+    generateObstacle: "generateObstacle",
+    generateCoin: "generateCoin"
 }
 const LANE = {
     WIDTH: canvas.width/3,
@@ -164,7 +164,7 @@ const LIVES = {
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
 const objects: Array<object> = [];
-const stillObjects: Array<object> = [];
+const stillObjects: Array<Necromancer> = [];
 
 // Score Information
 const HIGH_SCORE = {
@@ -434,7 +434,7 @@ class PlayerCharacter extends AnimatedObject{
     public lane: number;
     public state: number;
     public PREPARE_SPEAR_FRAMES: number;
-    constructor(x: number, y: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>, lane: number, state: string, width: number, height: number, startingItems: Record <string, string>, startingStats: Record <string, number>, Weapons){
+    constructor(x: number, y: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>, lane: number, state: number, width: number, height: number, startingItems: Record <string, string>, startingStats: Record <string, number>, Weapons){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
         this.Stats = startingStats;
@@ -574,9 +574,9 @@ class InventoryItem {
     public width: number;
     public height: number;
     public iconURL: string;
-    public image: string;
+    public image: HTMLImageElement;
     public name: string
-    constructor(width: number, height: number, iconURL: string, image: string, name: string) {
+    constructor(width: number, height: number, iconURL: string, image: HTMLImageElement, name: string) {
         this.width = width;
         this.height = height;
         this.iconURL = iconURL;
@@ -589,6 +589,7 @@ class Inventory {
     public height: number;
     public x: number;
     public y: number;
+    public cells: Array<Array<null | InventoryItem | undefined> | null>
     constructor(width: number, height: number, x: number, y: number) {
         this.cells = [];
         this.width = width;
@@ -654,7 +655,7 @@ class Inventory {
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
                 context.strokeRect(this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH, ITEM.HEIGHT);
-                if (this.cells[i][j] != null){
+                if (this.cells[i][j] != null | undefined){
                     context.drawImage(this.cells[i][j].image, this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH * this.cells[i][j].width, ITEM.HEIGHT * this.cells[i][j].height)
                 }
             }
@@ -686,10 +687,10 @@ console.log(equippedInventory);
 
 ///State Machine Code
 class State {
-    public onActivation: object;
-    public update: object;
-    public onDeactivation: object;
-    constructor(onActivation: object, update: object, onDeactivation: object) {
+    public onActivation: Function;
+    public update: Function;
+    public onDeactivation: Function;
+    constructor(onActivation: Function, update: Function, onDeactivation: Function) {
         this.onActivation = onActivation;
         this.update = update;
         this.onDeactivation = onDeactivation;
@@ -704,12 +705,13 @@ class StateMachine {
         this.states = {};
         this.activeState = null;
     }
-    addState(stateName: number, onActivation: object, update: object, onDeactivation: object) {
+    addState(stateName: number, onActivation: Function, update: Function, onDeactivation: Function) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
     }
-    update(deltaTime: number, currentObject: State) {
+    update(deltaTime: number, currentObject: Function) {
         if (this.activeState){
             const nextState = this.activeState.update(deltaTime, currentObject);
+            console.log(nextState)
             if (nextState){
                 this.activeState.onDeactivation(currentObject);
                 this.activeState = this.states[nextState];
@@ -728,6 +730,7 @@ const onRunningActivation = () => {
     playerAnimated.playAnimation(AnimationNames.RunningBack);
     playerAnimated.state = PlayerStates.Running;
     playerAnimated.currentAnimationFrame = 0;
+    console.log("running")
 };
 const onRunningUpdate = () => {
     playerAnimated.directionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
@@ -772,7 +775,7 @@ const onDuckingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Ducking);
     playerAnimated.state = PlayerStates.Ducking;
     playerAnimated.currentAnimationFrame = 0;
-    console.log(playerAnimated.state);
+    console.log("jumping")
 }
 const onDuckingUpdate = () => {
     if (playerAnimated.weapon == playerAnimated.Weapons.Spear){
@@ -788,6 +791,7 @@ const onDuckingUpdate = () => {
     // Why does this code not work?
     console.log(playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET)
     if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
+        console.log("yes")
         return PlayerStates.Running;
     }
 }
@@ -980,12 +984,12 @@ function runFrame() {
     if (gameState == GameStates.Playing){
         update(deltaTime);        
     }
-    stillObjectsLoop();
+    stillObjectsLoop(deltaTime);
     // draw the world
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
-    gameSM.update(deltaTime);
+    gameSM.update(deltaTime, playerAnimated);
 }
 
 function update(deltaTime: number){
@@ -995,8 +999,7 @@ function update(deltaTime: number){
     playerAnimated.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
-    playerSM.update(deltaTime);
-    console.log(playerSM.states);
+    playerSM.update(deltaTime, playerAnimated);
 }
 
 
@@ -1173,9 +1176,9 @@ function objectsLoop(deltaTime){
         }
     }
 }
-function stillObjectsLoop(){
+function stillObjectsLoop(deltaTime: number){
     for (let object of stillObjects){
         object.draw();
-        object.animationUpdate();
+        object.animationUpdate(deltaTime);
     }
 }
