@@ -46,7 +46,7 @@ const image = new Image();
 image.src = 'coin_01.png';
 const music = new Audio('Game_Song.mp3')
 
-const Weapons = {
+const weapons = {
     Spear: "player.png",
     Bow: "playerBow.png"
 }
@@ -120,12 +120,12 @@ enum PlayerStates {
     Dying = "dying"
 };
 enum GameStates {
-    Playing,
-    InventoryMenu
+    Playing = "playing",
+    InventoryMenu = "inventoryMenu"
 }
 enum DragonStates {
-    Flying,
-    Firing
+    Flying = "flying",
+    Firing = "firing"
 }
 
 // All the enums are causing bugs
@@ -267,7 +267,6 @@ class Projectile {
 class Arrow extends Projectile {
     constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
-        console.log("arrow")
     }
     move(deltaTime: number){
         this.y -= this.speed * deltaTime / 1000 * gameSpeed;
@@ -282,10 +281,10 @@ class Fireball extends Projectile {
     }
     isColliding(player: DragonEnemy | PlayerCharacter){
         return (
-            this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
-            this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
+            this.x - this.width/2 <= player.x + player.width/2 &&
+            this.x + this.width/2 >= player.x - player.width/2 &&
             this.y + this.height/2 >= player.y - calculatePlayerStateHeight()&&
-            this.y - this.height/2 <= player.y + playerAnimated.height/2
+            this.y - this.height/2 <= player.y + player.height/2
         );
     }
 }
@@ -306,7 +305,7 @@ class AnimatedObject {
     public currentAnimation: SingleAnimationInfo | null;
     public currentAnimationFrame: number;
     private timeSinceLastFrame: number;
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: AnimationInfo){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -319,7 +318,7 @@ class AnimatedObject {
         this.timeSinceLastFrame = 0;
     }
     playAnimation(name: string) {
-        this.currentAnimation = this.animationInfo[name];
+        this.currentAnimation = this.animationInfo.animations[name];
     }
     animationUpdate(deltaTime: number){
         if (this.currentAnimation == null) {
@@ -355,9 +354,9 @@ class AnimatedObject {
     }
 }
 class Necromancer extends AnimatedObject{
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: AnimationInfo){
         super(x, y, width, height, spritesheetURL, animationInfo);
-        this.currentAnimation = this.animationInfo[necromancerAnimationNames.Levitating];
+        this.currentAnimation = this.animationInfo.animations[necromancerAnimationNames.Levitating];
     }
 }
 const necromancerAnimationNames = {
@@ -377,7 +376,7 @@ const necromancerInfo: AnimationInfo = {
 class DragonEnemy extends AnimatedObject{
     public speed: number;
     private stateMachine: any; // I don't know what to input here
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>, speed: number, stateMachine){
+    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: AnimationInfo, speed: number, stateMachine: StateMachine){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.speed = speed;
         this.stateMachine = stateMachine;
@@ -405,34 +404,36 @@ const DragonAnimationNames = {
     Flying: "flying",
 }
 
-const DragonAnimationInfo = {
+const DragonAnimationInfo: AnimationInfo = {
     animationCount: 4, 
-    [DragonAnimationNames.Flying]: {
-        rowIndex: 0,
-        frameCount: 4,
-        framesPerSecond: 8
+    animations: {
+        [DragonAnimationNames.Flying]: {
+            rowIndex: 0,
+            frameCount: 4,
+            framesPerSecond: 8
+        }
     }
 };
 
 export class PlayerCharacter extends AnimatedObject{
     public equippedItems: Record <string, EquipmentItem>;
-    public Stats: Record <string, number>;
+    public stats: Record <string, number>;
     public weapon: string | null;
-    public Weapons: Record <string, string>;
+    public weapons: Record <string, string>;
     public directionChange: number;
     public attacking: boolean;
     public lane: number;
     public state: string;
     public PREPARE_SPEAR_FRAMES: number;
     constructor(x: number, y: number,
-        spritesheetURL: string, animationInfo: Record<string, Record<string, number>>,
+        spritesheetURL: string, animationInfo: AnimationInfo,
         lane: number, state: string, width: number, height: number,
-        startingItems: Record <string, EquipmentItem>, startingStats: Record <string, number>, Weapons){
+        startingItems: Record <string, EquipmentItem>, startingStats: Record <string, number>, weapons: Record <string, string>){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
-        this.Stats = startingStats;
+        this.stats = startingStats;
         this.weapon = null;
-        this.Weapons = Weapons;
+        this.weapons = weapons;
         this.directionChange = 0;
         this.attacking = false;
         this.lane = lane;
@@ -440,21 +441,21 @@ export class PlayerCharacter extends AnimatedObject{
         this.PREPARE_SPEAR_FRAMES = 4;
     }
     roll(deltaTime: number){
-            this.x += this.Stats.RollSpeed * deltaTime/1000 * this.directionChange;
+            this.x += this.stats.RollSpeed * deltaTime/1000 * this.directionChange;
     }
     statsUpdate(){
         if (this.equippedItems.Armor != null){
-            this.Stats.Lives = 2;
+            this.stats.Lives = 2;
         }
         if (this.equippedItems.Boots != null){
-            this.Stats.RollSpeed = 600;
+            this.stats.RollSpeed = 600;
         }
         if (this.equippedItems.Spear != null){
-            this.weapon = this.Weapons.Spear;
+            this.weapon = this.weapons.Spear;
             this.animationInfo = playerSpearAnimationInfo;
         }
         if (this.equippedItems.Bow != null){
-            this.weapon = this.Weapons.Bow;
+            this.weapon = this.weapons.Bow;
             this.animationInfo = playerBowAnimationInfo;
         }
         console.log(this.weapon);
@@ -493,76 +494,80 @@ const AnimationNames = {
     RollingRight: "rollingRight",
     Dying: "dying"
 }
-const playerSpearAnimationInfo = {
+const playerSpearAnimationInfo: AnimationInfo = {
     animationCount: 21, 
-    [AnimationNames.RunningBack]: {
-        rowIndex: 8,
-        frameCount: 8,
-        framesPerSecond: 8
-    },
-    [AnimationNames.Jumping]: {
-        rowIndex: 0,
-        frameCount: 7,
-        framesPerSecond: 7
-    },
-    [AnimationNames.Ducking]: {
-        rowIndex: 4,
-        frameCount: 7,
-        framesPerSecond: 7
-    },
-    [AnimationNames.RollingLeft]: {
-        rowIndex: 9,
-        frameCount: 9,
-        framesPerSecond: 9
-    },
-    [AnimationNames.RollingRight]: {
-        rowIndex: 11,
-        frameCount: 9,
-        framesPerSecond: 9
-    },
-    [AnimationNames.Dying]: {
-        rowIndex: 20,
-        frameCount: 6,
-        framesPerSecond: 6
+    animations: {
+        [AnimationNames.RunningBack]: {
+            rowIndex: 8,
+            frameCount: 8,
+            framesPerSecond: 8
+        },
+        [AnimationNames.Jumping]: {
+            rowIndex: 0,
+            frameCount: 7,
+            framesPerSecond: 7
+        },
+        [AnimationNames.Ducking]: {
+            rowIndex: 4,
+            frameCount: 7,
+            framesPerSecond: 7
+        },
+        [AnimationNames.RollingLeft]: {
+            rowIndex: 9,
+            frameCount: 9,
+            framesPerSecond: 9
+        },
+        [AnimationNames.RollingRight]: {
+            rowIndex: 11,
+            frameCount: 9,
+            framesPerSecond: 9
+        },
+        [AnimationNames.Dying]: {
+            rowIndex: 20,
+            frameCount: 6,
+            framesPerSecond: 6
+        }
     }
 };
-const playerBowAnimationInfo = {
+const playerBowAnimationInfo: AnimationInfo = {
     animationCount: 21, 
-    [AnimationNames.RunningBack]: {
-        rowIndex: 8,
-        frameCount: 8,
-        framesPerSecond: 8
-    },
-    [AnimationNames.Jumping]: {
-        rowIndex: 0,
-        frameCount: 7,
-        framesPerSecond: 7
-    },
-    [AnimationNames.Ducking]: {
-        rowIndex: 16,
-        frameCount: 13,
-        framesPerSecond: 13
-    },
-    [AnimationNames.RollingLeft]: {
-        rowIndex: 9,
-        frameCount: 9,
-        framesPerSecond: 9
-    },
-    [AnimationNames.RollingRight]: {
-        rowIndex: 11,
-        frameCount: 9,
-        framesPerSecond: 9
-    },
-    [AnimationNames.Dying]: {
-        rowIndex: 20,
-        frameCount: 6,
-        framesPerSecond: 6
+    animations: {
+        [AnimationNames.RunningBack]: {
+            rowIndex: 8,
+            frameCount: 8,
+            framesPerSecond: 8
+        },
+        [AnimationNames.Jumping]: {
+            rowIndex: 0,
+            frameCount: 7,
+            framesPerSecond: 7
+        },
+        [AnimationNames.Ducking]: {
+            rowIndex: 16,
+            frameCount: 13,
+            framesPerSecond: 13
+        },
+        [AnimationNames.RollingLeft]: {
+            rowIndex: 9,
+            frameCount: 9,
+            framesPerSecond: 9
+        },
+        [AnimationNames.RollingRight]: {
+            rowIndex: 11,
+            frameCount: 9,
+            framesPerSecond: 9
+        },
+        [AnimationNames.Dying]: {
+            rowIndex: 20,
+            frameCount: 6,
+            framesPerSecond: 6
+        }
     }
 };
 // Figure out how to combine these two animation info dictionaries
 
 // Player Animation
-export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, Weapons);
+export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
@@ -637,7 +642,7 @@ class Inventory {
             }
         }
     }
-    removeItem(item, cellRow, cellCol){
+    removeItem(item: { width: number; height: number; }, cellRow: number, cellCol: number){
         for (let i = 0; i < item.width; i++){
             for (let j = 0; j < item.height; j++){
                 this.cells[cellRow + i][cellCol + j] = null;
@@ -698,16 +703,16 @@ class State {
 // When do we begin updating/executing the state machine? Which array do we keep it in?
 // What's the starting state? How do we know where to begin?
 class StateMachine {
-    public states: Record <number, State>;
+    public states: Record <string, State>;
     public activeState: null | State;
     constructor() {
         this.states = {};
         this.activeState = null;
     }
-    addState(stateName: number, onActivation: Function, update: Function, onDeactivation: Function) {
+    addState(stateName: string, onActivation: Function, update: Function, onDeactivation: Function) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
     }
-    update(deltaTime: number, currentObject: Function) {
+    update(deltaTime: number, currentObject: PlayerCharacter | DragonEnemy) {
         if (this.activeState){
             const nextState = this.activeState.update(deltaTime, currentObject);
             // console.log(nextState)
@@ -750,7 +755,7 @@ const onRunningUpdate = () => {
     else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(COOLDOWN)) {
         return PlayerStates.Jumping;
     }
-    if (playerAnimated.Stats.Lives <= 0){
+    if (playerAnimated.stats.Lives <= 0){
         return PlayerStates.Dying;
         // Game mechanic: As long as you keep on moving, you will never die, no matter your lives count.
     }
@@ -764,7 +769,7 @@ const onJumpingActivation = () => {
     playerAnimated.currentAnimationFrame = 0;
 }
 const onJumpingUpdate = () => {
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation!.frameCount - OFFSET){
         return PlayerStates.Running;
     }
 }
@@ -778,7 +783,7 @@ const onDuckingActivation = () => {
     console.log("jumping")
 }
 const onDuckingUpdate = () => {
-    if (playerAnimated.weapon == playerAnimated.Weapons.Spear){
+    if (playerAnimated.weapon == playerAnimated.weapons.Spear){
         if (playerAnimated.currentAnimationFrame >= playerAnimated.PREPARE_SPEAR_FRAMES - OFFSET){
             playerAnimated.attacking = true;
         }
@@ -789,14 +794,12 @@ const onDuckingUpdate = () => {
     //     );
     // }
     // Why does this code not work?
-    console.log(playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET)
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
-        console.log("yes")
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation!.frameCount - OFFSET){
         return PlayerStates.Running;
     }
 }
 const onDuckingDeactivation = () => {
-    if (playerAnimated.weapon == playerAnimated.Weapons.Bow){
+    if (playerAnimated.weapon == playerAnimated.weapons.Bow){
         objects.push(
             new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
         );
@@ -840,7 +843,7 @@ const onDyingActivation = () => {
     playerAnimated.currentAnimationFrame = 0;
 }
 const onDyingUpdate = () => {
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount - OFFSET){
+    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation!.frameCount - OFFSET){
         sleep(1000);
         return PlayerStates.Running; 
     }
@@ -865,7 +868,8 @@ const onInventoryMenuActivation = () => {
     document.addEventListener('click', mouseClicked);
     let mouseX = null;
     let mouseY = null;
-    function mouseClicked(e) {
+    function mouseClicked(e: { clientX: number; clientY: number; }) {
+        // Maybe give the variable e a better name?
         mouseX = e.clientX;
         mouseY = e.clientY;
         console.log(`${e.clientX} ${e.clientY}`);
@@ -889,7 +893,7 @@ const onInventoryMenuDeactivation = () => {
 }
 
 const onFlyingActivation = (currentObject: DragonEnemy) => {
-    currentObject.currentAnimation = currentObject.animationInfo[DragonAnimationNames.Flying]
+    currentObject.currentAnimation = currentObject.animationInfo.animations[DragonAnimationNames.Flying]
 }
 const onFlyingUpdate = (deltatime: number, currentObject: DragonEnemy) => {
     if (playerAnimated.x == currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y){
@@ -899,7 +903,7 @@ const onFlyingUpdate = (deltatime: number, currentObject: DragonEnemy) => {
 const onFlyingDeactivation = () => {
 }
 const onFiringActivation = (currentObject: DragonEnemy) => {
-    currentObject.currentAnimation = currentObject.animationInfo[DragonAnimationNames.Flying];
+    currentObject.currentAnimation = currentObject.animationInfo.animations[DragonAnimationNames.Flying];
     currentObject.speed = 0;
     timeStart = Date.now();
     objects.push(
@@ -1025,9 +1029,9 @@ function draw() {
         context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE.x, HIGH_SCORE.y);
         context.fillText(`GOLD: ${gold}`, GOLD.x, GOLD.y);
         context.font = "20px Arial";
-        if (playerAnimated.Stats.Lives > 0){
+        if (playerAnimated.stats.Lives > 0){
             context.font = "20px Arial";
-            context.fillText(`LIVES: ${playerAnimated.Stats.Lives}`, LIVES.x, LIVES.y);
+            context.fillText(`LIVES: ${playerAnimated.stats.Lives}`, LIVES.x, LIVES.y);
         }
         else{
             context.fillStyle = "red";
@@ -1103,7 +1107,7 @@ function resetGame(){
     objects.splice(0);
     playerAnimated.lane = 2;
     playerAnimated.changeLane();
-    playerAnimated.Stats = StartingStats;
+    playerAnimated.stats = StartingStats;
     equippedInventory.resetInventory();
     // equippedInventory.placeItem(bow,1,0);
     equippedInventory.placeItem(armor,2,0);
@@ -1116,7 +1120,7 @@ function resetGame(){
     }
     score = 0;
 }
-function destroyCollidingObjects(object1: object, object2: object){
+function destroyCollidingObjects(object1: RenderableObject, object2: RenderableObject){
     objects.splice(objects.indexOf(object1),1);
     objects.splice(objects.indexOf(object2),1);
 }
@@ -1128,15 +1132,15 @@ function objectsLoop(deltaTime: number){
             objects[i].speed += FALL_INCREMENT;
         }
         if (objects[i].constructor == DragonEnemy){
-            objects[i].update(deltaTime, objects[i]);
+            (objects[i] as DragonEnemy).update(deltaTime);
         }
         if (objects[i].constructor == Arrow){
-            if (objects[i].y <= - objects[i].height){
+            if (objects[i].y <= - (objects[i] as Arrow).height){
                 objects.splice(i,1);
                 continue;
             }
         }
-        else if (objects[i].y >= canvas.height + objects[i].height/2){
+        else if (objects[i].y >= canvas.height + (objects[i] as Arrow | DragonEnemy | Rects).height/2){
             objects.splice(i,1);
             continue;
         }
@@ -1151,7 +1155,7 @@ function objectsLoop(deltaTime: number){
         else if (objects[i].constructor != Circles && objects[i].constructor != Arrow){
             if (objects[i].isColliding(playerAnimated)){
                 if (playerAnimated.attacking != true){
-                    playerAnimated.Stats.Lives -= 1;
+                    playerAnimated.stats.Lives -= 1;
                 }
                 objects.splice(i,1);
                 continue;
@@ -1163,8 +1167,8 @@ function objectsLoop(deltaTime: number){
             for (let j = 0; j < objects.length; j++){
                 if (objects[j].constructor == DragonEnemy){
                     const currentObject2 = objects[j];
-                    console.assert(currentObject1 == !undefined);
-                    console.assert(currentObject2 == !undefined);
+                    console.assert(currentObject1 != undefined);
+                    console.assert(currentObject2 != undefined);
                     if (currentObject1.isColliding(currentObject2)){
                         destroyCollidingObjects(objects[i], objects[j]);
                     }

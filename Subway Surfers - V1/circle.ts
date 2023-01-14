@@ -24,10 +24,10 @@ export default class Circles {
     }
     isColliding(player: PlayerCharacter){
         return (
-            this.x - this.radius <= player.x + playerAnimated.width/2 &&
-            this.x + this.radius >= player.x - playerAnimated.width/2 &&
+            this.x - this.radius <= player.x + player.width/2 &&
+            this.x + this.radius >= player.x - player.width/2 &&
             this.y + this.radius >= player.y - calculatePlayerStateHeight()&&
-            this.y - this.radius <= player.y + playerAnimated.height/2
+            this.y - this.radius <= player.y + player.height/2
         )
     }
     move(deltaTime: number){
