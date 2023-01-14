@@ -103,12 +103,19 @@ const ItemList = {
 }
 
 // Player Information
-enum PlayerStates {
-    Running, // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
-    Jumping,
-    Ducking,
-    Roll,
-    Dying
+// enum PlayerStates {
+//     Running, // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
+//     Jumping,
+//     Ducking,
+//     Roll,
+//     Dying
+// };
+const PlayerStates = {
+    Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
+    Jumping: "jumping",
+    Ducking: "ducking",
+    Roll: "roll",
+    Dying: "dying"
 };
 enum GameStates {
     Playing,
@@ -118,6 +125,8 @@ enum DragonStates {
     Flying,
     Firing
 }
+
+// All the enums are causing bugs
 
 const PLAYER = {
     WIDTH: 100,
@@ -139,7 +148,8 @@ enum obstacleColors {
 }
 const spawnType = {
     generateObstacle: "generateObstacle",
-    generateCoin: "generateCoin"
+    generateCoin: "generateCoin",
+    generateRect: "generateRect"
 }
 const LANE = {
     WIDTH: canvas.width/3,
@@ -163,7 +173,7 @@ const LIVES = {
 }
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
-const objects: Array<object> = [];
+const objects: Array<DragonEnemy | Circles | Rects | Fireball> = []; // Is there any type for classes in general?
 const stillObjects: Array<Necromancer> = [];
 
 // Score Information
@@ -456,13 +466,13 @@ class PlayerCharacter extends AnimatedObject{
         if (this.equippedItems.Boots != null){
             this.Stats.RollSpeed = 600;
         }
-        if (this.equippedItems.Bow != null){
-            this.weapon = this.Weapons.Bow;
-            this.animationInfo = playerBowAnimationInfo;
-        }
         if (this.equippedItems.Spear != null){
             this.weapon = this.Weapons.Spear;
             this.animationInfo = playerSpearAnimationInfo;
+        }
+        if (this.equippedItems.Bow != null){
+            this.weapon = this.Weapons.Bow;
+            this.animationInfo = playerBowAnimationInfo;
         }
         console.log(this.weapon);
         if (this.weapon != null){
@@ -486,6 +496,9 @@ class PlayerCharacter extends AnimatedObject{
             frameSX, frameSY, frameW, frameH,
             this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
         );
+    }
+    changeLane(){
+        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
     }
 }
 // Player Animation Information
@@ -711,7 +724,7 @@ class StateMachine {
     update(deltaTime: number, currentObject: Function) {
         if (this.activeState){
             const nextState = this.activeState.update(deltaTime, currentObject);
-            console.log(nextState)
+            // console.log(nextState)
             if (nextState){
                 this.activeState.onDeactivation(currentObject);
                 this.activeState = this.states[nextState];
@@ -1091,7 +1104,7 @@ function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
         let generateType = Object.keys(spawnType)[Math.floor(Math.random() * 2)];
         if (generateType == spawnType.generateObstacle){
-            generateDragon()
+            generateDragon();
         }
         else if (generateType == spawnType.generateCoin){
             generateCoin();
@@ -1121,7 +1134,7 @@ function destroyCollidingObjects(object1: object, object2: object){
     objects.splice(objects.indexOf(object2),1);
 }
 
-function objectsLoop(deltaTime){
+function objectsLoop(deltaTime: number){
     for (let i = 0; i < objects.length; i++){
         objects[i].move(deltaTime);
         if (objects[i].constructor != Arrow || Fireball){
@@ -1131,7 +1144,7 @@ function objectsLoop(deltaTime){
             objects[i].update(deltaTime, objects[i]);
         }
         if (objects[i].constructor == Arrow){
-            if (objects[i].y <= -objects[i].height){
+            if (objects[i].y <= - objects[i].height){
                 objects.splice(i,1);
                 continue;
             }
@@ -1148,7 +1161,7 @@ function objectsLoop(deltaTime){
                 continue;
             }
         }
-        else if (objects[i].constructor == DragonEnemy || objects[i].constructor == Fireball){
+        else if (objects[i].constructor != Circles && objects[i].constructor != Arrow){
             if (objects[i].isColliding(playerAnimated)){
                 if (playerAnimated.attacking != true){
                     playerAnimated.Stats.Lives -= 1;
