@@ -1,4 +1,5 @@
-import Circles from "./circle";
+import {Circles, Rects} from "./shapes";
+import {InventoryItem, TakenInventoryItemSlot, Inventory} from "./inventory";
 
 // Key Information
 const allPressedKeys: Record<string, boolean> = {};
@@ -81,7 +82,7 @@ type EquipmentItem = {
     Name: string
 };
 
-const ItemList: Record<string, EquipmentItem> = {
+export const ItemList: Record<string, EquipmentItem> = {
     Spear: {
         Width: 2, 
         Height: 1,
@@ -161,7 +162,7 @@ const ARROW = {
     WIDTH: 7.5,
     HEIGHT: 45
 }
-const ITEM = {
+export const ITEM = {
     WIDTH: 50,
     HEIGHT: 50
 }
@@ -201,40 +202,6 @@ let gold: number = 0;
 let fallSpeed: number = ORIGINAL_SPEED;
 let gameState: Object = GameStates.Playing;
 export let gameSpeed: number = 1;
-
-class Rects{
-    public x: number;
-    public y: number;
-    public width: number;
-    public height: number;
-    public color: string;
-    public requiredState: string;
-    public speed: number;
-    constructor(x: number, y: number, width: number, height: number, color: string, requiredState: string, speed: number) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.color = color;
-        this.requiredState = requiredState;
-        this.speed = speed;
-    }
-    draw(){
-        context.fillStyle = this.color;
-        context.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
-    }
-    isColliding(player: PlayerCharacter): boolean{
-        return (
-            this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
-            this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
-            this.y + this.height/2 >= player.y - calculatePlayerStateHeight()&&
-            this.y - this.height/2 <= player.y + playerAnimated.height/2
-        )
-    }
-    move(deltaTime: number){
-        this.y += this.speed * deltaTime / 1000 * gameSpeed;
-    }
-}
 
 class Projectile {
     public x: number;
@@ -569,112 +536,6 @@ const playerBowAnimationInfo: AnimationInfo = {
 // Player Animation
 export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
-
-// Inventory
-class InventoryItem {
-    public width: number;
-    public height: number;
-    public iconURL: string;
-    public image: HTMLImageElement;
-    public name: string
-    constructor(width: number, height: number, iconURL: string, image: HTMLImageElement, name: string) {
-        this.width = width;
-        this.height = height;
-        this.iconURL = iconURL;
-        this.image = image;
-        this.name = name;
-    }
-}
-
-const TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true };
-class Inventory {
-    public width: number;
-    public height: number;
-    public x: number;
-    public y: number;
-    public cells: Array<Array<InventoryItem | typeof TakenInventoryItemSlot | null>>
-    constructor(width: number, height: number, x: number, y: number) {
-        this.cells = [];
-        this.width = width;
-        this.height = height;
-        this.x = x;
-        this.y = y;
-        for (let i = 0; i < this.width; i++) {
-            this.cells[i] = [];
-            for (let j = 0; j < this.height; j++) {
-                this.cells[i][j] = null;
-            }
-        }
-    }
-    placeItemCheck(item: InventoryItem, cellRow: number, cellCol: number): boolean {
-        // Go through all the coordinates of the item and figure out if the cells are null;
-        // If they are, place the item AND apply some effect to the player
-        // If even 1 cell is taken, do nothing 
-        for (let i = cellRow; i < cellRow + item.width; i++){
-            for (let j = cellCol; j < cellCol + item.height; j++){
-                if (this.cells[i][j] != null){
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    placeItem(item: InventoryItem, cellRow: number, cellCol: number){
-        if (this.placeItemCheck(item, cellRow, cellCol)){
-            for (let i = 0; i < item.width; i++){
-                for (let j = 0; j < item.height; j++){
-                    this.cells[cellRow + i][cellCol + j] = TakenInventoryItemSlot;
-                    this.cells[cellRow][cellCol] = item;
-                    if (item.iconURL == ItemList.Armor.URL){
-                        playerAnimated.equippedItems.Armor = ItemList.Armor;
-                    }
-                    if (item.iconURL == ItemList.Boots.URL){
-                        playerAnimated.equippedItems.Boots = ItemList.Boots;
-                    }
-                    if (item.iconURL == ItemList.Spear.URL){
-                        playerAnimated.equippedItems.Spear = ItemList.Spear;
-                    }
-                    if (item.iconURL == ItemList.Bow.URL){
-                        playerAnimated.equippedItems.Bow = ItemList.Bow;
-                    }
-                    playerAnimated.statsUpdate();
-                }
-            }
-        }
-    }
-    removeItem(item: { width: number; height: number; }, cellRow: number, cellCol: number){
-        for (let i = 0; i < item.width; i++){
-            for (let j = 0; j < item.height; j++){
-                this.cells[cellRow + i][cellCol + j] = null;
-                playerAnimated.statsUpdate();
-            }
-        }
-    }
-    draw() {
-        // for every row and col
-        //   go through every cell, that is the top-left coordinate of an item and draw the image
-        // for every row and col
-        //   go through every cell, draw box <-- context.strokeRect
-        for (let i = 0; i < this.width; i++) {
-            for (let j = 0; j < this.height; j++) {
-                context.strokeRect(this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH, ITEM.HEIGHT);
-                const currentCell = this.cells[i][j];
-                if (currentCell instanceof InventoryItem){
-                    context.drawImage(currentCell.image, this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH * currentCell.width, ITEM.HEIGHT * currentCell.height)
-                }
-            }
-        }
-    }
-    resetInventory(){
-        for (let i = 0; i < this.width; i++) {
-            this.cells[i] = [];
-            for (let j = 0; j < this.height; j++) {
-                this.cells[i][j] = null;
-            }
-        }
-    }
-}
-
 
 const equippedInventory = new Inventory(5, 3, 50, 200);
 const itemsFound = new Inventory(10, 5, canvas.width/2, 0);
