@@ -1,3 +1,5 @@
+import Circles from "./circle";
+
 // Key Information
 const allPressedKeys: Record<string, boolean> = {};
 window.addEventListener("keydown", function (event) {
@@ -25,7 +27,7 @@ const KEYS = {
 const canvas: HTMLCanvasElement = document.getElementById("game-canvas")! as HTMLCanvasElement; // I don't know why canvas can also be null...
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-const context: CanvasRenderingContext2D = canvas.getContext("2d")! as CanvasRenderingContext2D;
+export const context: CanvasRenderingContext2D = canvas.getContext("2d")! as CanvasRenderingContext2D;
 const STATE_DURATION: number = 1500;
 const SCORE_SPEED: number = 1;
 const COIN_VALUE: number = 300;
@@ -71,7 +73,15 @@ armorImage.src = "armor.png";
 const bootsImage = new Image;
 bootsImage.src = "boots.png";
 
-const ItemList = {
+type EquipmentItem = {
+    Width: number, 
+    Height: number,
+    URL: string,
+    Image: HTMLImageElement,
+    Name: string
+};
+
+const ItemList: Record<string, EquipmentItem> = {
     Spear: {
         Width: 2, 
         Height: 1,
@@ -102,20 +112,12 @@ const ItemList = {
     }
 }
 
-// Player Information
-// enum PlayerStates {
-//     Running, // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
-//     Jumping,
-//     Ducking,
-//     Roll,
-//     Dying
-// };
-const PlayerStates = {
-    Running: "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
-    Jumping: "jumping",
-    Ducking: "ducking",
-    Roll: "roll",
-    Dying: "dying"
+enum PlayerStates {
+    Running = "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
+    Jumping = "jumping",
+    Ducking = "ducking",
+    Roll = "roll",
+    Dying = "dying"
 };
 enum GameStates {
     Playing,
@@ -173,7 +175,8 @@ const LIVES = {
 }
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
-const objects: Array<DragonEnemy | Circles | Rects | Fireball> = []; // Is there any type for classes in general?
+type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
+const objects: Array<RenderableObject> = []; // Is there any type for classes in general?
 const stillObjects: Array<Necromancer> = [];
 
 // Score Information
@@ -197,7 +200,7 @@ let highScore: number = 0;
 let gold: number = 0;
 let fallSpeed: number = ORIGINAL_SPEED;
 let gameState: Object = GameStates.Playing;
-let gameSpeed: number = 1;
+export let gameSpeed: number = 1;
 
 class Rects{
     public x: number;
@@ -232,38 +235,6 @@ class Rects{
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
 }
-class Circles{
-    public x: number;
-    public y: number;
-    public radius: number;
-    public color: string;
-    public speed: number;
-    constructor(x: number, y: number, radius: number, color: string, speed: number){
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-        this.speed = speed;
-    }
-    draw(){
-        context.beginPath();
-        context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
-        context.closePath();
-        context.fillStyle = this.color;
-        context.fill();
-    }
-    isColliding(player: PlayerCharacter){
-        return (
-            this.x - this.radius <= player.x + playerAnimated.width/2 &&
-            this.x + this.radius >= player.x - playerAnimated.width/2 &&
-            this.y + this.radius >= player.y - calculatePlayerStateHeight()&&
-            this.y - this.radius <= player.y + playerAnimated.height/2
-        )
-    }
-    move(deltaTime: number){
-        this.y += this.speed * deltaTime / 1000 * gameSpeed;
-    }
-}
 
 class Projectile {
     public x: number;
@@ -284,7 +255,7 @@ class Projectile {
     draw(){
         context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
     }
-    isColliding(object: DragonEnemy){
+    isColliding(object: DragonEnemy | PlayerCharacter){
         return (
             this.x - this.width/2 <= object.x + object.width/2 &&
             this.x + this.width/2 >= object.x - object.width/2 &&
@@ -309,7 +280,7 @@ class Fireball extends Projectile {
     move(deltaTime: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
-    isColliding(player: PlayerCharacter){
+    isColliding(player: DragonEnemy | PlayerCharacter){
         return (
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
@@ -318,14 +289,21 @@ class Fireball extends Projectile {
         );
     }
 }
+
+type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
+class AnimationInfo {
+    public animationCount: number = 0;
+    public animations: Record<string, SingleAnimationInfo> = {};
+}
+
 class AnimatedObject {
     public x: number;
     public y: number;
     public width: number;
     public height: number;
     public spritesheet: HTMLImageElement;
-    public animationInfo: Record<string, Record<string, number>>;
-    public currentAnimation: Record<string, number> | null;
+    public animationInfo: AnimationInfo;
+    public currentAnimation: SingleAnimationInfo | null;
     public currentAnimationFrame: number;
     private timeSinceLastFrame: number;
     constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>){
@@ -385,13 +363,15 @@ class Necromancer extends AnimatedObject{
 const necromancerAnimationNames = {
     Levitating: "levitating"
 }
-const necromancerInfo = {
+const necromancerInfo: AnimationInfo = {
     animationCount: 1, 
-    [necromancerAnimationNames.Levitating]: {
-        rowIndex: 0,
-        frameCount: 8,
-        framesPerSecond: 8
-    },
+    animations: {
+        [necromancerAnimationNames.Levitating]: {
+            rowIndex: 0,
+            frameCount: 8,
+            framesPerSecond: 8
+        },
+    }
 };
 
 class DragonEnemy extends AnimatedObject{
@@ -434,17 +414,20 @@ const DragonAnimationInfo = {
     }
 };
 
-class PlayerCharacter extends AnimatedObject{
-    public equippedItems: Record <string, string>;
+export class PlayerCharacter extends AnimatedObject{
+    public equippedItems: Record <string, EquipmentItem>;
     public Stats: Record <string, number>;
     public weapon: string | null;
     public Weapons: Record <string, string>;
     public directionChange: number;
     public attacking: boolean;
     public lane: number;
-    public state: number;
+    public state: string;
     public PREPARE_SPEAR_FRAMES: number;
-    constructor(x: number, y: number, spritesheetURL: string, animationInfo: Record<string, Record<string, number>>, lane: number, state: number, width: number, height: number, startingItems: Record <string, string>, startingStats: Record <string, number>, Weapons){
+    constructor(x: number, y: number,
+        spritesheetURL: string, animationInfo: Record<string, Record<string, number>>,
+        lane: number, state: string, width: number, height: number,
+        startingItems: Record <string, EquipmentItem>, startingStats: Record <string, number>, Weapons){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
         this.Stats = startingStats;
@@ -579,7 +562,7 @@ const playerBowAnimationInfo = {
 // Figure out how to combine these two animation info dictionaries
 
 // Player Animation
-const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, Weapons);
+export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerSpearAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, Weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
 
 // Inventory
@@ -597,12 +580,14 @@ class InventoryItem {
         this.name = name;
     }
 }
+
+const TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true };
 class Inventory {
     public width: number;
     public height: number;
     public x: number;
     public y: number;
-    public cells: Array<Array<null | InventoryItem | undefined> | null>
+    public cells: Array<Array<InventoryItem | typeof TakenInventoryItemSlot | null>>
     constructor(width: number, height: number, x: number, y: number) {
         this.cells = [];
         this.width = width;
@@ -633,7 +618,7 @@ class Inventory {
         if (this.placeItemCheck(item, cellRow, cellCol)){
             for (let i = 0; i < item.width; i++){
                 for (let j = 0; j < item.height; j++){
-                    this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = undefined;
+                    this.cells[cellRow + i][cellCol + j] = TakenInventoryItemSlot;
                     this.cells[cellRow][cellCol] = item;
                     if (item.iconURL == ItemList.Armor.URL){
                         playerAnimated.equippedItems.Armor = ItemList.Armor;
@@ -655,7 +640,7 @@ class Inventory {
     removeItem(item, cellRow, cellCol){
         for (let i = 0; i < item.width; i++){
             for (let j = 0; j < item.height; j++){
-                this.cells[cellRow + parseInt(i)][cellCol + parseInt(j)] = null;
+                this.cells[cellRow + i][cellCol + j] = null;
                 playerAnimated.statsUpdate();
             }
         }
@@ -668,8 +653,9 @@ class Inventory {
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
                 context.strokeRect(this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH, ITEM.HEIGHT);
-                if (this.cells[i][j] != null | undefined){
-                    context.drawImage(this.cells[i][j].image, this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH * this.cells[i][j].width, ITEM.HEIGHT * this.cells[i][j].height)
+                const currentCell = this.cells[i][j];
+                if (currentCell instanceof InventoryItem){
+                    context.drawImage(currentCell.image, this.x + i * ITEM.WIDTH, this.y + j * ITEM.HEIGHT, ITEM.WIDTH * currentCell.width, ITEM.HEIGHT * currentCell.height)
                 }
             }
         }
@@ -746,7 +732,8 @@ const onRunningActivation = () => {
     console.log("running")
 };
 const onRunningUpdate = () => {
-    playerAnimated.directionChange = -(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]) + (allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]);
+    playerAnimated.directionChange = ~~(allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) -
+        ~~(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]);
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
         if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerAnimated.directionChange <= LANE.COUNT && playerAnimated.lane + playerAnimated.directionChange >= 1){
             if (playerAnimated.directionChange != 0){
@@ -1076,7 +1063,7 @@ function sleep(time: number) {
   }
 
 // These functions carry out a certain action
-function calculatePlayerStateHeight(){
+export function calculatePlayerStateHeight(){
     if (playerAnimated.attacking == true){
         return playerAnimated.height/2;
     }
