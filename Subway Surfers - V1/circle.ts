@@ -22,7 +22,7 @@ export default class Circles {
         context.fillStyle = this.color;
         context.fill();
     }
-    isColliding(player: PlayerCharacter){
+    isColliding(player: PlayerCharacter): boolean{
         return (
             this.x - this.radius <= player.x + player.width/2 &&
             this.x + this.radius >= player.x - player.width/2 &&

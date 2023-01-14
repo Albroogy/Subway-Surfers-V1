@@ -223,7 +223,7 @@ class Rects{
         context.fillStyle = this.color;
         context.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
     }
-    isColliding(player: PlayerCharacter){
+    isColliding(player: PlayerCharacter): boolean{
         return (
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
@@ -255,7 +255,7 @@ class Projectile {
     draw(){
         context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
     }
-    isColliding(object: DragonEnemy | PlayerCharacter){
+    isColliding(object: DragonEnemy | PlayerCharacter): boolean{
         return (
             this.x - this.width/2 <= object.x + object.width/2 &&
             this.x + this.width/2 >= object.x - object.width/2 &&
@@ -279,7 +279,7 @@ class Fireball extends Projectile {
     move(deltaTime: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
-    isColliding(player: DragonEnemy | PlayerCharacter){
+    isColliding(player: DragonEnemy | PlayerCharacter): boolean{
         return (
             this.x - this.width/2 <= player.x + player.width/2 &&
             this.x + this.width/2 >= player.x - player.width/2 &&
@@ -320,7 +320,7 @@ class AnimatedObject {
     playAnimation(name: string) {
         this.currentAnimation = this.animationInfo.animations[name];
     }
-    animationUpdate(deltaTime: number){
+    animationUpdate(deltaTime: number): undefined{
         if (this.currentAnimation == null) {
             return;
         }
@@ -334,7 +334,7 @@ class AnimatedObject {
     update(deltaTime: number) {
         this.animationUpdate(deltaTime);
     }
-    draw(){
+    draw(): undefined{
         if (this.currentAnimation == null) {
             return;
         }
@@ -390,7 +390,7 @@ class DragonEnemy extends AnimatedObject{
         this.animationUpdate(deltaTime);
         this.stateMachine.update(deltaTime, this);
     }
-    isColliding(player: PlayerCharacter){
+    isColliding(player: PlayerCharacter): boolean{
         return (
             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
@@ -463,7 +463,7 @@ export class PlayerCharacter extends AnimatedObject{
             playerAnimated.spritesheet.src = this.weapon;
         }
     }
-    draw(){
+    draw(): undefined{
         if (this.currentAnimation == null) {
             return;
         }
@@ -606,7 +606,7 @@ class Inventory {
             }
         }
     }
-    placeItemCheck(item: InventoryItem, cellRow: number, cellCol: number) {
+    placeItemCheck(item: InventoryItem, cellRow: number, cellCol: number): boolean {
         // Go through all the coordinates of the item and figure out if the cells are null;
         // If they are, place the item AND apply some effect to the player
         // If even 1 cell is taken, do nothing 
@@ -736,7 +736,7 @@ const onRunningActivation = () => {
     playerAnimated.currentAnimationFrame = 0;
     console.log("running")
 };
-const onRunningUpdate = () => {
+const onRunningUpdate = (): string | undefined => {
     playerAnimated.directionChange = ~~(allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) -
         ~~(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]);
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
@@ -768,7 +768,7 @@ const onJumpingActivation = () => {
     playerAnimated.state = PlayerStates.Jumping;
     playerAnimated.currentAnimationFrame = 0;
 }
-const onJumpingUpdate = () => {
+const onJumpingUpdate = (): string | undefined => {
     if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation!.frameCount - OFFSET){
         return PlayerStates.Running;
     }
@@ -821,7 +821,7 @@ const onRollActivation = () => {
     playerAnimated.currentAnimationFrame = 0;
     playerAnimated.state = PlayerStates.Roll;
 }
-const onRollUpdate = (deltaTime: number) => {
+const onRollUpdate = (deltaTime: number): string | undefined => {
     if (playerAnimated.directionChange >= 1){
         if (playerAnimated.x > playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
             playerAnimated.x = playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2;
@@ -842,7 +842,7 @@ const onDyingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Dying);
     playerAnimated.currentAnimationFrame = 0;
 }
-const onDyingUpdate = () => {
+const onDyingUpdate = (): string | undefined => {
     if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation!.frameCount - OFFSET){
         sleep(1000);
         return PlayerStates.Running; 
@@ -855,7 +855,7 @@ const onPlayingActivation = () => {
     gameState = GameStates.Playing;
     console.log(GameStates.Playing);
 }
-const onPlayingUpdate = () => {
+const onPlayingUpdate = (): string | undefined => {
     if (allPressedKeys[KEYS.SpaceBar]){
         return GameStates.InventoryMenu;
     }
@@ -882,7 +882,7 @@ const onInventoryMenuActivation = () => {
         new Necromancer(200, 200, 300, 300, "Necromancer.png", necromancerInfo)
     )
 }
-const onInventoryMenuUpdate = () => {
+const onInventoryMenuUpdate = (): string | undefined => {
     if (allPressedKeys[KEYS.Escape]){
         return GameStates.Playing;
     }
@@ -895,7 +895,7 @@ const onInventoryMenuDeactivation = () => {
 const onFlyingActivation = (currentObject: DragonEnemy) => {
     currentObject.currentAnimation = currentObject.animationInfo.animations[DragonAnimationNames.Flying]
 }
-const onFlyingUpdate = (deltatime: number, currentObject: DragonEnemy) => {
+const onFlyingUpdate = (deltatime: number, currentObject: DragonEnemy): string | undefined => {
     if (playerAnimated.x == currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y){
         return DragonStates.Firing;
     }
@@ -910,7 +910,7 @@ const onFiringActivation = (currentObject: DragonEnemy) => {
         new Fireball(currentObject.x, currentObject.y, "fireball.png", OBJECT.WIDTH, OBJECT.HEIGHT, 250)
     );
 }
-const onFiringUpdate = (deltatime: number, currentObject: DragonEnemy) => {
+const onFiringUpdate = (deltatime: number, currentObject: DragonEnemy): string | undefined => {
     if (checkTime(1000)){
         if (playerAnimated.x != currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y || checkTime(3000)){
             return DragonStates.Flying;
@@ -931,7 +931,7 @@ playerSM.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, on
 playerSM.addState(PlayerStates.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
 playerSM.addState(PlayerStates.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
 
-const generateDragonSM = () => {
+const generateDragonSM = (): StateMachine => {
     const dragonSM = new StateMachine();
     dragonSM.addState(DragonStates.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
     dragonSM.addState(DragonStates.Firing, onFiringActivation, onFiringUpdate, onFiringDeactivation)
@@ -1049,13 +1049,13 @@ function draw() {
 
 // These functions calculate a certain value
 
-function calculateLaneLocation(lane: number){
+function calculateLaneLocation(lane: number): number{
     return lane * LANE.WIDTH - LANE.WIDTH/2;
 }
-function pickLane(){
+function pickLane(): number{
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
-function checkTime(stateLength: number){
+function checkTime(stateLength: number): boolean{
     return timeStart <= Date.now() - stateLength;
 }
 function sleep(time: number) {
@@ -1067,7 +1067,7 @@ function sleep(time: number) {
   }
 
 // These functions carry out a certain action
-export function calculatePlayerStateHeight(){
+export function calculatePlayerStateHeight(): number{
     if (playerAnimated.attacking == true){
         return playerAnimated.height/2;
     }
