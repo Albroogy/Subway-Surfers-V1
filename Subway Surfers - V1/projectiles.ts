@@ -1,8 +1,8 @@
-import { DragonEnemy } from "./main";
 import {context} from "./main";
 import { gameSpeed } from "./main";
 import { calculatePlayerStateHeight } from "./main";
-import {PlayerCharacter} from "./PlayerCharacter";
+import {PlayerCharacter} from "./playerCharacter";
+import { DragonEnemy } from "./dragon";
 
 export class Projectile {
     public x: number;
