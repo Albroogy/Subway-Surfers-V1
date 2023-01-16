@@ -1,6 +1,7 @@
 import {Circles, Rects} from "./shapes";
 import {InventoryItem, TakenInventoryItemSlot, Inventory} from "./inventory";
 import { Projectile, Arrow, Fireball } from "./projectiles";
+import {PlayerCharacter, AnimationNames, playerSpearAnimationInfo, playerBowAnimationInfo}
 
 // Key Information
 const allPressedKeys: Record<string, boolean> = {};
@@ -72,7 +73,7 @@ armorImage.src = "armor.png";
 const bootsImage = new Image;
 bootsImage.src = "boots.png";
 
-type EquipmentItem = {
+export type EquipmentItem = {
     Width: number, 
     Height: number,
     URL: string,
@@ -152,7 +153,7 @@ const spawnType = {
     generateCoin: "generateCoin",
     generateRect: "generateRect"
 }
-const LANE = {
+export const LANE = {
     WIDTH: canvas.width/3,
     COUNT: 3
 }
@@ -202,12 +203,12 @@ let gameState: Object = GameStates.Playing;
 export let gameSpeed: number = 1;
 
 type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
-class AnimationInfo {
+export class AnimationInfo {
     public animationCount: number = 0;
     public animations: Record<string, SingleAnimationInfo> = {};
 }
 
-class AnimatedObject {
+export class AnimatedObject {
     public x: number;
     public y: number;
     public width: number;
