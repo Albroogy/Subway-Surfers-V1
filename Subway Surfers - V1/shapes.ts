@@ -1,4 +1,4 @@
-import { PlayerCharacter } from "./main";
+import { PlayerCharacter } from "./PlayerCharacter";
 import { calculatePlayerStateHeight } from "./main";
 import { context, playerAnimated, gameSpeed } from "./main";
 
