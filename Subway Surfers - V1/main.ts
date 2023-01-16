@@ -1,5 +1,6 @@
 import {Circles, Rects} from "./shapes";
 import {InventoryItem, TakenInventoryItemSlot, Inventory} from "./inventory";
+import { Projectile, Arrow, Fireball } from "./projectiles";
 
 // Key Information
 const allPressedKeys: Record<string, boolean> = {};
@@ -29,7 +30,6 @@ const canvas: HTMLCanvasElement = document.getElementById("game-canvas")! as HTM
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 export const context: CanvasRenderingContext2D = canvas.getContext("2d")! as CanvasRenderingContext2D;
-const STATE_DURATION: number = 1500;
 const SCORE_SPEED: number = 1;
 const COIN_VALUE: number = 300;
 const CLICK_DELAY: number = 300; //This is in milliseconds
@@ -39,13 +39,11 @@ const COIN_RADIUS: number = 25;
 const OFFSET: number = 1;
 const ORIGINAL_SPEED: number = 150;
 const ORIGINAL_SPAWN_DELAY: number = 1000;
-const JUMP_TIME: number = 800;
-const DUCK_TIME: number = 600;
 const COOLDOWN: number = 100;
 
 const image = new Image();
 image.src = 'coin_01.png';
-const music = new Audio('Game_Song.mp3')
+const music = new Audio('Game_Song.mp3');
 
 const weapons = {
     Spear: "player.png",
@@ -203,59 +201,6 @@ let fallSpeed: number = ORIGINAL_SPEED;
 let gameState: Object = GameStates.Playing;
 export let gameSpeed: number = 1;
 
-class Projectile {
-    public x: number;
-    public y: number;
-    public width: number;
-    public height: number;
-    public image: HTMLImageElement;
-    public speed: number;
-    constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
-        this.x = x;
-        this.y = y;
-        this.image = new Image();
-        this.image.src = imageUrl;
-        this.width = width;
-        this.height = height;
-        this.speed = speed;
-    }
-    draw(){
-        context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-    }
-    isColliding(object: DragonEnemy | PlayerCharacter): boolean{
-        return (
-            this.x - this.width/2 <= object.x + object.width/2 &&
-            this.x + this.width/2 >= object.x - object.width/2 &&
-            this.y + this.height/2 >= object.y - object.height/2 &&
-            this.y - this.height/2 <= object.y + object.height/2
-        );
-    }
-}
-class Arrow extends Projectile {
-    constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
-        super(x, y, imageUrl, width, height, speed);
-    }
-    move(deltaTime: number){
-        this.y -= this.speed * deltaTime / 1000 * gameSpeed;
-    }
-}
-class Fireball extends Projectile {
-    constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
-        super(x, y, imageUrl, width, height, speed);
-    }
-    move(deltaTime: number){
-        this.y += this.speed * deltaTime / 1000 * gameSpeed;
-    }
-    isColliding(player: DragonEnemy | PlayerCharacter): boolean{
-        return (
-            this.x - this.width/2 <= player.x + player.width/2 &&
-            this.x + this.width/2 >= player.x - player.width/2 &&
-            this.y + this.height/2 >= player.y - calculatePlayerStateHeight()&&
-            this.y - this.height/2 <= player.y + player.height/2
-        );
-    }
-}
-
 type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
 class AnimationInfo {
     public animationCount: number = 0;
@@ -340,7 +285,7 @@ const necromancerInfo: AnimationInfo = {
     }
 };
 
-class DragonEnemy extends AnimatedObject{
+export class DragonEnemy extends AnimatedObject{
     public speed: number;
     private stateMachine: any; // I don't know what to input here
     constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: AnimationInfo, speed: number, stateMachine: StateMachine){
