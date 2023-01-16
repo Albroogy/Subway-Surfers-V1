@@ -1,9 +1,11 @@
 import {AnimatedObject, EquipmentItem, AnimationInfo} from "./main";
 import {context} from "./main";
-import {LANE, ARROW, OFFSET, KEYS, allPressedKeys, objects, playerSM} from "./main";
+import {LANE, ARROW, OFFSET, playerSM} from "./main";
 import {playerAnimated} from "./main";
-import { checkTime, sleep, resetGame } from "./main";
-import {Arrow} from "./projectiles"
+import { resetGame } from "./main";
+import {Arrow} from "./projectiles";
+import {KEYS, allPressedKeys, timeStart} from "./singleton";
+import { checkTime, sleep, objects } from "./singleton";
 
 export enum PlayerStates {
     Running = "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
@@ -191,10 +193,10 @@ const onRunningUpdate = (): string | undefined => {
 
         }
     }
-    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN)) {
+    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, timeStart)) {
         return PlayerStates.Ducking;
     }
-    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN)) {
+    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, timeStart)) {
         return PlayerStates.Jumping;
     }
     if (playerAnimated.stats.Lives <= 0){

@@ -1,8 +1,9 @@
 import { AnimatedObject, AnimationInfo, StateMachine } from "./main";
-import { calculatePlayerStateHeight, checkTime } from "./main";
-import { gameSpeed, playerAnimated, objects, fallSpeed } from "./main";
+import { calculatePlayerStateHeight} from "./main";
+import { gameSpeed, playerAnimated, fallSpeed } from "./main";
 import { PlayerCharacter } from "./playerCharacter";
 import { Fireball } from "./projectiles";
+import { checkTime, timeStart, objects } from "./singleton";
 
 export enum DragonStates {
     Flying = "flying",
@@ -77,14 +78,13 @@ const onFlyingDeactivation = () => {
 const onFiringActivation = (currentObject: DragonEnemy) => {
     currentObject.currentAnimation = currentObject.animationInfo.animations[DragonAnimationNames.Flying];
     currentObject.speed = 0;
-    const timeStart = Date.now();
     objects.push(
         new Fireball(currentObject.x, currentObject.y, "fireball.png", DRAGON.WIDTH, DRAGON.HEIGHT, 250)
     );
 }
 const onFiringUpdate = (deltatime: number, currentObject: DragonEnemy): string | undefined => {
-    if (checkTime(1000)){
-        if (playerAnimated.x != currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y || checkTime(3000)){
+    if (checkTime(1000, timeStart)){
+        if (playerAnimated.x != currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y || checkTime(3000, timeStart)){
             return DragonStates.Flying;
         }
     }

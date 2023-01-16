@@ -3,29 +3,7 @@ import {InventoryItem, TakenInventoryItemSlot, Inventory} from "./inventory";
 import { Projectile, Arrow, Fireball } from "./projectiles";
 import {PlayerCharacter, AnimationNames, playerSpearAnimationInfo, playerBowAnimationInfo, PlayerStates} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
-
-// Key Information
-export const allPressedKeys: Record<string, boolean> = {};
-window.addEventListener("keydown", function (event) {
-    allPressedKeys[event.keyCode] = true;
-});
-window.addEventListener("keyup", function (event) {
-    allPressedKeys[event.keyCode] = false;
-});
-export const KEYS = {
-    W: 87,
-    S: 83,
-    A: 65,
-    D: 68,
-    Space: 32,
-    ArrowLeft: 37,
-    ArrowRight: 39,
-    ArrowUp: 38,
-    ArrowDown: 40,
-    SpaceBar: 32,
-    Escape: 27,
-    E: 69
-};
+import {KEYS, allPressedKeys, objects, RenderableObject} from "./singleton";
 
 // Constant variables
 const canvas: HTMLCanvasElement = document.getElementById("game-canvas")! as HTMLCanvasElement; // I don't know why canvas can also be null...
@@ -56,7 +34,6 @@ const StartingItems = {
     Boots: null
 }
 const playerImage = `https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Body_color_zombie_green&head=Goblin_zombie_green&wrinkes=Wrinkles_zombie_green&beard=Beard_brown&hair=Bangslong_raven&shoulders=Legion_steel&arms=Armour_iron&chainmail=Chainmail_gray&legs=Armour_steel${StartingItems.Spear}&quiver=Quiver_quiver&ammo=Ammo_arrow${StartingItems.Armor}`
-console.log(playerImage)
 
 const StartingStats = {
     Lives: 1,
@@ -151,18 +128,16 @@ export const ITEM = {
     WIDTH: 50,
     HEIGHT: 50
 }
-const GOLD = {
+const GOLD_TEXT_LOCATION = {
     x: 50,
     y: 150
 }
-const LIVES = {
+const LIVES_TEXT_LOCATION = {
     x: 50,
     y: 200
 }
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
-type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
-export const objects: Array<RenderableObject> = []; // Is there any type for classes in general?
 const stillObjects: Array<Necromancer> = [];
 
 // Score Information
@@ -272,48 +247,6 @@ const necromancerInfo: AnimationInfo = {
     }
 };
 
-// export class DragonEnemy extends AnimatedObject{
-//     public speed: number;
-//     private stateMachine: any; // I don't know what to input here
-//     constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: AnimationInfo, speed: number, stateMachine: StateMachine){
-//         super(x, y, width, height, spritesheetURL, animationInfo);
-//         this.speed = speed;
-//         this.stateMachine = stateMachine;
-//         this.stateMachine.activeState = this.stateMachine.states[DragonStates.Flying];
-//         this.stateMachine.activeState.onActivation(this);
-//     }
-//     move(deltaTime: number){
-//         this.y += this.speed * deltaTime / 1000 * gameSpeed;
-//     }
-//     update(deltaTime: number){
-//         this.animationUpdate(deltaTime);
-//         this.stateMachine.update(deltaTime, this);
-//     }
-//     isColliding(player: PlayerCharacter): boolean{
-//         return (
-//             this.x - this.width/2 <= player.x + playerAnimated.width/2 &&
-//             this.x + this.width/2 >= player.x - playerAnimated.width/2 &&
-//             this.y + this.height/2 >= player.y - calculatePlayerStateHeight()&&
-//             this.y - this.height/2 <= player.y + playerAnimated.height/2
-//         )
-//     }
-// }
-// // Dragon Animation Info
-// const DragonAnimationNames = {
-//     Flying: "flying",
-// }
-
-// const DragonAnimationInfo: AnimationInfo = {
-//     animationCount: 4, 
-//     animations: {
-//         [DragonAnimationNames.Flying]: {
-//             rowIndex: 0,
-//             frameCount: 4,
-//             framesPerSecond: 8
-//         }
-//     }
-// };
-
 // Player Animation
 export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
@@ -414,37 +347,6 @@ const onInventoryMenuDeactivation = () => {
     // mouseClicked is not defined
 }
 
-// const onFlyingActivation = (currentObject: DragonEnemy) => {
-//     currentObject.currentAnimation = currentObject.animationInfo.animations[DragonAnimationNames.Flying]
-// }
-// const onFlyingUpdate = (deltatime: number, currentObject: DragonEnemy): string | undefined => {
-//     if (playerAnimated.x == currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y){
-//         return DragonStates.Firing;
-//     }
-// }
-// const onFlyingDeactivation = () => {
-// }
-// const onFiringActivation = (currentObject: DragonEnemy) => {
-//     currentObject.currentAnimation = currentObject.animationInfo.animations[DragonAnimationNames.Flying];
-//     currentObject.speed = 0;
-//     timeStart = Date.now();
-//     objects.push(
-//         new Fireball(currentObject.x, currentObject.y, "fireball.png", OBJECT.WIDTH, OBJECT.HEIGHT, 250)
-//     );
-// }
-// const onFiringUpdate = (deltatime: number, currentObject: DragonEnemy): string | undefined => {
-//     if (checkTime(1000)){
-//         if (playerAnimated.x != currentObject.x && playerAnimated.y <= currentObject.y + DRAGON.SIGHT && playerAnimated.y > currentObject.y || checkTime(3000)){
-//             return DragonStates.Flying;
-//         }
-//     }
-// }
-// const onFiringDeactivation = (currentObject: DragonEnemy) => {
-//     currentObject.speed = fallSpeed;
-// }
-
-// // Make dragon stop moving when near to another obstacle
-
 // Setting up state machines
 
 gameSM.addState(GameStates.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
@@ -536,16 +438,16 @@ function draw() {
         context.fillText(`SCORE: ${score}`, SCORE.x, SCORE.y);
         context.font = "20px Arial";
         context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE.x, HIGH_SCORE.y);
-        context.fillText(`GOLD: ${gold}`, GOLD.x, GOLD.y);
+        context.fillText(`GOLD_TEXT_LOCATION: ${gold}`, GOLD_TEXT_LOCATION.x, GOLD_TEXT_LOCATION.y);
         context.font = "20px Arial";
         if (playerAnimated.stats.Lives > 0){
             context.font = "20px Arial";
-            context.fillText(`LIVES: ${playerAnimated.stats.Lives}`, LIVES.x, LIVES.y);
+            context.fillText(`LIVES_TEXT_LOCATION: ${playerAnimated.stats.Lives}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
         else{
             context.fillStyle = "red";
             context.font = "20px Arial";
-            context.fillText("CERTAIN DEATH (MOVE TO STAY ALIVE)", LIVES.x, LIVES.y);
+            context.fillText("CERTAIN DEATH (MOVE TO STAY ALIVE)", LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
         context.drawImage(image,200,50,50,50);
         playerAnimated.draw();
@@ -564,17 +466,6 @@ function calculateLaneLocation(lane: number): number{
 function pickLane(): number{
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
-export function checkTime(stateLength: number): boolean{
-    return timeStart <= Date.now() - stateLength;
-}
-export function sleep(time: number) {
-    const date = Date.now();
-    let currentDate = null;
-    do {
-      currentDate = Date.now();
-    } while (currentDate - date < time);
-  }
-
 // These functions carry out a certain action
 export function calculatePlayerStateHeight(): number{
     if (playerAnimated.attacking == true){
