@@ -1,5 +1,4 @@
-import {context} from "./main";
-import { gameSpeed } from "./main";
+import {context} from "./global"
 import { calculatePlayerStateHeight } from "./main";
 import {PlayerCharacter} from "./playerCharacter";
 import { DragonEnemy } from "./dragon";
@@ -36,7 +35,7 @@ export class Arrow extends Projectile {
     constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
     }
-    move(deltaTime: number){
+    move(deltaTime: number, gameSpeed: number){
         this.y -= this.speed * deltaTime / 1000 * gameSpeed;
     }
 }
@@ -44,7 +43,7 @@ export class Fireball extends Projectile {
     constructor(x: number, y: number, imageUrl: string, width: number, height: number, speed: number){
         super(x, y, imageUrl, width, height, speed);
     }
-    move(deltaTime: number){
+    move(deltaTime: number, gameSpeed: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
     isColliding(player: DragonEnemy | PlayerCharacter): boolean{

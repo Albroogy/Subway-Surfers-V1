@@ -1,9 +1,9 @@
 import { AnimatedObject, AnimationInfo, StateMachine } from "./main";
 import { calculatePlayerStateHeight} from "./main";
-import { gameSpeed, playerAnimated, fallSpeed } from "./main";
+import { playerAnimated, fallSpeed } from "./main";
 import { PlayerCharacter } from "./playerCharacter";
 import { Fireball } from "./projectiles";
-import { checkTime, timeStart, objects } from "./singleton";
+import { checkTime, timeStart, objects } from "./global";
 
 export enum DragonStates {
     Flying = "flying",
@@ -27,7 +27,7 @@ export class DragonEnemy extends AnimatedObject{
         this.stateMachine.activeState = this.stateMachine.states[DragonStates.Flying];
         this.stateMachine.activeState.onActivation(this);
     }
-    move(deltaTime: number){
+    move(deltaTime: number, gameSpeed: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
     update(deltaTime: number){

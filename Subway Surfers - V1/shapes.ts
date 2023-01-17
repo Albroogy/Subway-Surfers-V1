@@ -1,6 +1,7 @@
 import { PlayerCharacter } from "./playerCharacter";
 import { calculatePlayerStateHeight } from "./main";
-import { context, playerAnimated, gameSpeed } from "./main";
+import { playerAnimated } from "./main";
+import {context} from "./global"
 
 export class Circles {
     public x: number;
@@ -30,7 +31,7 @@ export class Circles {
             this.y - this.radius <= player.y + player.height/2
         )
     }
-    move(deltaTime: number){
+    move(deltaTime: number, gameSpeed: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
 }
@@ -64,7 +65,7 @@ export class Rects{
             this.y - this.height/2 <= player.y + playerAnimated.height/2
         )
     }
-    move(deltaTime: number){
+    move(deltaTime: number, gameSpeed: number){
         this.y += this.speed * deltaTime / 1000 * gameSpeed;
     }
 }

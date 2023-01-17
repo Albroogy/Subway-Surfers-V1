@@ -1,11 +1,17 @@
 import {AnimatedObject, EquipmentItem, AnimationInfo} from "./main";
-import {context} from "./main";
-import {LANE, ARROW, OFFSET, playerSM} from "./main";
+import {context} from "./global"
+import {LANE, OFFSET, playerSM} from "./main";
 import {playerAnimated} from "./main";
 import { resetGame } from "./main";
 import {Arrow} from "./projectiles";
-import {KEYS, allPressedKeys, timeStart} from "./singleton";
-import { checkTime, sleep, objects } from "./singleton";
+import {KEYS, allPressedKeys, timeStart} from "./global";
+import { checkTime, sleep, objects } from "./global";
+
+const ARROW = {
+    WIDTH: 7.5,
+    HEIGHT: 45,
+    SPEED: 150
+}
 
 export enum PlayerStates {
     Running = "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames

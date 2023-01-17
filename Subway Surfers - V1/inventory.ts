@@ -1,8 +1,12 @@
 import {playerAnimated} from "./main"
-import {context} from "./main"
-import {ITEM, ItemList} from "./main"
+import {ItemList} from "./main"
+import {context} from "./global"
 
-// Inventory
+const ITEM = {
+    WIDTH: 50,
+    HEIGHT: 50
+}
+
 export class InventoryItem {
     public width: number;
     public height: number;

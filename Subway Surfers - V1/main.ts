@@ -3,20 +3,16 @@ import {InventoryItem, TakenInventoryItemSlot, Inventory} from "./inventory";
 import { Projectile, Arrow, Fireball } from "./projectiles";
 import {PlayerCharacter, AnimationNames, playerSpearAnimationInfo, playerBowAnimationInfo, PlayerStates} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
-import {KEYS, allPressedKeys, objects, RenderableObject} from "./singleton";
+import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas} from "./global";
 
 // Constant variables
-const canvas: HTMLCanvasElement = document.getElementById("game-canvas")! as HTMLCanvasElement; // I don't know why canvas can also be null...
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-export const context: CanvasRenderingContext2D = canvas.getContext("2d")! as CanvasRenderingContext2D;
-const SCORE_SPEED: number = 1;
+const SCORE_INCREASE_SPEED: number = 1;
 const COIN_VALUE: number = 300;
 const SPAWN_INCREMENT: number = 0.1;
 const FALL_INCREMENT: number = 0.02;
 const COIN_RADIUS: number = 25;
 export const OFFSET: number = 1;
-const ORIGINAL_SPEED: number = 150;
+const ORIGINAL_FALL_SPEED: number = 150;
 const ORIGINAL_SPAWN_DELAY: number = 1000;
 
 const image = new Image();
@@ -119,15 +115,6 @@ export const LANE = {
     WIDTH: canvas.width/3,
     COUNT: 3
 }
-export const ARROW = {
-    WIDTH: 7.5,
-    HEIGHT: 45,
-    SPEED: 150
-}
-export const ITEM = {
-    WIDTH: 50,
-    HEIGHT: 50
-}
 const GOLD_TEXT_LOCATION = {
     x: 50,
     y: 150
@@ -159,9 +146,8 @@ let spawnDelay: number = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score: number = 0;
 let highScore: number = 0;
 let gold: number = 0;
-export let fallSpeed: number = ORIGINAL_SPEED;
+export let fallSpeed: number = ORIGINAL_FALL_SPEED;
 let gameState: Object = GameStates.Playing;
-export let gameSpeed: number = 1;
 
 type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
 export class AnimationInfo {
@@ -387,6 +373,8 @@ function runFrame() {
     const currentTime = Date.now();
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime;
+    let gameSpeed: number = 1;
+
     if (playerAnimated.state != PlayerStates.Running || allPressedKeys[KEYS.E]){
         gameSpeed = 1;
     }
@@ -397,7 +385,7 @@ function runFrame() {
     // playerAnimated.processInput();
     // update state
     if (gameState == GameStates.Playing){
-        update(deltaTime);        
+        update(deltaTime, gameSpeed);        
     }
     stillObjectsLoop(deltaTime);
     // draw the world
@@ -407,10 +395,10 @@ function runFrame() {
     gameSM.update(deltaTime, playerAnimated);
 }
 
-function update(deltaTime: number){
-    score += SCORE_SPEED;
+function update(deltaTime: number, gameSpeed: number){
+    score += SCORE_INCREASE_SPEED;
     checkSpawn();
-    objectsLoop(deltaTime);
+    objectsLoop(deltaTime, gameSpeed);
     playerAnimated.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
@@ -514,7 +502,7 @@ export function resetGame(){
     equippedInventory.placeItem(boots,4,0);
     equippedInventory.placeItem(spear,0,0);
     spawnDelay = ORIGINAL_SPAWN_DELAY;
-    fallSpeed = ORIGINAL_SPEED;
+    fallSpeed = ORIGINAL_FALL_SPEED;
     if (score > highScore){
         highScore = score;
     }
@@ -525,9 +513,9 @@ function destroyCollidingObjects(object1: RenderableObject, object2: RenderableO
     objects.splice(objects.indexOf(object2),1);
 }
 
-function objectsLoop(deltaTime: number){
+function objectsLoop(deltaTime: number, gameSpeed: number){
     for (let i = 0; i < objects.length; i++){
-        objects[i].move(deltaTime);
+        objects[i].move(deltaTime, gameSpeed);
         if (objects[i].constructor != Arrow || Fireball){
             objects[i].speed += FALL_INCREMENT;
         }
