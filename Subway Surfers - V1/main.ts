@@ -421,24 +421,12 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
         if (objects[i].constructor == DragonEnemy){
             (objects[i] as DragonEnemy).update(deltaTime);
         }
-
-        if (objects[i].constructor == Arrow){
-            if (objects[i].y <= - (objects[i] as Arrow).height){
-                objects.splice(i,1);
-                continue;
-            }
-        }
-        else if (objects[i].constructor == DragonEnemy || Rects){
-            if (objects[i].y >= canvas.height + (objects[i] as DragonEnemy | Rects).height/2){
-                objects.splice(i,1);
-                continue;
-            }
-        }
-        else if (objects[i].constructor == Circles){
-            if (objects[i].y >= canvas.height){
-                objects.splice(i,1);
-                continue;
-            }
+        
+        if (objects[i].constructor == Arrow && objects[i].y <= - (objects[i] as Arrow).height
+        || objects[i].constructor == DragonEnemy || Rects && objects[i].y >= canvas.height + (objects[i] as DragonEnemy | Rects).height/2 
+        || objects[i].constructor == Circles && objects[i].y >= canvas.height){
+            objects.splice(i,1);
+            continue;
         }
 
         if (objects[i].constructor == Circles){
