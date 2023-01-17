@@ -1,7 +1,7 @@
 import { AnimatedObject, AnimationInfo, StateMachine } from "./main";
 import { calculatePlayerStateHeight} from "./main";
-import { playerAnimated, fallSpeed } from "./main";
-import { PlayerCharacter } from "./playerCharacter";
+import { fallSpeed } from "./main";
+import { PlayerCharacter, playerAnimated } from "./playerCharacter";
 import { Fireball } from "./projectiles";
 import { checkTime, timeStart, objects } from "./global";
 

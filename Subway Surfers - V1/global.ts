@@ -31,6 +31,10 @@ canvas.height = window.innerHeight;
 export const context: CanvasRenderingContext2D = canvas.getContext("2d")! as CanvasRenderingContext2D;
 
 export const OFFSET: number = 1;
+export const LANE: Record <string, number> = {
+    WIDTH: canvas.width/3,
+    COUNT: 3
+}
 
 export let timeStart: number = Date.now();
 

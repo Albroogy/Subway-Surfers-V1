@@ -3,7 +3,7 @@ import {equippedInventory, itemsFound, equipStarterItems} from "./inventory";
 import { Arrow, Fireball } from "./projectiles";
 import {PlayerCharacter, PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
-import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas, OFFSET} from "./global";
+import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas, OFFSET, LANE} from "./global";
 
 // ORIGINAL_VALUES
 const ORIGINAL_FALL_SPEED: number = 150;
@@ -15,7 +15,7 @@ enum GameStates {
 }
 
 // Obstacle Information
-const OBJECT = {
+const OBJECT: Record <string, number> = {
     WIDTH: 50,
     HEIGHT: 50,
     SPAWN_LOCATION: -50
@@ -25,17 +25,13 @@ enum obstacleColors {
     Brown,
     Black
 }
-const spawnType = {
+const spawnType: Record <string, string> = {
     generateObstacle: "generateObstacle",
     generateCoin: "generateCoin",
     generateRect: "generateRect"
 }
-export const LANE = {
-    WIDTH: canvas.width/3,
-    COUNT: 3
-}
 
-const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
+const obstacleType: Array <String> = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
 const stillObjects: Array<Necromancer> = [];
 
 // Changeble variables
@@ -157,7 +153,7 @@ export class StateMachine {
     }
     update(deltaTime: number, currentObject: PlayerCharacter | DragonEnemy) {
         if (this.activeState){
-            const nextState = this.activeState.update(deltaTime, currentObject);
+            const nextState: string = this.activeState.update(deltaTime, currentObject);
             // console.log(nextState)
             if (nextState){
                 this.activeState.onDeactivation(currentObject);
@@ -250,8 +246,8 @@ requestAnimationFrame(runFrame)
 
 // Main processing objectsLoop 
 function runFrame() {
-    const currentTime = Date.now();
-    const deltaTime = currentTime - lastTime;
+    const currentTime: number = Date.now();
+    const deltaTime: number = currentTime - lastTime;
     lastTime = currentTime;
     let gameSpeed: number = 1;
 
@@ -307,19 +303,19 @@ function draw() {
         }
 
         // Text postition innformation
-        const GOLD_TEXT_LOCATION = {
+        const GOLD_TEXT_LOCATION: Record <string, number> = {
             x: 50,
             y: 150
         }
-        const LIVES_TEXT_LOCATION = {
+        const LIVES_TEXT_LOCATION: Record <string, number> = {
             x: 50,
             y: 200
         }
-        const HIGH_SCORE_LOCATION = {
+        const HIGH_SCORE_LOCATION: Record <string, number> = {
             x: 50,
             y: 50
         }
-        const SCORE_LOCATION = {
+        const SCORE_LOCATION: Record <string, number> = {
             x: 50,
             y: 100
         }
@@ -364,7 +360,7 @@ export function calculatePlayerStateHeight(): number{
     return 0;
 }
 function generateObstacle(){
-    const type = Math.floor(Math.random() * Object.keys(obstacleColors).length);
+    const type: number = Math.floor(Math.random() * Object.keys(obstacleColors).length);
     objects.push(
         new Rects(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , OBJECT.WIDTH, OBJECT.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
     )
@@ -384,7 +380,7 @@ function generateDragon(){
 
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
-        let generateType = Object.keys(spawnType)[Math.floor(Math.random() * 2)];
+        let generateType: string = Object.keys(spawnType)[Math.floor(Math.random() * 2)];
         if (generateType == spawnType.generateObstacle){
             generateDragon();
         }
@@ -421,7 +417,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
         if (objects[i].constructor == DragonEnemy){
             (objects[i] as DragonEnemy).update(deltaTime);
         }
-        
+
         if (objects[i].constructor == Arrow && objects[i].y <= - (objects[i] as Arrow).height
         || objects[i].constructor == DragonEnemy || Rects && objects[i].y >= canvas.height + (objects[i] as DragonEnemy | Rects).height/2 
         || objects[i].constructor == Circles && objects[i].y >= canvas.height){

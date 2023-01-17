@@ -1,31 +1,30 @@
-import { AnimatedObject, AnimationInfo } from "./main";
-import { LANE, playerSM } from "./main";
+import { AnimatedObject, AnimationInfo, playerSM } from "./main";
 import { resetGame } from "./main";
 import { Arrow } from "./projectiles";
 import { EquipmentItem } from "./inventory";
-import { canvas, context, allPressedKeys, timeStart, checkTime, sleep, objects, OFFSET, KEYS } from "./global";
+import { canvas, context, allPressedKeys, timeStart, checkTime, sleep, objects, OFFSET, KEYS, LANE } from "./global";
 
-const ARROW = {
+const ARROW: Record <string, number> = {
     WIDTH: 7.5,
     HEIGHT: 45,
     SPEED: 150
 }
 // Player Information
-const PLAYER = {
+const PLAYER: Record <string, number> = {
     WIDTH: 100,
     HEIGHT: 100,
 }
-const weapons = {
+const weapons: Record <string, string> = {
     Spear: "player.png",
     Bow: "playerBow.png"
 }
-const StartingItems = {
+const StartingItems: Record <string, string | null> = {
     Armor: "&weapon=Leather_leather",
     Bow: null,
     Spear: "&armour=Thrust_spear_2",
     Boots: null
 }
-export const StartingStats = {
+export const StartingStats: Record <string, number> = {
     Lives: 1,
     RollSpeed: 500
 }
