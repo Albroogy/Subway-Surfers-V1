@@ -1,23 +1,13 @@
 import {Circles, Rects} from "./shapes";
 import {equippedInventory, itemsFound, equipStarterItems} from "./inventory";
-import { Projectile, Arrow, Fireball } from "./projectiles";
-import {PlayerCharacter, AnimationNames, playerSpearAnimationInfo, playerBowAnimationInfo, PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
+import { Arrow, Fireball } from "./projectiles";
+import {PlayerCharacter, PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
-import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas} from "./global";
+import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas, OFFSET} from "./global";
 
-// Constant variables
-const SCORE_INCREASE_SPEED: number = 1;
-const COIN_VALUE: number = 300;
-const SPAWN_INCREMENT: number = 0.1;
-const FALL_INCREMENT: number = 0.02;
-const COIN_RADIUS: number = 25;
-export const OFFSET: number = 1;
+// ORIGINAL_VALUES
 const ORIGINAL_FALL_SPEED: number = 150;
 const ORIGINAL_SPAWN_DELAY: number = 1000;
-
-const image = new Image();
-image.src = 'coin_01.png';
-const music = new Audio('Game_Song.mp3');
 
 enum GameStates {
     Playing = "playing",
@@ -44,33 +34,13 @@ export const LANE = {
     WIDTH: canvas.width/3,
     COUNT: 3
 }
-const GOLD_TEXT_LOCATION = {
-    x: 50,
-    y: 150
-}
-const LIVES_TEXT_LOCATION = {
-    x: 50,
-    y: 200
-}
 
 const obstacleType = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
 const stillObjects: Array<Necromancer> = [];
 
-// Score Information
-const HIGH_SCORE = {
-    x: 50,
-    y: 50
-}
-const SCORE = {
-    x: 50,
-    y: 100
-}
-
 // Changeble variables
 let lastTime: number = Date.now();
-let lastClick: number = Date.now();
 let lastSpawn: number = Date.now();
-let timeStart: number = Date.now();
 let spawnDelay: number = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
 let score: number = 0;
 let highScore: number = 0;
@@ -291,8 +261,6 @@ function runFrame() {
     else{
         gameSpeed = 0.5;
     }
-    // process input
-    // playerAnimated.processInput();
     // update state
     if (gameState == GameStates.Playing){
         update(deltaTime, gameSpeed);        
@@ -306,12 +274,18 @@ function runFrame() {
 }
 
 function update(deltaTime: number, gameSpeed: number){
-    score += SCORE_INCREASE_SPEED;
+    const SPAWN_INCREMENT: number = 0.1;
+    const FALL_INCREMENT: number = 0.02;
+    const SCORE_INCREMENT: number = 0.001;
+    let scoreIncreaseSpeed: number = 1;
+    score += scoreIncreaseSpeed;
     checkSpawn();
-    objectsLoop(deltaTime, gameSpeed);
+    objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
     playerAnimated.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
+    scoreIncreaseSpeed += SCORE_INCREMENT;
+    console.log(`This is the score increase speed: ${scoreIncreaseSpeed}`);
     playerSM.update(deltaTime, playerAnimated);
 }
 
@@ -326,16 +300,35 @@ function draw() {
     // before we start drawing, clear the canvas
 
     context.clearRect(0, 0, canvas.width, canvas.height);
+    
     if (gameState != GameStates.InventoryMenu){
         for (let object of objects){
             object.draw();
         }
-    
+
+        // Text postition innformation
+        const GOLD_TEXT_LOCATION = {
+            x: 50,
+            y: 150
+        }
+        const LIVES_TEXT_LOCATION = {
+            x: 50,
+            y: 200
+        }
+        const HIGH_SCORE_LOCATION = {
+            x: 50,
+            y: 50
+        }
+        const SCORE_LOCATION = {
+            x: 50,
+            y: 100
+        }
+
         context.fillStyle = "black";
         context.font = "20px Arial";
-        context.fillText(`SCORE: ${score}`, SCORE.x, SCORE.y);
+        context.fillText(`SCORE: ${score}`, SCORE_LOCATION.x, SCORE_LOCATION.y);
         context.font = "20px Arial";
-        context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE.x, HIGH_SCORE.y);
+        context.fillText(`HIGH SCORE_LOCATION: ${highScore}`, HIGH_SCORE_LOCATION.x, HIGH_SCORE_LOCATION.y);
         context.fillText(`GOLD_TEXT_LOCATION: ${gold}`, GOLD_TEXT_LOCATION.x, GOLD_TEXT_LOCATION.y);
         context.font = "20px Arial";
         if (playerAnimated.stats.Lives > 0){
@@ -347,7 +340,6 @@ function draw() {
             context.font = "20px Arial";
             context.fillText("CERTAIN DEATH (MOVE TO STAY ALIVE)", LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
-        context.drawImage(image,200,50,50,50);
         playerAnimated.draw();
     }
     else{
@@ -378,6 +370,7 @@ function generateObstacle(){
     )
 }
 function generateCoin(){
+    const COIN_RADIUS: number = 25;
     objects.push(
         new Circles(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
     )
@@ -420,38 +413,39 @@ function destroyCollidingObjects(object1: RenderableObject, object2: RenderableO
     objects.splice(objects.indexOf(object2),1);
 }
 
-function objectsLoop(deltaTime: number, gameSpeed: number){
+function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: number){
     for (let i = 0; i < objects.length; i++){
         objects[i].move(deltaTime, gameSpeed);
-        if (objects[i].constructor != Arrow || Fireball){
-            objects[i].speed += FALL_INCREMENT;
-        }
+        objects[i].speed += FALL_INCREMENT;
+
         if (objects[i].constructor == DragonEnemy){
             (objects[i] as DragonEnemy).update(deltaTime);
         }
+
         if (objects[i].constructor == Arrow){
             if (objects[i].y <= - (objects[i] as Arrow).height){
                 objects.splice(i,1);
                 continue;
             }
         }
-        else if (objects[i].y >= canvas.height + (objects[i] as Arrow | DragonEnemy | Rects).height/2){
-            objects.splice(i,1);
-            continue;
-        }
-        if (objects[i].constructor == Circles){
-            if (objects[i].isColliding(playerAnimated)){
-                score += COIN_VALUE;
-                gold += 1;
+        else if (objects[i].constructor == DragonEnemy || Rects){
+            if (objects[i].y >= canvas.height + (objects[i] as DragonEnemy | Rects).height/2){
                 objects.splice(i,1);
                 continue;
             }
         }
-        else if (objects[i].constructor != Circles && objects[i].constructor != Arrow){
+        else if (objects[i].constructor == Circles){
+            if (objects[i].y >= canvas.height){
+                objects.splice(i,1);
+                continue;
+            }
+        }
+
+        if (objects[i].constructor == Circles){
             if (objects[i].isColliding(playerAnimated)){
-                if (playerAnimated.attacking != true){
-                    playerAnimated.stats.Lives -= 1;
-                }
+                const COIN_VALUE: number = 300;
+                score += COIN_VALUE;
+                gold += 1;
                 objects.splice(i,1);
                 continue;
             }
@@ -472,6 +466,13 @@ function objectsLoop(deltaTime: number, gameSpeed: number){
                 // This way for collisions I will only need to check the objects that are on the same lane.
                 }
             }
+        }
+        else if (objects[i].isColliding(playerAnimated)){
+            if (playerAnimated.attacking == false || objects[i].constructor == Fireball){
+                playerAnimated.stats.Lives -= 1;
+            }
+            objects.splice(i,1);
+            continue;
         }
     }
 }

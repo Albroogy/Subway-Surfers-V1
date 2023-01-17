@@ -1,12 +1,9 @@
-import {AnimatedObject, AnimationInfo} from "./main";
-import {context} from "./global"
-import {LANE, OFFSET, playerSM} from "./main";
+import { AnimatedObject, AnimationInfo } from "./main";
+import { LANE, playerSM } from "./main";
 import { resetGame } from "./main";
-import {Arrow} from "./projectiles";
-import {KEYS, allPressedKeys, timeStart} from "./global";
-import { checkTime, sleep, objects } from "./global";
+import { Arrow } from "./projectiles";
 import { EquipmentItem } from "./inventory";
-import { canvas } from "./global";
+import { canvas, context, allPressedKeys, timeStart, checkTime, sleep, objects, OFFSET, KEYS } from "./global";
 
 const ARROW = {
     WIDTH: 7.5,
@@ -70,6 +67,7 @@ export class PlayerCharacter extends AnimatedObject{
         this.lane = lane;
         this.state = state;
         this.PREPARE_SPEAR_FRAMES = 4;
+        this.playAnimation(AnimationNames.RunningBack);
     }
     roll(deltaTime: number){
             this.x += this.stats.RollSpeed * deltaTime/1000 * this.directionChange;
@@ -330,4 +328,3 @@ playerSM.addState(PlayerStates.Dying, onDyingActivation, onDyingUpdate, onDyingD
 
 // Player Animation
 export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
-playerAnimated.playAnimation(AnimationNames.RunningBack);

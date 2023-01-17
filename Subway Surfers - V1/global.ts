@@ -30,7 +30,9 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 export const context: CanvasRenderingContext2D = canvas.getContext("2d")! as CanvasRenderingContext2D;
 
-export const timeStart: number = Date.now();
+export const OFFSET: number = 1;
+
+export let timeStart: number = Date.now();
 
 export type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
 export const objects: Array<RenderableObject> = [];
