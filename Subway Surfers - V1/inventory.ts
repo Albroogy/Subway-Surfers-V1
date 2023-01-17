@@ -1,4 +1,4 @@
-import {playerAnimated} from "./main"
+import {playerAnimated} from "./PlayerCharacter"
 import {context, canvas} from "./global"
 
 const ITEM = {

@@ -1,16 +1,36 @@
-import {AnimatedObject, EquipmentItem, AnimationInfo} from "./main";
+import {AnimatedObject, AnimationInfo} from "./main";
 import {context} from "./global"
 import {LANE, OFFSET, playerSM} from "./main";
-import {playerAnimated} from "./main";
 import { resetGame } from "./main";
 import {Arrow} from "./projectiles";
 import {KEYS, allPressedKeys, timeStart} from "./global";
 import { checkTime, sleep, objects } from "./global";
+import { EquipmentItem } from "./inventory";
+import { canvas } from "./global";
 
 const ARROW = {
     WIDTH: 7.5,
     HEIGHT: 45,
     SPEED: 150
+}
+// Player Information
+const PLAYER = {
+    WIDTH: 100,
+    HEIGHT: 100,
+}
+const weapons = {
+    Spear: "player.png",
+    Bow: "playerBow.png"
+}
+const StartingItems = {
+    Armor: "&weapon=Leather_leather",
+    Bow: null,
+    Spear: "&armour=Thrust_spear_2",
+    Boots: null
+}
+export const StartingStats = {
+    Lives: 1,
+    RollSpeed: 500
 }
 
 export enum PlayerStates {
@@ -69,7 +89,6 @@ export class PlayerCharacter extends AnimatedObject{
             this.weapon = this.weapons.Bow;
             this.animationInfo = playerBowAnimationInfo;
         }
-        console.log(this.weapon);
         if (this.weapon != null){
             this.spritesheet.src = this.weapon;
         }
@@ -307,3 +326,8 @@ playerSM.addState(PlayerStates.Jumping, onJumpingActivation, onJumpingUpdate, on
 playerSM.addState(PlayerStates.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
 playerSM.addState(PlayerStates.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
 playerSM.addState(PlayerStates.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
+
+
+// Player Animation
+export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
+playerAnimated.playAnimation(AnimationNames.RunningBack);

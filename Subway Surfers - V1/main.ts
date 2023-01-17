@@ -1,7 +1,7 @@
 import {Circles, Rects} from "./shapes";
 import {equippedInventory, itemsFound, equipStarterItems} from "./inventory";
 import { Projectile, Arrow, Fireball } from "./projectiles";
-import {PlayerCharacter, AnimationNames, playerSpearAnimationInfo, playerBowAnimationInfo, PlayerStates} from "./playerCharacter";
+import {PlayerCharacter, AnimationNames, playerSpearAnimationInfo, playerBowAnimationInfo, PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
 import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas} from "./global";
 
@@ -19,34 +19,11 @@ const image = new Image();
 image.src = 'coin_01.png';
 const music = new Audio('Game_Song.mp3');
 
-const weapons = {
-    Spear: "player.png",
-    Bow: "playerBow.png"
-}
-const StartingItems = {
-    Armor: "&weapon=Leather_leather",
-    Bow: null,
-    Spear: "&armour=Thrust_spear_2",
-    Boots: null
-}
-const playerImage = `https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Body_color_zombie_green&head=Goblin_zombie_green&wrinkes=Wrinkles_zombie_green&beard=Beard_brown&hair=Bangslong_raven&shoulders=Legion_steel&arms=Armour_iron&chainmail=Chainmail_gray&legs=Armour_steel${StartingItems.Spear}&quiver=Quiver_quiver&ammo=Ammo_arrow${StartingItems.Armor}`
-
-const StartingStats = {
-    Lives: 1,
-    RollSpeed: 500
-}
-
 enum GameStates {
     Playing = "playing",
     InventoryMenu = "inventoryMenu"
 }
 
-// All the enums are causing bugs
-
-const PLAYER = {
-    WIDTH: 100,
-    HEIGHT: 100,
-}
 // Obstacle Information
 const OBJECT = {
     WIDTH: 50,
@@ -185,10 +162,6 @@ const necromancerInfo: AnimationInfo = {
     }
 };
 
-// Player Animation
-export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
-playerAnimated.playAnimation(AnimationNames.RunningBack);
-
 ///State Machine Code
 class State {
     public onActivation: Function;
@@ -224,7 +197,7 @@ export class StateMachine {
         }
     }
 }
-
+// Creating the state machines
 export const playerSM = new StateMachine();
 const gameSM = new StateMachine();
 
@@ -271,18 +244,17 @@ const onInventoryMenuDeactivation = () => {
     // mouseClicked is not defined
 }
 
-// Setting up state machines
+// Setting up state machine
 
 gameSM.addState(GameStates.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
 gameSM.addState(GameStates.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
 
-// Starting state machines
+// Activating state machines
 playerSM.activeState = playerSM.states[PlayerStates.Running];
 playerSM.activeState.onActivation();
 
 gameSM.activeState = gameSM.states[GameStates.Playing];
 gameSM.activeState.onActivation();
-console.log(gameSM.activeState)
 
 // Next steps
 // Done = /
@@ -400,7 +372,7 @@ export function calculatePlayerStateHeight(): number{
     return 0;
 }
 function generateObstacle(){
-    const type = Math.floor(Math.random() * LANE.COUNT);
+    const type = Math.floor(Math.random() * Object.keys(obstacleColors).length);
     objects.push(
         new Rects(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , OBJECT.WIDTH, OBJECT.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
     )
