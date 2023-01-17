@@ -10,7 +10,7 @@ export enum DragonStates {
     Firing = "firing"
 }
 
-const DRAGON = {
+const DRAGON: Record <string, number> = {
     SIGHT: 300,
     WIDTH: 50,
     HEIGHT: 50,
@@ -43,7 +43,7 @@ export class DragonEnemy extends AnimatedObject{
         )
     }
     generateDragonSM = (): StateMachine => {
-        const dragonSM = new StateMachine();
+        const dragonSM: StateMachine = new StateMachine();
         dragonSM.addState(DragonStates.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
         dragonSM.addState(DragonStates.Firing, onFiringActivation, onFiringUpdate, onFiringDeactivation)
         return dragonSM;

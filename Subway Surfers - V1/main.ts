@@ -31,7 +31,7 @@ const spawnType: Record <string, string> = {
     generateRect: "generateRect"
 }
 
-const obstacleType: Array <String> = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
+const obstacleType: Array <string> = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
 const stillObjects: Array<Necromancer> = [];
 
 // Changeble variables
