@@ -1,5 +1,5 @@
 import {Circles, Rects} from "./shapes";
-import {InventoryItem, TakenInventoryItemSlot, Inventory} from "./inventory";
+import {equippedInventory, itemsFound, equipStarterItems} from "./inventory";
 import { Projectile, Arrow, Fireball } from "./projectiles";
 import {PlayerCharacter, AnimationNames, playerSpearAnimationInfo, playerBowAnimationInfo, PlayerStates} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
@@ -34,54 +34,6 @@ const playerImage = `https://sanderfrenken.github.io/Universal-LPC-Spritesheet-C
 const StartingStats = {
     Lives: 1,
     RollSpeed: 500
-}
-
-const spearImage = new Image;
-spearImage.src = "spear.png";
-const bowImage = new Image;
-bowImage.src = "bow.png";
-const armorImage = new Image;
-armorImage.src = "armor.png";
-const bootsImage = new Image;
-bootsImage.src = "boots.png";
-
-export type EquipmentItem = {
-    Width: number, 
-    Height: number,
-    URL: string,
-    Image: HTMLImageElement,
-    Name: string
-};
-
-export const ItemList: Record<string, EquipmentItem> = {
-    Spear: {
-        Width: 2, 
-        Height: 1,
-        URL: spearImage.src,
-        Image: spearImage,
-        Name: "Spear"
-    },
-    Bow: {
-        Width: 1,
-        Height: 2,
-        URL: bowImage.src,
-        Image: bowImage,
-        Name: "Bow"
-    },
-    Armor: {
-        Width: 2,
-        Height: 2,
-        URL: armorImage.src,
-        Image: armorImage,
-        Name: "Armor"
-    },
-    Boots: {
-        Width: 1,
-        Height: 1,
-        URL: bootsImage.src,
-        Image: bootsImage,
-        Name: "Boots"
-    }
 }
 
 enum GameStates {
@@ -236,20 +188,6 @@ const necromancerInfo: AnimationInfo = {
 // Player Animation
 export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, playerImage, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
 playerAnimated.playAnimation(AnimationNames.RunningBack);
-
-const equippedInventory = new Inventory(5, 3, 50, 200);
-const itemsFound = new Inventory(10, 5, canvas.width/2, 0);
-const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemList.Spear.URL, ItemList.Spear.Image, ItemList.Spear.Name);
-const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL, ItemList.Bow.Image, ItemList.Bow.Name);
-const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL, ItemList.Armor.Image, ItemList.Armor.Name);
-const boots = new InventoryItem(ItemList.Boots.Width,ItemList.Boots.Height,ItemList.Boots.URL, ItemList.Boots.Image, ItemList.Boots.Name);
-
-equippedInventory.placeItem(bow, 1, 0);
-// equippedInventory.placeItem(spear, 0, 0);
-equippedInventory.placeItem(armor, 2, 0);
-equippedInventory.placeItem(boots, 0, 0);
-console.log(equippedInventory);
-
 
 ///State Machine Code
 class State {
@@ -497,10 +435,7 @@ export function resetGame(){
     playerAnimated.changeLane();
     playerAnimated.stats = StartingStats;
     equippedInventory.resetInventory();
-    // equippedInventory.placeItem(bow,1,0);
-    equippedInventory.placeItem(armor,2,0);
-    equippedInventory.placeItem(boots,4,0);
-    equippedInventory.placeItem(spear,0,0);
+    equipStarterItems();
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_FALL_SPEED;
     if (score > highScore){
