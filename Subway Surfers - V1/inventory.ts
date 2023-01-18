@@ -61,16 +61,16 @@ export class Inventory {
                     this.cells[cellRow + i][cellCol + j] = TakenInventoryItemSlot;
                     this.cells[cellRow][cellCol] = item;
                     if (item.iconURL == ItemList.Armor.URL){
-                        playerAnimated.equippedItems.Armor = ItemList.Armor;
+                        playerAnimated.equippedItems.Armor = ItemList.Armor.Name;
                     }
                     if (item.iconURL == ItemList.Boots.URL){
-                        playerAnimated.equippedItems.Boots = ItemList.Boots;
+                        playerAnimated.equippedItems.Boots = ItemList.Boots.Name;
                     }
                     if (item.iconURL == ItemList.Spear.URL){
-                        playerAnimated.equippedItems.Spear = ItemList.Spear;
+                        playerAnimated.equippedItems.Spear = ItemList.Spear.Name;
                     }
                     if (item.iconURL == ItemList.Bow.URL){
-                        playerAnimated.equippedItems.Bow = ItemList.Bow;
+                        playerAnimated.equippedItems.Bow = ItemList.Bow.Name;
                     }
                     playerAnimated.statsUpdate();
                 }

@@ -43,7 +43,7 @@ const CLICK_DELAY: number = 300; //This is in milliseconds
 let lastClick = Date.now();
 
 export class PlayerCharacter extends AnimatedObject{
-    public equippedItems: Record <string, EquipmentItem>;
+    public equippedItems: Record <string, string | null>;
     public stats: Record <string, number>;
     public weapon: string | null;
     public weapons: Record <string, string>;
@@ -55,7 +55,7 @@ export class PlayerCharacter extends AnimatedObject{
     constructor(x: number, y: number,
         spritesheetURL: string, animationInfo: AnimationInfo,
         lane: number, state: string, width: number, height: number,
-        startingItems: Record <string, EquipmentItem>, startingStats: Record <string, number>, weapons: Record <string, string>){
+        startingItems: Record <string, string | null>, startingStats: Record <string, number>, weapons: Record <string, string>){
         super(x, y, width, height, spritesheetURL, animationInfo);
         this.equippedItems = startingItems;
         this.stats = startingStats;

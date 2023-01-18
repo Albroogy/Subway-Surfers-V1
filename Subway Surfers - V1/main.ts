@@ -435,11 +435,11 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             }
         }
         else if (objects[i].constructor == Arrow){
-            const currentObject1 = objects[i];
+            const currentObject1: Arrow = objects[i] as Arrow;
             // When I removed the current object lines, the game sometimes bugged out when arrows collided with objects, so I'm keeping this code in.
             for (let j = 0; j < objects.length; j++){
                 if (objects[j].constructor == DragonEnemy){
-                    const currentObject2 = objects[j];
+                    const currentObject2: DragonEnemy = objects[j] as DragonEnemy;
                     console.assert(currentObject1 != undefined);
                     console.assert(currentObject2 != undefined);
                     if (currentObject1.isColliding(currentObject2)){
