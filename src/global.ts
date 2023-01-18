@@ -1,6 +1,10 @@
 import { DragonEnemy } from "./dragon";
 import { Circles, Rects } from "./shapes";
 import { Fireball } from "./projectiles";
+import Entity from "./entity";
+import PositionComponent from "./components/positionComponent";
+import DrawRectComponent from "./components/drawRectComponent";
+import MovementComponent from "./components/movementComponent";
 
 // Key Information
 export const allPressedKeys: Record<string, boolean> = {};
@@ -40,6 +44,13 @@ export let timeStart: number = Date.now();
 
 export type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
 export const objects: Array<RenderableObject> = [];
+
+export const entities: Array<Entity> = [];
+
+let simpleRect = new Entity("simple rect");
+simpleRect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
+simpleRect.addComponent(DrawRectComponent.COMPONENT_ID, new DrawRectComponent(context, "red"));
+simpleRect.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(5, 1));
 
 export function checkTime(stateLength: number, timeStart: number): boolean{
     return timeStart <= Date.now() - stateLength;

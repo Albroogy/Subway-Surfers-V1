@@ -1,12 +1,16 @@
 {
     "compilerOptions": {
-        "outDir": "./dist",
+        "outFile": "./dist/main.js",
         "target": "ESNext",
+        "module": "System",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "watch": true,
         "noImplicitAny": true,
         "strictFunctionTypes": true,
         "strict": true,
     },
         "include": [
-        "./Subway Surfers - V1/**/*"
+        "./src/**/*"
     ]
 }

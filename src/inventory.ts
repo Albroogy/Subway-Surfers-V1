@@ -111,13 +111,13 @@ export class Inventory {
 }
 
 const spearImage = new Image;
-spearImage.src = "spear.png";
+spearImage.src = "../assets/images/spear.png";
 const bowImage = new Image;
-bowImage.src = "bow.png";
+bowImage.src = "../assets/images/bow.png";
 const armorImage = new Image;
-armorImage.src = "armor.png";
+armorImage.src = "../assets/images/armor.png";
 const bootsImage = new Image;
-bootsImage.src = "boots.png";
+bootsImage.src = "../assets/images/boots.png";
 
 export type EquipmentItem = {
     Width: number, 

@@ -15,8 +15,8 @@ const PLAYER: Record <string, number> = {
     HEIGHT: 100,
 }
 const weapons: Record <string, string> = {
-    Spear: "player.png",
-    Bow: "playerBow.png"
+    Spear: "../assets/images/player.png",
+    Bow: "../assets/images/playerBow.png"
 }
 const StartingItems: Record <string, string | null> = {
     Armor: "&weapon=Leather_leather",
@@ -247,7 +247,7 @@ const onDuckingActivation = () => {
     playerAnimated.state = PlayerStates.Ducking;
     playerAnimated.currentAnimationFrame = 0;
     if (playerAnimated.weapon == playerAnimated.weapons.Bow){
-        var audio = new Audio('arrow-release.mp3');
+        var audio = new Audio('../assets/audio/arrow-release.mp3');
         audio.play();
     }
 }
@@ -259,7 +259,7 @@ const onDuckingUpdate = () => {
     }
     // if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount){
     //     objects.push(
-    //         new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
+    //         new Arrow(playerAnimated.x, playerAnimated.y, "../assets/images/arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
     //     );
     // }
     // Why does this code not work?
@@ -270,7 +270,7 @@ const onDuckingUpdate = () => {
 const onDuckingDeactivation = () => {
     if (playerAnimated.weapon == playerAnimated.weapons.Bow){
         objects.push(
-            new Arrow(playerAnimated.x, playerAnimated.y, "arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ARROW.SPEED)
+            new Arrow(playerAnimated.x, playerAnimated.y, "../assets/images/arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ARROW.SPEED)
         );
         console.log("arrow fired");
     }

@@ -3,7 +3,8 @@ import {equippedInventory, itemsFound, equipStarterItems} from "./inventory";
 import { Arrow, Fireball } from "./projectiles";
 import {PlayerCharacter, PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
-import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas, OFFSET, LANE} from "./global";
+import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas, OFFSET, LANE, entities} from "./global";
+import CollisionSystem from "./systems/collisionSystem";
 
 // ORIGINAL_VALUES
 const ORIGINAL_FALL_SPEED: number = 150;
@@ -199,7 +200,7 @@ const onInventoryMenuActivation = () => {
     }
     console.log(GameStates.InventoryMenu);
     stillObjects.push(
-        new Necromancer(200, 200, 300, 300, "Necromancer.png", necromancerInfo)
+        new Necromancer(200, 200, 300, 300, "../assets/images/Necromancer.png", necromancerInfo)
     )
 }
 const onInventoryMenuUpdate = (): string | undefined => {
@@ -288,6 +289,12 @@ function update(deltaTime: number, gameSpeed: number){
     const SCORE_INCREMENT: number = 0.001;
     let scoreIncreaseSpeed: number = 1;
     score += scoreIncreaseSpeed;
+
+    for (const entity of entities) {
+        entity.update(deltaTime);
+    }
+
+
     checkSpawn();
     objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
     playerAnimated.update(deltaTime);
@@ -437,6 +444,8 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             objects.splice(i,1);
             continue;
         }
+
+        CollisionSystem.collideObjects(...);
 
         if (objects[i].constructor == Circles){
             if (objects[i].isColliding(playerAnimated)){

@@ -79,9 +79,9 @@ const onFiringActivation = (currentObject: DragonEnemy) => {
     currentObject.currentAnimation = currentObject.animationInfo.animations[DragonAnimationNames.Flying];
     currentObject.speed = 0;
     objects.push(
-        new Fireball(currentObject.x, currentObject.y, "fireball.png", DRAGON.WIDTH, DRAGON.HEIGHT, 250)
+        new Fireball(currentObject.x, currentObject.y, "../assets/images/fireball.png", DRAGON.WIDTH, DRAGON.HEIGHT, 250)
     );
-    var audio = new Audio('dragon-roar.mp3');
+    var audio = new Audio('../assets/audio/dragon-roar.mp3');
     audio.play();
 }
 const onFiringUpdate = (deltatime: number, currentObject: DragonEnemy): string | undefined => {
