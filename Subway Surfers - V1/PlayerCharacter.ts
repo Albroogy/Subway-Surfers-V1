@@ -246,7 +246,10 @@ const onDuckingActivation = () => {
     playerAnimated.playAnimation(AnimationNames.Ducking);
     playerAnimated.state = PlayerStates.Ducking;
     playerAnimated.currentAnimationFrame = 0;
-    console.log("jumping")
+    if (playerAnimated.weapon == playerAnimated.weapons.Bow){
+        var audio = new Audio('arrow-release.mp3');
+        audio.play();
+    }
 }
 const onDuckingUpdate = () => {
     if (playerAnimated.weapon == playerAnimated.weapons.Spear){

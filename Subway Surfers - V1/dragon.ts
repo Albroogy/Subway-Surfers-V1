@@ -81,6 +81,8 @@ const onFiringActivation = (currentObject: DragonEnemy) => {
     objects.push(
         new Fireball(currentObject.x, currentObject.y, "fireball.png", DRAGON.WIDTH, DRAGON.HEIGHT, 250)
     );
+    var audio = new Audio('dragon-roar.mp3');
+    audio.play();
 }
 const onFiringUpdate = (deltatime: number, currentObject: DragonEnemy): string | undefined => {
     if (checkTime(1000, timeStart)){
