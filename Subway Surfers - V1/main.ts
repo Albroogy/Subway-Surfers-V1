@@ -8,6 +8,7 @@ import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas, OFFSET
 // ORIGINAL_VALUES
 const ORIGINAL_FALL_SPEED: number = 150;
 const ORIGINAL_SPAWN_DELAY: number = 1000;
+const backgroundMusic = new Audio("track1");
 
 enum GameStates {
     Playing = "playing",
@@ -166,8 +167,9 @@ export class StateMachine {
 // Creating the state machines
 export const playerSM = new StateMachine();
 const gameSM = new StateMachine();
+const backgroundMusicSM = new StateMachine();
 
-//Adding the states
+//Adding the states for gameSM
 
 const onPlayingActivation = () => {
     gameState = GameStates.Playing;
@@ -208,6 +210,17 @@ const onInventoryMenuUpdate = (): string | undefined => {
 const onInventoryMenuDeactivation = () => {
     // document.removeEventListener('click', mouseClicked);
     // mouseClicked is not defined
+}
+
+//Adding the states for backgroundMusicSM
+
+const onTrack1Activation = () => {
+    backgroundMusic.play();
+}
+const onTrack1Update = ()=> {
+    backgroundMusic.currentTime
+}
+const onTrack1Deactivation = () => {
 }
 
 // Setting up state machine
