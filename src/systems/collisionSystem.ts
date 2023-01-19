@@ -14,6 +14,7 @@ export default class CollisionSystem {
     }
     
     public static collideObjects(obj1: Entity, obj2: Entity): boolean {
+        if ()
         // do both of these have a position component (As they should!?)
         // do any of these have a circular component (because if they do, we have to do a different check)
         if (/* both are rectangles */) {
