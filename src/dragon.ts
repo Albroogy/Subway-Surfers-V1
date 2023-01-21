@@ -50,7 +50,7 @@ export class DragonEnemy extends AnimatedObject{
     }
 }
 // Dragon Animation Info
-const DragonAnimationNames = {
+export const DragonAnimationNames = {
     Flying: "flying",
 }
 

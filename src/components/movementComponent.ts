@@ -21,6 +21,6 @@ export default class MovementComponent extends Component {
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
         console.assert(positionComponent != null);
         // TODO: Take gamespeed into account
-        positionComponent!.y += this.speed * deltaTime / 1000;// * gameSpeed;
+        positionComponent!.y += this.speed * deltaTime / 1000 * this.yDirection;// * gameSpeed;
     }
 }

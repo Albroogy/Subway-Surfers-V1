@@ -1,5 +1,5 @@
 import Component from "./component";
-import PositionComponent from "./animatedComponent";
+import PositionComponent from "./positionComponent";
 import AnimatedComponent from "./animatedComponent";
 import { playerBowAnimationInfo, playerSpearAnimationInfo } from "../PlayerCharacter";
 
