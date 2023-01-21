@@ -5,6 +5,7 @@ import {PlayerCharacter, PlayerStates, playerAnimated, StartingStats} from "./pl
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
 import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas, OFFSET, LANE, entities} from "./global";
 import CollisionSystem from "./systems/collisionSystem";
+import DragonComponent from "./components/dragonComponent";
 
 // ORIGINAL_VALUES
 const ORIGINAL_FALL_SPEED: number = 150;
@@ -153,7 +154,7 @@ export class StateMachine {
     addState(stateName: string, onActivation: Function, update: Function, onDeactivation: Function) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
     }
-    update(deltaTime: number, currentObject: PlayerCharacter | DragonEnemy) {
+    update(deltaTime: number, currentObject: PlayerCharacter | DragonComponent) {
         if (this.activeState){
             const nextState: string = this.activeState.update(deltaTime, currentObject);
             // console.log(nextState)
@@ -444,9 +445,6 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             objects.splice(i,1);
             continue;
         }
-
-        CollisionSystem.collideObjects(...);
-
         if (objects[i].constructor == Circles){
             if (objects[i].isColliding(playerAnimated)){
                 const COIN_VALUE: number = 300;
