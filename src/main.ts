@@ -154,7 +154,7 @@ export class StateMachine {
     addState(stateName: string, onActivation: Function, update: Function, onDeactivation: Function) {
         this.states[stateName] = new State(onActivation, update, onDeactivation);
     }
-    update(deltaTime: number, currentObject: PlayerCharacter | DragonComponent) {
+    update(deltaTime: number, currentObject: PlayerCharacter | DragonComponent | DragonEnemy) {
         if (this.activeState){
             const nextState: string = this.activeState.update(deltaTime, currentObject);
             // console.log(nextState)
