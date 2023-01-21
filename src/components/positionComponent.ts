@@ -7,4 +7,5 @@ export default class PositionComponent extends Component {
     public y: number = 0;
     public width: number = 0;
     public height: number = 0;
+    public radius: number = 0;
 }

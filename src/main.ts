@@ -46,7 +46,7 @@ let gold: number = 0;
 export let fallSpeed: number = ORIGINAL_FALL_SPEED;
 let gameState: Object = GameStates.Playing;
 
-type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
+export type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
 export class AnimationInfo {
     public animationCount: number = 0;
     public animations: Record<string, SingleAnimationInfo> = {};
