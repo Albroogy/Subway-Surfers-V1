@@ -96,3 +96,4 @@ const onFiringDeactivation = (currentObject: DragonEnemy) => {
 }
 
 // Make dragon stop moving when near to another obstacle
+

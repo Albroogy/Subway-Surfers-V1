@@ -1,4 +1,4 @@
-import Component from "./component"
+import { Component } from "../components/component";
 
 export default class PositionComponent extends Component {
     public static COMPONENT_ID: string = "Position";

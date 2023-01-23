@@ -1,4 +1,4 @@
-import Component from "./component";
+import { Component } from "../components/component";
 import PositionComponent from "./positionComponent";
 
 export default class DrawRectComponent extends Component { 
