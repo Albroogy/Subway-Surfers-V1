@@ -1,5 +1,5 @@
 import { context } from "../global";
-import { Component } from "../components/component";
+import { Component } from "../E&C";
 import PlayerComponent from "./playerComponent";
 
 const ITEM = {

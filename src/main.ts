@@ -3,8 +3,7 @@ import {equippedInventory, itemsFound, equipStarterItems} from "./inventory";
 import { Arrow, Fireball } from "./projectiles";
 import {PlayerCharacter, PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
-import {KEYS, allPressedKeys, objects, RenderableObject, context, canvas, OFFSET, LANE, entities} from "./global";
-import CollisionSystem from "./systems/collisionSystem";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, entities} from "./global";
 import DragonComponent from "./components/dragonComponent";
 
 // ORIGINAL_VALUES
@@ -52,6 +51,8 @@ export class AnimationInfo {
     public animationCount: number = 0;
     public animations: Record<string, SingleAnimationInfo> = {};
 }
+type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
+export const objects: Array<RenderableObject> = [];
 
 export class AnimatedObject {
     public x: number;
@@ -374,12 +375,6 @@ function pickLane(): number{
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
 // These functions carry out a certain action
-export function calculatePlayerStateHeight(): number{
-    if (playerAnimated.attacking == true){
-        return playerAnimated.height/2;
-    }
-    return 0;
-}
 function generateObstacle(){
     const type: number = Math.floor(Math.random() * Object.keys(obstacleColors).length);
     objects.push(

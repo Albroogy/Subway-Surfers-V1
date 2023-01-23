@@ -1,10 +1,10 @@
-import { Component } from "../components/component";
+import { Component } from "../E&C";
 import PositionComponent from "./positionComponent";
 import AnimatedComponent from "./animatedComponent";
-import { fallSpeed, StateMachine } from "../main";
+import { fallSpeed, objects, StateMachine } from "../main";
 import { DragonAnimationNames } from "../dragon";
 import { playerAnimated } from "../PlayerCharacter";
-import { checkTime, objects, timeStart } from "../global";
+import { checkTime, timeStart } from "../global";
 import { Fireball } from "../projectiles";
 
 export enum DragonStates {

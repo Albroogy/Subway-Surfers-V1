@@ -1,4 +1,4 @@
-import Component from "./component";
+import Component from "../E&C";
 import PositionComponent from "./positionComponent";
 
 export default class DrawCircleComponent extends Component { 

@@ -1,4 +1,4 @@
-import { Component } from "../components/component";
+import { Component } from "../E&C";
 import PositionComponent from "./positionComponent";
 import AnimatedComponent from "./animatedComponent";
 import { playerBowAnimationInfo, playerSpearAnimationInfo } from "../PlayerCharacter";

@@ -1,8 +1,7 @@
-import { AnimatedObject, AnimationInfo, playerSM } from "./main";
+import { AnimatedObject, AnimationInfo, objects, playerSM } from "./main";
 import { resetGame } from "./main";
 import { Arrow } from "./projectiles";
-import { EquipmentItem } from "./inventory";
-import { canvas, context, allPressedKeys, timeStart, checkTime, sleep, objects, OFFSET, KEYS, LANE } from "./global";
+import { canvas, context, allPressedKeys, timeStart, checkTime, sleep, OFFSET, KEYS, LANE } from "./global";
 
 const ARROW: Record <string, number> = {
     WIDTH: 7.5,

@@ -1,7 +1,4 @@
-import { DragonEnemy } from "./dragon";
-import { Circles, Rects } from "./shapes";
-import { Fireball } from "./projectiles";
-import Entity from "./entity";
+import { Entity } from "./E&C";
 import PositionComponent from "./components/positionComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import MovementComponent from "./components/movementComponent";
@@ -42,9 +39,6 @@ export const LANE: Record <string, number> = {
 
 export let timeStart: number = Date.now();
 
-export type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
-export const objects: Array<RenderableObject> = [];
-
 export const entities: Array<Entity> = [];
 
 let simpleRect = new Entity("simple rect");
@@ -62,3 +56,10 @@ export function sleep(time: number) {
       currentDate = Date.now();
     } while (currentDate - date < time);
 }
+export function calculatePlayerStateHeight(player: any): number{
+    if (player.attacking == true){
+        return player.height/2;
+    }
+    return 0;
+}
+// Temporary solution. Will remove calculatePlayerStateHeight in the future

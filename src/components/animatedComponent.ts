@@ -1,6 +1,6 @@
 import { context } from "../global";
 import { AnimationInfo, SingleAnimationInfo } from "../main";
-import {Component} from "./component";
+import {Component} from "../E&C";
 import PositionComponent from "./positionComponent";
 
 export default class AnimatedComponent extends Component { 

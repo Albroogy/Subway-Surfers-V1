@@ -1,9 +1,6 @@
 import PositionComponent from "../components/positionComponent";
 import DrawCircleComponent from "../components/drawCircleComponent";
-import DrawRectComponent from "../components/drawRectComponent";
-import { Entity } from "../components/component";
-import { calculatePlayerStateHeight } from "../main";
-import { playerAnimated, PlayerCharacter } from "../PlayerCharacter";
+import { Entity } from "../E&C";
 
 
 export default class CollisionSystem {

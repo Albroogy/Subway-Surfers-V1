@@ -1,7 +1,5 @@
-import { PlayerCharacter } from "./playerCharacter";
-import { calculatePlayerStateHeight } from "./main";
-import {context} from "./global"
-
+import { PlayerCharacter, playerAnimated } from "./playerCharacter";
+import {calculatePlayerStateHeight, context} from "./global"
 export class Circles {
     public x: number;
     public y: number;
@@ -26,7 +24,7 @@ export class Circles {
         return (
             this.x - this.radius <= player.x + player.width/2 &&
             this.x + this.radius >= player.x - player.width/2 &&
-            this.y + this.radius >= player.y - calculatePlayerStateHeight()&&
+            this.y + this.radius >= player.y - calculatePlayerStateHeight(player)&&
             this.y - this.radius <= player.y + player.height/2
         )
     }
@@ -60,7 +58,7 @@ export class Rects{
         return (
             this.x - this.width/2 <= player.x + player.width/2 &&
             this.x + this.width/2 >= player.x - player.width/2 &&
-            this.y + this.height/2 >= player.y - calculatePlayerStateHeight()&&
+            this.y + this.height/2 >= player.y - calculatePlayerStateHeight(player)&&
             this.y - this.height/2 <= player.y + player.height/2
         )
     }
