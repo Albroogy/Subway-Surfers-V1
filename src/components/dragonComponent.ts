@@ -1,11 +1,11 @@
-import { Component } from "../E&C";
+import { Component, Entity } from "../E&C";
 import PositionComponent from "./positionComponent";
-import AnimatedComponent from "./animatedComponent";
 import { fallSpeed, objects, StateMachine } from "../main";
-import { DragonAnimationNames } from "../dragon";
+import { AnimatedComponent, DragonAnimationNames } from "./animatedComponent";
 import { playerAnimated } from "../PlayerCharacter";
-import { checkTime, timeStart } from "../global";
-import { Fireball } from "../projectiles";
+import { checkTime, context, timeStart } from "../global";
+import { ImageComponent } from "./imageComponent";
+import MovementComponent from "./movementComponent";
 
 export enum DragonStates {
     Flying = "flying",
@@ -44,11 +44,16 @@ export default class DragonComponent extends Component{
     }
 }
 
+const playerPositionComponent: PositionComponent | null = playerAnimated.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
+
 const onFlyingActivation = (currentObject: DragonComponent) => {
     currentObject.animated!.currentAnimation = currentObject.animated!.animationInfo.animations[DragonAnimationNames.Flying]
 }
 const onFlyingUpdate = (deltatime: number, currentObject: DragonComponent): string | undefined => {
-    if (playerAnimated.x == currentObject.position!.x && playerAnimated.y <= currentObject.position!.y + DRAGON.SIGHT && playerAnimated.y > currentObject.position!.y){
+    if (playerPositionComponent == null){
+        return;
+    }
+    if (playerPositionComponent.x == currentObject.position!.x && playerPositionComponent.y <= currentObject.position!.y + DRAGON.SIGHT && playerPositionComponent.y > currentObject.position!.y){
         return DragonStates.Firing;
     }
 }
@@ -57,15 +62,24 @@ const onFlyingDeactivation = () => {
 const onFiringActivation = (currentObject: DragonComponent) => {
     currentObject.animated!.currentAnimation = currentObject.animated!.animationInfo.animations[DragonAnimationNames.Flying];
     currentObject.speed = 0;
-    objects.push(
-        new Fireball(currentObject.position!.x, currentObject.position!.y, "../assets/images/fireball.png", DRAGON.WIDTH, DRAGON.HEIGHT, 250)
-    );
+    const fireball: Entity = new Entity("Fireball");
+    const FIREBALL_DIRECTION: number = 1;
+
+    fireball.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
+    fireball.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("fireball.png"));
+    fireball.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(150, FIREBALL_DIRECTION));
+
+    objects.push(fireball);
+
     var audio = new Audio('../assets/audio/dragon-roar.mp3');
     audio.play();
 }
 const onFiringUpdate = (deltatime: number, currentObject: DragonComponent): string | undefined => {
+    if (playerPositionComponent == null){
+        return;
+    }
     if (checkTime(1000, timeStart)){
-        if (playerAnimated.x != currentObject.position!.x && playerAnimated.y <= currentObject.position!.y + DRAGON.SIGHT && playerAnimated.y > currentObject.position!.y || checkTime(3000, timeStart)){
+        if (playerPositionComponent.x != currentObject.position!.x && playerPositionComponent.y <= currentObject.position!.y + DRAGON.SIGHT && playerPositionComponent.y > currentObject.position!.y || checkTime(3000, timeStart)){
             return DragonStates.Flying;
         }
     }

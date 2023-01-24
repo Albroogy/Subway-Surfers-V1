@@ -1,6 +1,6 @@
 import { Component } from "../E&C";
 import PositionComponent from "./positionComponent";
-import AnimatedComponent from "./animatedComponent";
+import {AnimatedComponent} from "./animatedComponent";
 import { playerBowAnimationInfo, playerSpearAnimationInfo } from "../PlayerCharacter";
 
 export default class PlayerComponent extends Component{ 

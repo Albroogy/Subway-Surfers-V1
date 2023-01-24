@@ -1,9 +1,15 @@
 import { context } from "../global";
-import { AnimationInfo, SingleAnimationInfo } from "../main";
 import {Component} from "../E&C";
 import PositionComponent from "./positionComponent";
 
-export default class AnimatedComponent extends Component { 
+
+export type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
+export class AnimationInfo {
+    public animationCount: number = 0;
+    public animations: Record<string, SingleAnimationInfo> = {};
+}
+
+export class AnimatedComponent extends Component { 
     public static COMPONENT_ID: string = "Animated";
     public spritesheet: HTMLImageElement;
     public animationInfo: AnimationInfo;
@@ -58,3 +64,19 @@ export default class AnimatedComponent extends Component {
         );
     }
 }
+
+// Dragon Animation Info
+export const DragonAnimationNames = {
+    Flying: "flying",
+}
+
+export const DragonAnimationInfo: AnimationInfo = {
+    animationCount: 4, 
+    animations: {
+        [DragonAnimationNames.Flying]: {
+            rowIndex: 0,
+            frameCount: 4,
+            framesPerSecond: 8
+        }
+    }
+};

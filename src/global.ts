@@ -1,7 +1,7 @@
-import { Entity } from "./E&C";
-import PositionComponent from "./components/positionComponent";
-import DrawRectComponent from "./components/drawRectComponent";
-import MovementComponent from "./components/movementComponent";
+// import { Entity } from "./E&C";
+// import PositionComponent from "./components/positionComponent";
+// import DrawRectComponent from "./components/drawRectComponent";
+// import MovementComponent from "./components/movementComponent";
 
 // Key Information
 export const allPressedKeys: Record<string, boolean> = {};
@@ -39,12 +39,12 @@ export const LANE: Record <string, number> = {
 
 export let timeStart: number = Date.now();
 
-export const entities: Array<Entity> = [];
+// export const entities: Array<Entity> = [];
 
-let simpleRect = new Entity("simple rect");
-simpleRect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
-simpleRect.addComponent(DrawRectComponent.COMPONENT_ID, new DrawRectComponent(context, "red"));
-simpleRect.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(5, 1));
+// let simpleRect = new Entity("simple rect");
+// simpleRect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
+// simpleRect.addComponent(DrawRectComponent.COMPONENT_ID, new DrawRectComponent(context, "red"));
+// simpleRect.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(5, 1));
 
 export function checkTime(stateLength: number, timeStart: number): boolean{
     return timeStart <= Date.now() - stateLength;

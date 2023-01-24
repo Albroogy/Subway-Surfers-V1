@@ -1,7 +1,13 @@
-import { AnimatedObject, AnimationInfo, objects, playerSM } from "./main";
+// import { AnimatedObject, AnimationInfo, objects, playerSM } from "./main";
+import { objects, playerSM } from "./main";
 import { resetGame } from "./main";
-import { Arrow } from "./projectiles";
 import { canvas, context, allPressedKeys, timeStart, checkTime, sleep, OFFSET, KEYS, LANE } from "./global";
+import { Entity } from "./E&C";
+import PositionComponent from "./components/positionComponent";
+import PlayerComponent from "./components/playerComponent";
+import { AnimatedComponent, AnimationInfo } from "./components/animatedComponent";
+import { ImageComponent } from "./components/imageComponent";
+import MovementComponent from "./components/movementComponent";
 
 const ARROW: Record <string, number> = {
     WIDTH: 7.5,
@@ -41,76 +47,6 @@ const CLICK_DELAY: number = 300; //This is in milliseconds
 
 let lastClick = Date.now();
 
-export class PlayerCharacter extends AnimatedObject{
-    public equippedItems: Record <string, string | null>;
-    public stats: Record <string, number>;
-    public weapon: string | null;
-    public weapons: Record <string, string>;
-    public directionChange: number;
-    public attacking: boolean;
-    public lane: number;
-    public state: string;
-    public PREPARE_SPEAR_FRAMES: number;
-    constructor(x: number, y: number,
-        spritesheetURL: string, animationInfo: AnimationInfo,
-        lane: number, state: string, width: number, height: number,
-        startingItems: Record <string, string | null>, startingStats: Record <string, number>, weapons: Record <string, string>){
-        super(x, y, width, height, spritesheetURL, animationInfo);
-        this.equippedItems = startingItems;
-        this.stats = startingStats;
-        this.weapon = null;
-        this.weapons = weapons;
-        this.directionChange = 0;
-        this.attacking = false;
-        this.lane = lane;
-        this.state = state;
-        this.PREPARE_SPEAR_FRAMES = 4;
-        this.playAnimation(AnimationNames.RunningBack);
-    }
-    roll(deltaTime: number){
-            this.x += this.stats.RollSpeed * deltaTime/1000 * this.directionChange;
-    }
-    statsUpdate(){
-        if (this.equippedItems.Armor != null){
-            this.stats.Lives = 2;
-        }
-        if (this.equippedItems.Boots != null){
-            this.stats.RollSpeed = 600;
-        }
-        if (this.equippedItems.Spear != null){
-            this.weapon = this.weapons.Spear;
-            this.animationInfo = playerSpearAnimationInfo;
-        }
-        if (this.equippedItems.Bow != null){
-            this.weapon = this.weapons.Bow;
-            this.animationInfo = playerBowAnimationInfo;
-        }
-        if (this.weapon != null){
-            this.spritesheet.src = this.weapon;
-        }
-    }
-    draw(): undefined{
-        if (this.currentAnimation == null) {
-            return;
-        }
-        // const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
-        const frameW = this.spritesheet.width / 13;
-        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
-        console.assert(frameW > 0);
-        console.assert(frameH > 0);
-        const frameSX = this.currentAnimationFrame * frameW;
-        const frameSY = this.currentAnimation.rowIndex * frameH;
-        console.assert(frameW >= 0);
-        console.assert(frameH >= 0);
-        context.drawImage(this.spritesheet,
-            frameSX, frameSY, frameW, frameH,
-            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
-        );
-    }
-    changeLane(){
-        this.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
-    }
-}
 // Player Animation Information
 export const AnimationNames = {
     RunningBack: "runningBack",
@@ -268,10 +204,14 @@ const onDuckingUpdate = () => {
 }
 const onDuckingDeactivation = () => {
     if (playerAnimated.weapon == playerAnimated.weapons.Bow){
-        objects.push(
-            new Arrow(playerAnimated.x, playerAnimated.y, "../assets/images/arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ARROW.SPEED)
-        );
-        console.log("arrow fired");
+        const arrow: Entity = new Entity("Fireball");
+        const ARROW_DIRECTION: number = -1;
+    
+        arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
+        arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("arrow.png"));
+        arrow.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(150, ARROW_DIRECTION));
+    
+        objects.push(arrow);
     }
     //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
     if (playerAnimated.attacking != false){
@@ -328,4 +268,8 @@ playerSM.addState(PlayerStates.Dying, onDyingActivation, onDyingUpdate, onDyingD
 
 
 // Player Animation
-export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
+// export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
+export const playerAnimated = new Entity("PlayerAnimated");
+playerAnimated.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
+playerAnimated.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weapons.Bow, playerBowAnimationInfo));
+playerAnimated.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, AnimationNames.RunningBack, StartingItems, StartingStats, weapons));

@@ -1,7 +1,7 @@
 import {Circles, Rects} from "./shapes";
 import {equippedInventory, itemsFound, equipStarterItems} from "./inventory";
 import { Arrow, Fireball } from "./projectiles";
-import {PlayerCharacter, PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
+import {PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, entities} from "./global";
 import DragonComponent from "./components/dragonComponent";
@@ -46,91 +46,8 @@ let gold: number = 0;
 export let fallSpeed: number = ORIGINAL_FALL_SPEED;
 let gameState: Object = GameStates.Playing;
 
-export type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
-export class AnimationInfo {
-    public animationCount: number = 0;
-    public animations: Record<string, SingleAnimationInfo> = {};
-}
 type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
 export const objects: Array<RenderableObject> = [];
-
-export class AnimatedObject {
-    public x: number;
-    public y: number;
-    public width: number;
-    public height: number;
-    public spritesheet: HTMLImageElement;
-    public animationInfo: AnimationInfo;
-    public currentAnimation: SingleAnimationInfo | null;
-    public currentAnimationFrame: number;
-    private timeSinceLastFrame: number;
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: AnimationInfo){
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.spritesheet = new Image();
-        this.spritesheet.src = spritesheetURL;
-        this.animationInfo = animationInfo;
-        this.currentAnimation = null;
-        this.currentAnimationFrame = 0;
-        this.timeSinceLastFrame = 0;
-    }
-    playAnimation(name: string) {
-        this.currentAnimation = this.animationInfo.animations[name];
-    }
-    animationUpdate(deltaTime: number): undefined{
-        if (this.currentAnimation == null) {
-            return;
-        }
-        const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond;
-        this.timeSinceLastFrame += deltaTime;
-        if (this.timeSinceLastFrame >= timeBetweenFrames) {
-            this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
-            this.timeSinceLastFrame = 0;
-        }
-    }
-    update(deltaTime: number) {
-        this.animationUpdate(deltaTime);
-    }
-    draw(): undefined{
-        if (this.currentAnimation == null) {
-            return;
-        }
-        // const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
-        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
-        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
-        console.assert(frameW > 0);
-        console.assert(frameH > 0);
-        const frameSX = this.currentAnimationFrame * frameW;
-        const frameSY = this.currentAnimation.rowIndex * frameH;
-        console.assert(frameSX >= 0);
-        console.assert(frameSY >= 0);
-        context.drawImage(this.spritesheet,
-            frameSX, frameSY, frameW, frameH,
-            this.x - this.width / 2, this.y - this.height / 2, this.width, this.height
-        );
-    }
-}
-class Necromancer extends AnimatedObject{
-    constructor(x: number, y: number, width: number, height: number, spritesheetURL: string, animationInfo: AnimationInfo){
-        super(x, y, width, height, spritesheetURL, animationInfo);
-        this.currentAnimation = this.animationInfo.animations[necromancerAnimationNames.Levitating];
-    }
-}
-const necromancerAnimationNames = {
-    Levitating: "levitating"
-}
-const necromancerInfo: AnimationInfo = {
-    animationCount: 1, 
-    animations: {
-        [necromancerAnimationNames.Levitating]: {
-            rowIndex: 0,
-            frameCount: 8,
-            framesPerSecond: 8
-        },
-    }
-};
 
 ///State Machine Code
 class State {
