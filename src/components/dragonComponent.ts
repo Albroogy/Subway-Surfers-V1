@@ -2,11 +2,11 @@ import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import { fallSpeed, objects} from "../main";
 import { AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { player } from "../playerCharacter";
 import { checkTime, context, timeStart } from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
+import { player } from "./playerComponent";
 
 export enum DragonState {
     Flying = "flying",

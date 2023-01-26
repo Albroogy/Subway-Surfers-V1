@@ -1,5 +1,5 @@
 import {equippedInventory, itemsFound, equipStarterItems} from "./components/inventoryComponent";
-import {player as playerCharacter, StartingStats, player} from "./playerCharacter";
+import {player as playerCharacter, StartingStats, player} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE } from "./global";
 import PlayerComponent from "./components/playerComponent";
