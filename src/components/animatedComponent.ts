@@ -64,19 +64,3 @@ export class AnimatedComponent extends Component {
         );
     }
 }
-
-// Dragon Animation Info
-export const DragonAnimationNames = {
-    Flying: "flying",
-}
-
-export const DragonAnimationInfo: AnimationInfo = {
-    animationCount: 4, 
-    animations: {
-        [DragonAnimationNames.Flying]: {
-            rowIndex: 0,
-            frameCount: 4,
-            framesPerSecond: 8
-        }
-    }
-};

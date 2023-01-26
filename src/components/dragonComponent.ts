@@ -1,13 +1,14 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
-import { fallSpeed, objects, StateMachine } from "../main";
-import { AnimatedComponent, DragonAnimationNames } from "./animatedComponent";
+import { fallSpeed, objects} from "../main";
+import { AnimatedComponent, AnimationInfo} from "./animatedComponent";
 import { player } from "../playerCharacter";
 import { checkTime, context, timeStart } from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
+import StateMachineComponent from "./stateMachineComponent";
 
-export enum DragonStates {
+export enum DragonState {
     Flying = "flying",
     Firing = "firing"
 }
@@ -20,48 +21,40 @@ const DRAGON: Record <string, number> = {
 }
 
 export default class DragonComponent extends Component{ 
-    public speed: number;
-    private stateMachine: StateMachine;
-    public animated: AnimatedComponent | null;
-    public position: PositionComponent | null;
-    constructor(speed: number){
+    constructor(){
         super();
-        this.speed = speed;
-        this.stateMachine = this.generateDragonSM();
-        this.stateMachine.activeState = this.stateMachine.states[DragonStates.Flying];
-        this.stateMachine.activeState.onActivation(this);
-        this.animated = this._entity!.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID);
-        this.position = this._entity!.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
+        this.addDragonStates();
     }
-    generateDragonSM = (): StateMachine => {
-        const dragonSM: StateMachine = new StateMachine();
-        dragonSM.addState(DragonStates.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
-        dragonSM.addState(DragonStates.Firing, onFiringActivation, onFiringUpdate, onFiringDeactivation)
-        return dragonSM;
-    }
-    update(deltaTime: number): void{
-        this.stateMachine.update(deltaTime, this);
+    addDragonStates = (): void => {
+        const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<DragonState>>(StateMachineComponent.COMPONENT_ID)!;
+        stateMachineComponent.stateMachine.addState(DragonState.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
+        stateMachineComponent.stateMachine.addState(DragonState.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
+        // stateMachineComponent.initialState = DragonState.Flying;
     }
 }
 
 const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
-const onFlyingActivation = (currentObject: DragonComponent) => {
-    currentObject.animated!.currentAnimation = currentObject.animated!.animationInfo.animations[DragonAnimationNames.Flying]
+const onFlyingActivation = (currentObject: Entity) => {
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying]
 }
-const onFlyingUpdate = (deltatime: number, currentObject: DragonComponent): string | undefined => {
+const onFlyingUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
+    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
-    if (playerPositionComponent.x == currentObject.position!.x && playerPositionComponent.y <= currentObject.position!.y + DRAGON.SIGHT && playerPositionComponent.y > currentObject.position!.y){
-        return DragonStates.Firing;
+    else if (playerPositionComponent.x == positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y){
+        return DragonState.Firing;
     }
 }
 const onFlyingDeactivation = () => {
 }
-const onFiringActivation = (currentObject: DragonComponent) => {
-    currentObject.animated!.currentAnimation = currentObject.animated!.animationInfo.animations[DragonAnimationNames.Flying];
-    currentObject.speed = 0;
+const onFiringActivation = (currentObject: Entity) => {
+    const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!;
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying];
+    movementComponent.speed = 0;
     const fireball: Entity = new Entity("Fireball");
     const FIREBALL_DIRECTION: number = 1;
 
@@ -74,16 +67,35 @@ const onFiringActivation = (currentObject: DragonComponent) => {
     var audio = new Audio('../assets/audio/dragon-roar.mp3');
     audio.play();
 }
-const onFiringUpdate = (deltatime: number, currentObject: DragonComponent): string | undefined => {
+const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
+    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
-    if (checkTime(1000, timeStart)){
-        if (playerPositionComponent.x != currentObject.position!.x && playerPositionComponent.y <= currentObject.position!.y + DRAGON.SIGHT && playerPositionComponent.y > currentObject.position!.y || checkTime(3000, timeStart)){
-            return DragonStates.Flying;
+    else if (checkTime(1000, timeStart)){
+        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(3000, timeStart)){
+            return DragonState.Flying;
         }
     }
 }
-const onFiringDeactivation = (currentObject: DragonComponent) => {
-    currentObject.speed = fallSpeed;
+const onFiringDeactivation = (currentObject: Entity) => {
+    const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!;
+    movementComponent.speed = fallSpeed;
 }
+
+
+// Dragon Animation Info
+export const DragonAnimationNames = {
+    Flying: "flying",
+}
+
+export const DragonAnimationInfo: AnimationInfo = {
+    animationCount: 4, 
+    animations: {
+        [DragonAnimationNames.Flying]: {
+            rowIndex: 0,
+            frameCount: 4,
+            framesPerSecond: 8
+        }
+    }
+};

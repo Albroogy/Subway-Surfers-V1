@@ -1,5 +1,5 @@
-import { context } from "../global";
-import { Component } from "../entityComponent";
+import { canvas, context } from "../global";
+import { Component, Entity } from "../entityComponent";
 import PlayerComponent from "./playerComponent";
 
 const ITEM = {
@@ -165,3 +165,17 @@ const spear = new InventoryItem(ItemList.Spear.Width,ItemList.Spear.Height,ItemL
 const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bow.URL, ItemList.Bow.Image, ItemList.Bow.Name);
 const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL, ItemList.Armor.Image, ItemList.Armor.Name);
 const boots = new InventoryItem(ItemList.Boots.Width,ItemList.Boots.Height,ItemList.Boots.URL, ItemList.Boots.Image, ItemList.Boots.Name);
+
+export const equippedInventory = new Entity;
+equippedInventory.addComponent(InventoryComponent.COMPONENT_ID, new InventoryComponent(5, 3, 50, 200));
+export const itemsFound = new Entity;
+itemsFound.addComponent(InventoryComponent.COMPONENT_ID, new InventoryComponent(10, 5, canvas.width/2, 0));
+
+export function equipStarterItems(currentObject: Entity){
+    const inventoryComponent: InventoryComponent = currentObject.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
+    const playerComponent: PlayerComponent = currentObject.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+    inventoryComponent.placeItem(bow, 1, 0, playerComponent);
+    inventoryComponent.placeItem(armor, 2, 0, playerComponent);
+    inventoryComponent.placeItem(boots, 0, 0, playerComponent);
+}
+

@@ -1,8 +1,3 @@
-// import { Entity } from "./E&C";
-// import PositionComponent from "./components/positionComponent";
-// import DrawRectComponent from "./components/drawRectComponent";
-// import MovementComponent from "./components/movementComponent";
-
 // Key Information
 export const allPressedKeys: Record<string, boolean> = {};
 window.addEventListener("keydown", function (event) {

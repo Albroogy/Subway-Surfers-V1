@@ -1,9 +1,7 @@
 import {equippedInventory, itemsFound, equipStarterItems} from "./components/inventoryComponent";
-import { Arrow, Fireball } from "./projectiles";
-import {PlayerState as PlayerState, player as playerCharacter, StartingStats} from "./playerCharacter";
-import { DragonEnemy, DragonAnimationInfo } from "./dragon";
+import {player as playerCharacter, StartingStats, player} from "./playerCharacter";
+import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE } from "./global";
-import DragonComponent from "./components/dragonComponent";
 import PlayerComponent from "./components/playerComponent";
 import { StateMachine } from "./components/stateMachineComponent";
 import { Entity } from "./entityComponent";
@@ -36,7 +34,6 @@ const spawnType: Record <string, string> = {
 }
 
 const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping,"Invincible"];
-const stillObjects: Array<Necromancer> = [];
 let entities: Array<Entity> = [];
 
 // Changeble variables
@@ -49,8 +46,7 @@ let gold: number = 0;
 export let fallSpeed: number = ORIGINAL_FALL_SPEED;
 let gameState: Object = GameState.Playing;
 
-type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
-export const objects: Array<RenderableObject> = [];
+export const objects: Array<Entity> = [];
 let playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
 
@@ -84,9 +80,6 @@ const onInventoryMenuActivation = () => {
         // }
     }
     console.log(GameState.InventoryMenu);
-    stillObjects.push(
-        new Necromancer(200, 200, 300, 300, "../assets/images/Necromancer.png", necromancerInfo)
-    )
 }
 const onInventoryMenuUpdate = (): GameState | undefined => {
     if (allPressedKeys[KEYS.Escape]){
@@ -146,7 +139,6 @@ function runFrame() {
     if (gameState == GameState.Playing){
         update(deltaTime, gameSpeed);        
     }
-    stillObjectsLoop(deltaTime);
     // draw the world
     draw();
     // be called one more time
@@ -279,7 +271,7 @@ export function resetGame(){
     playerComponent.changeLane();
     playerComponent.stats = StartingStats;
     equippedInventory.resetInventory();
-    equipStarterItems();
+    equipStarterItems(player);
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_FALL_SPEED;
     if (score > highScore){
@@ -340,11 +332,5 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             objects.splice(i,1);
             continue;
         }
-    }
-}
-function stillObjectsLoop(deltaTime: number){
-    for (let object of stillObjects){
-        object.draw();
-        object.animationUpdate(deltaTime);
     }
 }
