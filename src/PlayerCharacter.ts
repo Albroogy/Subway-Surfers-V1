@@ -129,21 +129,31 @@ export const playerBowAnimationInfo: AnimationInfo = {
 
 // Figure out how to combine these two animation info dictionaries
 
+// Player Animation
+// export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
+export const playerAnimated = new Entity("PlayerAnimated");
+playerAnimated.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
+playerAnimated.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weapons.Bow, playerBowAnimationInfo));
+playerAnimated.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, AnimationNames.RunningBack, StartingItems, StartingStats, weapons));
+
 // Player States
+const player = playerAnimated.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID);
+const animated = playerAnimated.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID);
+const position =  playerAnimated.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
 const onRunningActivation = () => {
-    playerAnimated.playAnimation(AnimationNames.RunningBack);
-    playerAnimated.state = PlayerStates.Running;
-    playerAnimated.currentAnimationFrame = 0;
+    animated!.playAnimation(AnimationNames.RunningBack);
+    player!.state = PlayerStates.Running;
+    animated!.currentAnimationFrame = 0;
     console.log("running")
 };
 const onRunningUpdate = (): string | undefined => {
-    playerAnimated.directionChange = ~~(allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) -
+    player!.directionChange = ~~(allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) -
         ~~(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]);
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        if (lastClick <= Date.now() - CLICK_DELAY && playerAnimated.lane + playerAnimated.directionChange <= LANE.COUNT && playerAnimated.lane + playerAnimated.directionChange >= 1){
-            if (playerAnimated.directionChange != 0){
-                playerAnimated.lane += playerAnimated.directionChange;
+        if (lastClick <= Date.now() - CLICK_DELAY && player!.lane + player!.directionChange <= LANE.COUNT && player!.lane + player!.directionChange >= 1){
+            if (player!.directionChange != 0){
+                player!.lane += player!.directionChange;
                 lastClick = Date.now();
                 return PlayerStates.Roll;
             }
@@ -156,7 +166,7 @@ const onRunningUpdate = (): string | undefined => {
     else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, timeStart)) {
         return PlayerStates.Jumping;
     }
-    if (playerAnimated.stats.Lives <= 0){
+    if (player!.stats.Lives <= 0){
         return PlayerStates.Dying;
         // Game mechanic: As long as you keep on moving, you will never die, no matter your lives count.
     }
@@ -165,12 +175,12 @@ const onRunningDeactivation = () => {
 };
 
 const onJumpingActivation = () => {
-    playerAnimated.playAnimation(AnimationNames.Jumping);
-    playerAnimated.state = PlayerStates.Jumping;
-    playerAnimated.currentAnimationFrame = 0;
+    animated!.playAnimation(AnimationNames.Jumping);
+    player!.state = PlayerStates.Jumping;
+    animated!.currentAnimationFrame = 0;
 }
 const onJumpingUpdate = (): string | undefined => {
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation!.frameCount - OFFSET){
+    if (animated!.currentAnimationFrame >= animated!.currentAnimation!.frameCount - OFFSET){
         return PlayerStates.Running;
     }
 }
@@ -178,18 +188,18 @@ const onJumpingDeactivation = () => {
 }
 
 const onDuckingActivation = () => {
-    playerAnimated.playAnimation(AnimationNames.Ducking);
-    playerAnimated.state = PlayerStates.Ducking;
-    playerAnimated.currentAnimationFrame = 0;
-    if (playerAnimated.weapon == playerAnimated.weapons.Bow){
+    animated!.playAnimation(AnimationNames.Ducking);
+    player!.state = PlayerStates.Ducking;
+    animated!.currentAnimationFrame = 0;
+    if (player!.weapon == player!.weapons.Bow){
         var audio = new Audio('../assets/audio/arrow-release.mp3');
         audio.play();
     }
 }
 const onDuckingUpdate = () => {
-    if (playerAnimated.weapon == playerAnimated.weapons.Spear){
-        if (playerAnimated.currentAnimationFrame >= playerAnimated.PREPARE_SPEAR_FRAMES - OFFSET){
-            playerAnimated.attacking = true;
+    if (player!.weapon == player!.weapons.Spear){
+        if (animated!.currentAnimationFrame >= player!.PREPARE_SPEAR_FRAMES - OFFSET){
+            player!.attacking = true;
         }
     }
     // if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount){
@@ -198,12 +208,12 @@ const onDuckingUpdate = () => {
     //     );
     // }
     // Why does this code not work?
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation!.frameCount - OFFSET){
+    if (animated!.currentAnimationFrame >= animated!.currentAnimation!.frameCount - OFFSET){
         return PlayerStates.Running;
     }
 }
 const onDuckingDeactivation = () => {
-    if (playerAnimated.weapon == playerAnimated.weapons.Bow){
+    if (player!.weapon == player!.weapons.Bow){
         const arrow: Entity = new Entity("Fireball");
         const ARROW_DIRECTION: number = -1;
     
@@ -214,44 +224,44 @@ const onDuckingDeactivation = () => {
         objects.push(arrow);
     }
     //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
-    if (playerAnimated.attacking != false){
-        playerAnimated.attacking = false;
+    if (player!.attacking != false){
+        player!.attacking = false;
     }
 }
 
 const onRollActivation = () => {
-    if (playerAnimated.directionChange >= 1){
-        playerAnimated.playAnimation(AnimationNames.RollingRight);  
+    if (player!.directionChange >= 1){
+        animated!.playAnimation(AnimationNames.RollingRight);  
     }
     else{
-        playerAnimated.playAnimation(AnimationNames.RollingLeft);  
+        animated!.playAnimation(AnimationNames.RollingLeft);  
     }
-    playerAnimated.currentAnimationFrame = 0;
-    playerAnimated.state = PlayerStates.Roll;
+    animated!.currentAnimationFrame = 0;
+    player!.state = PlayerStates.Roll;
 }
 const onRollUpdate = (deltaTime: number): string | undefined => {
-    if (playerAnimated.directionChange >= 1){
-        if (playerAnimated.x > playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
-            playerAnimated.x = playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2;
+    if (player!.directionChange >= 1){
+        if (position!.x > player!.lane * LANE.WIDTH - LANE.WIDTH/2){
+            position!.x = player!.lane * LANE.WIDTH - LANE.WIDTH/2;
             return PlayerStates.Running;
         }
     }
-    else if (playerAnimated.directionChange <= -1){
-        if (playerAnimated.x < playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2){
-            playerAnimated.x = playerAnimated.lane * LANE.WIDTH - LANE.WIDTH/2;
+    else if (player!.directionChange <= -1){
+        if (position!.x < player!.lane * LANE.WIDTH - LANE.WIDTH/2){
+            position!.x = player!.lane * LANE.WIDTH - LANE.WIDTH/2;
             return PlayerStates.Running;
         }
     }
-    playerAnimated.roll(deltaTime);
+    player!.roll(deltaTime);
 }
 const onRollDeactivation = () => {
 }
 const onDyingActivation = () => {
-    playerAnimated.playAnimation(AnimationNames.Dying);
-    playerAnimated.currentAnimationFrame = 0;
+    animated!.playAnimation(AnimationNames.Dying);
+    animated!.currentAnimationFrame = 0;
 }
 const onDyingUpdate = (): string | undefined => {
-    if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation!.frameCount - OFFSET){
+    if (animated!.currentAnimationFrame >= animated!.currentAnimation!.frameCount - OFFSET){
         sleep(1000);
         return PlayerStates.Running; 
     }
@@ -267,9 +277,3 @@ playerSM.addState(PlayerStates.Roll, onRollActivation, onRollUpdate, onRollDeact
 playerSM.addState(PlayerStates.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
 
 
-// Player Animation
-// export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerStates.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
-export const playerAnimated = new Entity("PlayerAnimated");
-playerAnimated.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
-playerAnimated.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weapons.Bow, playerBowAnimationInfo));
-playerAnimated.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, AnimationNames.RunningBack, StartingItems, StartingStats, weapons));
