@@ -28,7 +28,7 @@ export default class DragonComponent extends Component{
     addDragonStates = (): void => {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<DragonState>>(StateMachineComponent.COMPONENT_ID)!;
         stateMachineComponent.stateMachine.addState(DragonState.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
-        stateMachineComponent.stateMachine.addState(DragonState.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
+        stateMachineComponent.stateMachine.addState(DragonState.Firing, onFiringActivation, onFiringUpdate, onFiringDeactivation);
         // stateMachineComponent.initialState = DragonState.Flying;
     }
 }
@@ -53,14 +53,23 @@ const onFlyingDeactivation = () => {
 const onFiringActivation = (currentObject: Entity) => {
     const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!;
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying];
     movementComponent.speed = 0;
-    const fireball: Entity = new Entity("Fireball");
-    const FIREBALL_DIRECTION: number = 1;
 
-    fireball.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
-    fireball.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("fireball.png"));
-    fireball.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(150, FIREBALL_DIRECTION));
+    const fireball: Entity = new Entity("Fireball");
+
+    const FIREBALL: Record <string, number | string> = {
+        WIDTH: 50,
+        HEIGHT: 50,
+        SPEED: 150,
+        DIRECTION: 1,
+        URL: "fireball.png"
+    }
+
+    fireball.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, FIREBALL.WIDTH as number, FIREBALL.HEIGHT as number, 0));
+    fireball.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(FIREBALL.URL as string));
+    fireball.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(FIREBALL.SPEED as number, FIREBALL.DIRECTION as number));
 
     objects.push(fireball);
 

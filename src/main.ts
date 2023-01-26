@@ -268,7 +268,7 @@ function checkSpawn(){
 export function resetGame(){
     objects.splice(0);
     playerComponent.lane = 2;
-    playerComponent.changeLane();
+    playerComponent.setLane();
     playerComponent.stats = StartingStats;
     equippedInventory.resetInventory();
     equipStarterItems(player);

@@ -1,7 +1,7 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { allPressedKeys, checkTime, KEYS, LANE, OFFSET, sleep, timeStart } from "../global";
+import { allPressedKeys, canvas, checkTime, KEYS, LANE, OFFSET, sleep, timeStart } from "../global";
 import { objects, resetGame } from "../main";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
@@ -47,6 +47,7 @@ export default class PlayerComponent extends Component{
         this.lane = lane;
         this.state = state;
         this.PREPARE_SPEAR_FRAMES = 4;
+        this.setLane();
     }
     
     roll(deltaTime: number){
@@ -79,23 +80,13 @@ export default class PlayerComponent extends Component{
             animated!.spritesheet.src = this.weapon;
         }
     }
-    changeLane(): void {
+    setLane(): void {
         console.assert(this._entity != null);
         const positionComponent = this._entity!.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
         positionComponent.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
     }
 }
-
-const ARROW: Record <string, number> = {
-    WIDTH: 7.5,
-    HEIGHT: 45,
-    SPEED: 150
-}
 // Player Information
-const PLAYER: Record <string, number> = {
-    WIDTH: 100,
-    HEIGHT: 100,
-}
 const weapons: Record <string, string> = {
     Spear: "../assets/images/player.png",
     Bow: "../assets/images/playerBow.png"
@@ -192,7 +183,13 @@ export const playerBowAnimationInfo: AnimationInfo = {
 // Player Animation
 // export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerState.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
 export const player = new Entity("Player");
-player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
+
+const PLAYER: Record <string, number> = {
+    WIDTH: 100,
+    HEIGHT: 100,
+}
+
+player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.width/3, PLAYER.WIDTH, PLAYER.HEIGHT, 0));
 player.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weapons.Bow, playerBowAnimationInfo));
 player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingItems, StartingStats, weapons));
 player.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent<PlayerState>(PlayerState.Running));
@@ -278,10 +275,18 @@ const onDuckingDeactivation = () => {
     if (playerComponent!.weapon == playerComponent!.weapons.Bow){
         const arrow: Entity = new Entity("Fireball");
         const ARROW_DIRECTION: number = -1;
+
+        const ARROW: Record <string, number | string> = {
+            WIDTH: 7.5,
+            HEIGHT: 45,
+            SPEED: 150,
+            DIRECTION: -1,
+            URL: "arrow.png"
+        }
     
-        arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent());
-        arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("arrow.png"));
-        arrow.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(150, ARROW_DIRECTION));
+        arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent!.x, positionComponent!.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0));
+        arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARROW.URL as string));
+        arrow.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(ARROW.SPEED as number, ARROW.DIRECTION as number));
     
         objects.push(arrow);
     }
