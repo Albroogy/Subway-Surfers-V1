@@ -1,4 +1,4 @@
-import { Component } from "../E&C";
+import { Component } from "../entityComponent";
 
 export default class PositionComponent extends Component {
     public static COMPONENT_ID: string = "Position";

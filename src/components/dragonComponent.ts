@@ -1,8 +1,8 @@
-import { Component, Entity } from "../E&C";
+import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import { fallSpeed, objects, StateMachine } from "../main";
 import { AnimatedComponent, DragonAnimationNames } from "./animatedComponent";
-import { playerAnimated } from "../PlayerCharacter";
+import { player } from "../playerCharacter";
 import { checkTime, context, timeStart } from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
@@ -44,7 +44,7 @@ export default class DragonComponent extends Component{
     }
 }
 
-const playerPositionComponent: PositionComponent | null = playerAnimated.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
+const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
 const onFlyingActivation = (currentObject: DragonComponent) => {
     currentObject.animated!.currentAnimation = currentObject.animated!.animationInfo.animations[DragonAnimationNames.Flying]

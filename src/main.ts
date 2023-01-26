@@ -1,17 +1,19 @@
-import {Circles, Rects} from "./shapes";
-import {equippedInventory, itemsFound, equipStarterItems} from "./inventory";
+import {equippedInventory, itemsFound, equipStarterItems} from "./components/inventoryComponent";
 import { Arrow, Fireball } from "./projectiles";
-import {PlayerStates, playerAnimated, StartingStats} from "./playerCharacter";
+import {PlayerState as PlayerState, player as playerCharacter, StartingStats} from "./playerCharacter";
 import { DragonEnemy, DragonAnimationInfo } from "./dragon";
-import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, entities} from "./global";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE } from "./global";
 import DragonComponent from "./components/dragonComponent";
+import PlayerComponent from "./components/playerComponent";
+import { StateMachine } from "./components/stateMachineComponent";
+import { Entity } from "./entityComponent";
 
 // ORIGINAL_VALUES
 const ORIGINAL_FALL_SPEED: number = 150;
 const ORIGINAL_SPAWN_DELAY: number = 1000;
 const backgroundMusic = new Audio("track1");
 
-enum GameStates {
+enum GameState {
     Playing = "playing",
     InventoryMenu = "inventoryMenu"
 }
@@ -33,8 +35,9 @@ const spawnType: Record <string, string> = {
     generateRect: "generateRect"
 }
 
-const obstacleType: Array <string> = [PlayerStates.Ducking, PlayerStates.Jumping,"Invincible"];
+const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping,"Invincible"];
 const stillObjects: Array<Necromancer> = [];
+let entities: Array<Entity> = [];
 
 // Changeble variables
 let lastTime: number = Date.now();
@@ -44,66 +47,29 @@ let score: number = 0;
 let highScore: number = 0;
 let gold: number = 0;
 export let fallSpeed: number = ORIGINAL_FALL_SPEED;
-let gameState: Object = GameStates.Playing;
+let gameState: Object = GameState.Playing;
 
 type RenderableObject = DragonEnemy | Circles | Rects | Fireball;
 export const objects: Array<RenderableObject> = [];
+let playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
-///State Machine Code
-class State {
-    public onActivation: Function;
-    public update: Function;
-    public onDeactivation: Function;
-    constructor(onActivation: Function, update: Function, onDeactivation: Function) {
-        this.onActivation = onActivation;
-        this.update = update;
-        this.onDeactivation = onDeactivation;
-    }
-}
-// When do we begin updating/executing the state machine? Which array do we keep it in?
-// What's the starting state? How do we know where to begin?
-export class StateMachine {
-    public states: Record <string, State>;
-    public activeState: null | State;
-    constructor() {
-        this.states = {};
-        this.activeState = null;
-    }
-    addState(stateName: string, onActivation: Function, update: Function, onDeactivation: Function) {
-        this.states[stateName] = new State(onActivation, update, onDeactivation);
-    }
-    update(deltaTime: number, currentObject: PlayerCharacter | DragonComponent | DragonEnemy) {
-        if (this.activeState){
-            const nextState: string = this.activeState.update(deltaTime, currentObject);
-            // console.log(nextState)
-            if (nextState){
-                this.activeState.onDeactivation(currentObject);
-                this.activeState = this.states[nextState];
-                this.activeState.onActivation(currentObject);
-            }
-        }
-    }
-}
+
 // Creating the state machines
-export const playerSM = new StateMachine();
-const gameSM = new StateMachine();
-const backgroundMusicSM = new StateMachine();
 
 //Adding the states for gameSM
-
 const onPlayingActivation = () => {
-    gameState = GameStates.Playing;
-    console.log(GameStates.Playing);
+    gameState = GameState.Playing;
+    console.log(GameState.Playing);
 }
-const onPlayingUpdate = (): string | undefined => {
+const onPlayingUpdate = (): GameState | undefined => {
     if (allPressedKeys[KEYS.SpaceBar]){
-        return GameStates.InventoryMenu;
+        return GameState.InventoryMenu;
     }
 }
 const onPlayingDeactivation = () => {
 }
 const onInventoryMenuActivation = () => {
-    gameState = GameStates.InventoryMenu;
+    gameState = GameState.InventoryMenu;
     // EventListener to see if mouse clicked
     document.addEventListener('click', mouseClicked);
     let mouseX = null;
@@ -117,14 +83,14 @@ const onInventoryMenuActivation = () => {
             
         // }
     }
-    console.log(GameStates.InventoryMenu);
+    console.log(GameState.InventoryMenu);
     stillObjects.push(
         new Necromancer(200, 200, 300, 300, "../assets/images/Necromancer.png", necromancerInfo)
     )
 }
-const onInventoryMenuUpdate = (): string | undefined => {
+const onInventoryMenuUpdate = (): GameState | undefined => {
     if (allPressedKeys[KEYS.Escape]){
-        return GameStates.Playing;
+        return GameState.Playing;
     }
 }
 const onInventoryMenuDeactivation = () => {
@@ -132,28 +98,14 @@ const onInventoryMenuDeactivation = () => {
     // mouseClicked is not defined
 }
 
-//Adding the states for backgroundMusicSM
-
-const onTrack1Activation = () => {
-    backgroundMusic.play();
-}
-const onTrack1Update = ()=> {
-    backgroundMusic.currentTime
-}
-const onTrack1Deactivation = () => {
-}
-
 // Setting up state machine
-
-gameSM.addState(GameStates.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
-gameSM.addState(GameStates.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
+const gameSM = new StateMachine<GameState>();
+gameSM.addState(GameState.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
+gameSM.addState(GameState.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
 
 // Activating state machines
-playerSM.activeState = playerSM.states[PlayerStates.Running];
-playerSM.activeState.onActivation();
-
-gameSM.activeState = gameSM.states[GameStates.Playing];
-gameSM.activeState.onActivation();
+gameSM.activeState = gameSM.states[GameState.Playing];
+gameSM.activeState.onActivation(null as unknown as Entity);
 
 // Next steps
 // Done = /
@@ -184,14 +136,14 @@ function runFrame() {
     lastTime = currentTime;
     let gameSpeed: number = 1;
 
-    if (playerAnimated.state != PlayerStates.Running || allPressedKeys[KEYS.E]){
+    if (playerComponent.state != PlayerState.Running || allPressedKeys[KEYS.E]){
         gameSpeed = 1;
     }
     else{
         gameSpeed = 0.5;
     }
     // update state
-    if (gameState == GameStates.Playing){
+    if (gameState == GameState.Playing){
         update(deltaTime, gameSpeed);        
     }
     stillObjectsLoop(deltaTime);
@@ -199,7 +151,7 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
-    gameSM.update(deltaTime, playerAnimated);
+    gameSM.update(deltaTime, playerCharacter);
 }
 
 function update(deltaTime: number, gameSpeed: number){
@@ -216,12 +168,11 @@ function update(deltaTime: number, gameSpeed: number){
 
     checkSpawn();
     objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
-    playerAnimated.update(deltaTime);
+    playerCharacter.update(deltaTime);
     spawnDelay -= SPAWN_INCREMENT;
     fallSpeed += FALL_INCREMENT;
     scoreIncreaseSpeed += SCORE_INCREMENT;
     console.log(`This is the score increase speed: ${scoreIncreaseSpeed}`);
-    playerSM.update(deltaTime, playerAnimated);
 }
 
 
@@ -236,7 +187,7 @@ function draw() {
 
     context.clearRect(0, 0, canvas.width, canvas.height);
     
-    if (gameState != GameStates.InventoryMenu){
+    if (gameState != GameState.InventoryMenu){
         for (let object of objects){
             object.draw();
         }
@@ -266,16 +217,15 @@ function draw() {
         context.fillText(`HIGH SCORE_LOCATION: ${highScore}`, HIGH_SCORE_LOCATION.x, HIGH_SCORE_LOCATION.y);
         context.fillText(`GOLD_TEXT_LOCATION: ${gold}`, GOLD_TEXT_LOCATION.x, GOLD_TEXT_LOCATION.y);
         context.font = "20px Arial";
-        if (playerAnimated.stats.Lives > 0){
+        if (playerComponent.stats.Lives > 0){
             context.font = "20px Arial";
-            context.fillText(`LIVES_TEXT_LOCATION: ${playerAnimated.stats.Lives}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
+            context.fillText(`LIVES_TEXT_LOCATION: ${playerComponent.stats.Lives}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
         else{
             context.fillStyle = "red";
             context.font = "20px Arial";
             context.fillText("CERTAIN DEATH (MOVE TO STAY ALIVE)", LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
-        playerAnimated.draw();
     }
     else{
         equippedInventory.draw();
@@ -325,9 +275,9 @@ function checkSpawn(){
 }
 export function resetGame(){
     objects.splice(0);
-    playerAnimated.lane = 2;
-    playerAnimated.changeLane();
-    playerAnimated.stats = StartingStats;
+    playerComponent.lane = 2;
+    playerComponent.changeLane();
+    playerComponent.stats = StartingStats;
     equippedInventory.resetInventory();
     equipStarterItems();
     spawnDelay = ORIGINAL_SPAWN_DELAY;
@@ -358,7 +308,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             continue;
         }
         if (objects[i].constructor == Circles){
-            if (objects[i].isColliding(playerAnimated)){
+            if (objects[i].isColliding(playerCharacter)){
                 const COIN_VALUE: number = 300;
                 score += COIN_VALUE;
                 gold += 1;
@@ -383,9 +333,9 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 }
             }
         }
-        else if (objects[i].isColliding(playerAnimated)){
-            if (playerAnimated.attacking == false || objects[i].constructor == Fireball){
-                playerAnimated.stats.Lives -= 1;
+        else if (objects[i].isColliding(playerCharacter)){
+            if (!playerComponent.attacking || objects[i].constructor == Fireball){
+                playerComponent.stats.Lives -= 1;
             }
             objects.splice(i,1);
             continue;

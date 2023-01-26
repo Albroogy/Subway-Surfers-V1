@@ -1,4 +1,4 @@
-import { Component } from "../E&C";
+import { Component } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 
 export default class MovementComponent extends Component {    

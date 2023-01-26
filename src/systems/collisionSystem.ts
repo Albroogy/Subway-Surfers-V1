@@ -1,6 +1,6 @@
 import PositionComponent from "../components/positionComponent";
 import DrawCircleComponent from "../components/drawCircleComponent";
-import { Entity } from "../E&C";
+import { Entity } from "../entityComponent";
 
 
 export default class CollisionSystem {

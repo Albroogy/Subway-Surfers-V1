@@ -1,7 +1,26 @@
-import { Component } from "../E&C";
+import { Component } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent} from "./animatedComponent";
-import { playerBowAnimationInfo, playerSpearAnimationInfo } from "../PlayerCharacter";
+import { playerBowAnimationInfo, playerSpearAnimationInfo } from "../playerCharacter";
+import { LANE } from "../global";
+
+
+export enum PlayerState {
+    Running = "running", // Also, states are continuous so their names should reflect that - you don't run or jump for a single frame, that's a continuous action over many frames
+    Jumping = "jumping",
+    Ducking = "ducking",
+    Roll = "roll",
+    Dying = "dying"
+};
+
+export const PlayerAnimationName = {
+    RunningBack: "runningBack",
+    Jumping: "jumping",
+    Ducking: "ducking",
+    RollingLeft: "rollingLeft",
+    RollingRight: "rollingRight",
+    Dying: "dying"
+}
 
 export default class PlayerComponent extends Component{ 
     public equippedItems: Record <string, string | null>;
@@ -11,10 +30,10 @@ export default class PlayerComponent extends Component{
     public directionChange: number;
     public attacking: boolean;
     public lane: number;
-    public state: string;
+    public state: PlayerState;
     public PREPARE_SPEAR_FRAMES: number;
 
-    constructor(lane: number, state: string, startingItems: Record <string, string | null>, startingStats: Record <string, number>, weapons: Record <string, string>) {
+    constructor(lane: number, state: PlayerState, startingItems: Record <string, string | null>, startingStats: Record <string, number>, weapons: Record <string, string>) {
         super();
         this.equippedItems = startingItems;
         this.stats = startingStats;
@@ -56,5 +75,10 @@ export default class PlayerComponent extends Component{
         if (this.weapon != null){
             animated!.spritesheet.src = this.weapon;
         }
+    }
+    changeLane(): void {
+        console.assert(this._entity != null);
+        const positionComponent = this._entity!.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        positionComponent.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
     }
 }
