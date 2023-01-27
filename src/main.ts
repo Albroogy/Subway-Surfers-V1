@@ -1,20 +1,21 @@
 import {equippedInventory, itemsFound, equipStarterItems} from "./components/inventoryComponent";
 import {player as playerCharacter, StartingStats, player} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
-import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE } from "./global";
 import PlayerComponent from "./components/playerComponent";
-import { StateMachine } from "./components/stateMachineComponent";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE} from "./global";
 import { Entity } from "./entityComponent";
+import PositionComponent from "./components/positionComponent";
+import DrawCircleComponent from "./components/drawCircleComponent";
+import { AnimatedComponent } from "./components/animatedComponent";
+import DragonComponent, { DragonAnimationInfo } from "./components/dragonComponent";
+import MovementComponent from "./components/movementComponent";
+import DrawRectComponent from "./components/drawRectComponent";
+import { gameState, GameState, gameSM } from "./systems/gameSystem";
 
 // ORIGINAL_VALUES
 const ORIGINAL_FALL_SPEED: number = 150;
 const ORIGINAL_SPAWN_DELAY: number = 1000;
 const backgroundMusic = new Audio("track1");
-
-enum GameState {
-    Playing = "playing",
-    InventoryMenu = "inventoryMenu"
-}
 
 // Obstacle Information
 const OBJECT: Record <string, number> = {
@@ -44,61 +45,12 @@ let score: number = 0;
 let highScore: number = 0;
 let gold: number = 0;
 export let fallSpeed: number = ORIGINAL_FALL_SPEED;
-let gameState: Object = GameState.Playing;
 
 export const objects: Array<Entity> = [];
 let playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
 
 // Creating the state machines
-
-//Adding the states for gameSM
-const onPlayingActivation = () => {
-    gameState = GameState.Playing;
-    console.log(GameState.Playing);
-}
-const onPlayingUpdate = (): GameState | undefined => {
-    if (allPressedKeys[KEYS.SpaceBar]){
-        return GameState.InventoryMenu;
-    }
-}
-const onPlayingDeactivation = () => {
-}
-const onInventoryMenuActivation = () => {
-    gameState = GameState.InventoryMenu;
-    // EventListener to see if mouse clicked
-    document.addEventListener('click', mouseClicked);
-    let mouseX = null;
-    let mouseY = null;
-    function mouseClicked(e: { clientX: number; clientY: number; }) {
-        // Maybe give the variable e a better name?
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        console.log(`${e.clientX} ${e.clientY}`);
-        // if (equippedInventory.isColliding(e.clientX, e.clientY)){
-            
-        // }
-    }
-    console.log(GameState.InventoryMenu);
-}
-const onInventoryMenuUpdate = (): GameState | undefined => {
-    if (allPressedKeys[KEYS.Escape]){
-        return GameState.Playing;
-    }
-}
-const onInventoryMenuDeactivation = () => {
-    // document.removeEventListener('click', mouseClicked);
-    // mouseClicked is not defined
-}
-
-// Setting up state machine
-const gameSM = new StateMachine<GameState>();
-gameSM.addState(GameState.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
-gameSM.addState(GameState.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
-
-// Activating state machines
-gameSM.activeState = gameSM.states[GameState.Playing];
-gameSM.activeState.onActivation(null as unknown as Entity);
 
 // Next steps
 // Done = /
@@ -236,20 +188,32 @@ function pickLane(): number{
 // These functions carry out a certain action
 function generateObstacle(){
     const type: number = Math.floor(Math.random() * Object.keys(obstacleColors).length);
+    const rect: Entity = new Entity;
+    rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
+    rect.addComponent(DrawRectComponent.COMPONENT_ID, new DrawRectComponent(context, Object.keys(obstacleColors)[type]));
     objects.push(
-        new Rects(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , OBJECT.WIDTH, OBJECT.HEIGHT, Object.keys(obstacleColors)[type], obstacleType[type], fallSpeed)
+        rect
     )
 }
 function generateCoin(){
     const COIN_RADIUS: number = 25;
+    const circle: Entity = new Entity;
+    circle.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 0, 0, COIN_RADIUS));
+    circle.addComponent(DrawCircleComponent.COMPONENT_ID, new DrawCircleComponent(context, "yellow"));
     objects.push(
-        new Circles(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION , COIN_RADIUS, "yellow", fallSpeed)
+        circle
     )
 }
 
 function generateDragon(){
+    const dragon: Entity = new Entity;
+    dragon.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 50, 50, 0));
+    dragon.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("dragon.png", DragonAnimationInfo));
+    dragon.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    dragon.addComponent(DragonComponent.COMPONENT_ID, new DragonComponent());
+
     objects.push(
-        new DragonEnemy(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 100, 100, "dragon.png", DragonAnimationInfo, fallSpeed)
+        dragon
     )
 }
 
@@ -279,7 +243,7 @@ export function resetGame(){
     }
     score = 0;
 }
-function destroyCollidingObjects(object1: RenderableObject, object2: RenderableObject){
+function destroyCollidingObjects(object1: Entity, object2: Entity){
     objects.splice(objects.indexOf(object1),1);
     objects.splice(objects.indexOf(object2),1);
 }

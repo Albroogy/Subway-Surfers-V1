@@ -19,7 +19,7 @@ export default class DrawCircleComponent extends Component {
         const position = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
         console.assert(position != null);
         this._context.beginPath();
-        this._context.arc(position!.x, position!.y, position!.width, 0, 2 * Math.PI, false);
+        this._context.arc(position!.x, position!.y, position!.radius, 0, 2 * Math.PI, false);
         this._context.closePath();
         this._context.fillStyle = this._color;
         this._context.fill();
