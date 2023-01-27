@@ -1,7 +1,6 @@
 import {equippedInventory, itemsFound, equipStarterItems} from "./components/inventoryComponent";
 import {player as playerCharacter, StartingStats, player} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
-import PlayerComponent from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
@@ -11,10 +10,10 @@ import DragonComponent, { DragonAnimationInfo } from "./components/dragonCompone
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import { gameState, GameState, gameSM } from "./systems/gameSystem";
+import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, objects, playerComponent, score, spawnDelay} from "./objects"
+
 
 // ORIGINAL_VALUES
-const ORIGINAL_FALL_SPEED: number = 150;
-const ORIGINAL_SPAWN_DELAY: number = 1000;
 const backgroundMusic = new Audio("track1");
 
 // Obstacle Information
@@ -39,15 +38,8 @@ let entities: Array<Entity> = [];
 
 // Changeble variables
 let lastTime: number = Date.now();
-let lastSpawn: number = Date.now();
-let spawnDelay: number = ORIGINAL_SPAWN_DELAY; //This is in milliseconds
-let score: number = 0;
-let highScore: number = 0;
+let lastSpawn: number = Date.now(); //This is in milliseconds
 let gold: number = 0;
-export let fallSpeed: number = ORIGINAL_FALL_SPEED;
-
-export const objects: Array<Entity> = [];
-let playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
 
 // Creating the state machines
@@ -103,7 +95,7 @@ function update(deltaTime: number, gameSpeed: number){
     const FALL_INCREMENT: number = 0.02;
     const SCORE_INCREMENT: number = 0.001;
     let scoreIncreaseSpeed: number = 1;
-    score += scoreIncreaseSpeed;
+    addScore(scoreIncreaseSpeed);
 
     for (const entity of entities) {
         entity.update(deltaTime);
@@ -113,8 +105,8 @@ function update(deltaTime: number, gameSpeed: number){
     checkSpawn();
     objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
     playerCharacter.update(deltaTime);
-    spawnDelay -= SPAWN_INCREMENT;
-    fallSpeed += FALL_INCREMENT;
+    changeSpawnDelay(SPAWN_INCREMENT);
+    changeFallSpeed(FALL_INCREMENT)
     scoreIncreaseSpeed += SCORE_INCREMENT;
     console.log(`This is the score increase speed: ${scoreIncreaseSpeed}`);
 }
@@ -228,20 +220,6 @@ function checkSpawn(){
         }
         lastSpawn = Date.now();
     }
-}
-export function resetGame(){
-    objects.splice(0);
-    playerComponent.lane = 2;
-    playerComponent.setLane();
-    playerComponent.stats = StartingStats;
-    equippedInventory.resetInventory();
-    equipStarterItems(player);
-    spawnDelay = ORIGINAL_SPAWN_DELAY;
-    fallSpeed = ORIGINAL_FALL_SPEED;
-    if (score > highScore){
-        highScore = score;
-    }
-    score = 0;
 }
 function destroyCollidingObjects(object1: Entity, object2: Entity){
     objects.splice(objects.indexOf(object1),1);

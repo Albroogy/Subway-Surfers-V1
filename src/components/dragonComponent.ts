@@ -1,6 +1,6 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
-import { fallSpeed, objects} from "../main";
+import { fallSpeed, objects} from "../objects";
 import { AnimatedComponent, AnimationInfo} from "./animatedComponent";
 import { checkTime, context, timeStart } from "../global";
 import { ImageComponent } from "./imageComponent";

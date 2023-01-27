@@ -2,10 +2,10 @@ import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
 import { allPressedKeys, canvas, checkTime, KEYS, LANE, OFFSET, sleep, timeStart } from "../global";
-import { objects, resetGame } from "../main";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
+import { objects, resetGame } from "../objects";
 
 
 export enum PlayerState {

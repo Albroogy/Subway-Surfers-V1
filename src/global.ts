@@ -32,12 +32,6 @@ export const LANE: Record <string, number> = {
     COUNT: 3
 }
 
-export enum GameState {
-    Playing = "playing",
-    InventoryMenu = "inventoryMenu"
-}
-export let gameState: Object = GameState.Playing;
-
 export let timeStart: number = Date.now();
 
 // export const entities: Array<Entity> = [];
