@@ -1,6 +1,5 @@
 import { Entity } from "./entityComponent";
 
-
 const ORIGINAL_FALL_SPEED: number = 150;
 export let fallSpeed: number = ORIGINAL_FALL_SPEED;
 

@@ -5,7 +5,7 @@ import { allPressedKeys, canvas, checkTime, KEYS, LANE, OFFSET, sleep, timeStart
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
-import { objects, resetValues, spawnDelay } from "../objects";
+import { objects, resetValues} from "../objects";
 import { equipStarterItems, Inventory, InventoryComponent } from "./inventoryComponent";
 
 
