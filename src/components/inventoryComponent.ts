@@ -23,14 +23,13 @@ export class InventoryItem {
 }
 
 export const TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true };
-export class InventoryComponent extends Component {
+export class Inventory{
     public width: number;
     public height: number;
     public x: number;
     public y: number;
     public cells: Array<Array<InventoryItem | typeof TakenInventoryItemSlot | null>>
     constructor(width: number, height: number, x: number, y: number) {
-        super();
         this.cells = [];
         this.width = width;
         this.height = height;
@@ -43,7 +42,10 @@ export class InventoryComponent extends Component {
             }
         }
     }
-    placeItemCheck(item: InventoryItem, cellRow: number, cellCol: number): boolean {
+    public update(deltaTime: number): void {
+        this.draw();
+    }
+    private placeItemCheck(item: InventoryItem, cellRow: number, cellCol: number): boolean {
         // Go through all the coordinates of the item and figure out if the cells are null;
         // If they are, place the item AND apply some effect to the player
         // If even 1 cell is taken, do nothing 
@@ -56,38 +58,40 @@ export class InventoryComponent extends Component {
         }
         return true;
     }
-    placeItem(item: InventoryItem, cellRow: number, cellCol: number, currentObject: PlayerComponent){
+    public placeItem(item: InventoryItem, cellRow: number, cellCol: number, currentObject: Entity){
+        const playerComponent = currentObject.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
         if (this.placeItemCheck(item, cellRow, cellCol)){
             for (let i = 0; i < item.width; i++){
                 for (let j = 0; j < item.height; j++){
                     this.cells[cellRow + i][cellCol + j] = TakenInventoryItemSlot;
                     this.cells[cellRow][cellCol] = item;
                     if (item.iconURL == ItemList.Armor.URL){
-                        currentObject.equippedItems.Armor = ItemList.Armor.Name;
+                        playerComponent.equippedItems.Armor = ItemList.Armor.Name;
                     }
                     if (item.iconURL == ItemList.Boots.URL){
-                        currentObject.equippedItems.Boots = ItemList.Boots.Name;
+                        playerComponent.equippedItems.Boots = ItemList.Boots.Name;
                     }
                     if (item.iconURL == ItemList.Spear.URL){
-                        currentObject.equippedItems.Spear = ItemList.Spear.Name;
+                        playerComponent.equippedItems.Spear = ItemList.Spear.Name;
                     }
                     if (item.iconURL == ItemList.Bow.URL){
-                        currentObject.equippedItems.Bow = ItemList.Bow.Name;
+                        playerComponent.equippedItems.Bow = ItemList.Bow.Name;
                     }
-                    currentObject.statsUpdate();
+                    playerComponent.statsUpdate();
                 }
             }
         }
     }
-    removeItem(item: { width: number; height: number; }, cellRow: number, cellCol: number, currentObject: PlayerComponent){
+    public removeItem(item: { width: number; height: number; }, cellRow: number, cellCol: number, currentObject: Entity){
+        const playerComponent = currentObject.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
         for (let i = 0; i < item.width; i++){
             for (let j = 0; j < item.height; j++){
                 this.cells[cellRow + i][cellCol + j] = null;
-                currentObject.statsUpdate();
+                playerComponent.statsUpdate();
             }
         }
     }
-    draw() {
+    private draw() {
         // for every row and col
         //   go through every cell, that is the top-left coordinate of an item and draw the image
         // for every row and col
@@ -102,13 +106,22 @@ export class InventoryComponent extends Component {
             }
         }
     }
-    resetInventory(){
+    public resetInventory(){
         for (let i = 0; i < this.width; i++) {
             this.cells[i] = [];
             for (let j = 0; j < this.height; j++) {
                 this.cells[i][j] = null;
             }
         }
+    }
+}
+export class InventoryComponent extends Component {
+    public static COMPONENT_ID: string = "Inventory";
+
+    public inventories: Array<Inventory> = [];
+    constructor(inventories: Array<Inventory>){
+        super();
+        this.inventories = inventories;
     }
 }
 
@@ -166,16 +179,11 @@ const bow = new InventoryItem(ItemList.Bow.Width,ItemList.Bow.Height,ItemList.Bo
 const armor = new InventoryItem(ItemList.Armor.Width,ItemList.Armor.Height,ItemList.Armor.URL, ItemList.Armor.Image, ItemList.Armor.Name);
 const boots = new InventoryItem(ItemList.Boots.Width,ItemList.Boots.Height,ItemList.Boots.URL, ItemList.Boots.Image, ItemList.Boots.Name);
 
-export const equippedInventory = new Entity;
-equippedInventory.addComponent(InventoryComponent.COMPONENT_ID, new InventoryComponent(5, 3, 50, 200));
-export const itemsFound = new Entity;
-itemsFound.addComponent(InventoryComponent.COMPONENT_ID, new InventoryComponent(10, 5, canvas.width/2, 0));
 
 export function equipStarterItems(currentObject: Entity){
     const inventoryComponent: InventoryComponent = currentObject.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
-    const playerComponent: PlayerComponent = currentObject.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
-    inventoryComponent.placeItem(bow, 1, 0, playerComponent);
-    inventoryComponent.placeItem(armor, 2, 0, playerComponent);
-    inventoryComponent.placeItem(boots, 0, 0, playerComponent);
+    inventoryComponent.inventories[0].placeItem(bow, 1, 0, currentObject);
+    inventoryComponent.inventories[0].placeItem(armor, 2, 0, currentObject);
+    inventoryComponent.inventories[0].placeItem(boots, 0, 0, currentObject);
 }
 

@@ -6,6 +6,7 @@ import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
 import { objects, resetGame } from "../objects";
+import { Inventory, InventoryComponent } from "./inventoryComponent";
 
 
 export enum PlayerState {
@@ -26,6 +27,8 @@ export const PlayerAnimationName = {
 }
 
 export default class PlayerComponent extends Component{ 
+    public static COMPONENT_ID: string = "Player";
+
     public equippedItems: Record <string, string | null>;
     public stats: Record <string, number>;
     public weapon: string | null;
@@ -182,17 +185,24 @@ export const playerBowAnimationInfo: AnimationInfo = {
 
 // Player Animation
 // export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerState.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
-export const player = new Entity("Player");
 
 const PLAYER: Record <string, number> = {
     WIDTH: 100,
     HEIGHT: 100,
 }
 
+export const equippedInventory = new Inventory(5, 3, 50, 200);
+export const itemsFound = new Inventory(10, 5, canvas.width/2, 0);
+
+export const playerInventory = [equippedInventory, itemsFound];
+
+export const player = new Entity("Player");
+
 player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.width/3, PLAYER.WIDTH, PLAYER.HEIGHT, 0));
 player.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weapons.Bow, playerBowAnimationInfo));
 player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingItems, StartingStats, weapons));
 player.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent<PlayerState>(PlayerState.Running));
+player.addComponent(InventoryComponent.COMPONENT_ID, new InventoryComponent(playerInventory));
 
 // Player States
 const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID);
@@ -334,7 +344,7 @@ const onDyingUpdate = (): PlayerState | undefined => {
     }
 }
 const onDyingDeactivation = () => {
-    resetGame();
+    resetGame(player.getComponent(InventoryComponent.COMPONENT_ID)!);
 }
 
 smComponent.stateMachine.addState(PlayerState.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);

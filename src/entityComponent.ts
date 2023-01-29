@@ -6,7 +6,7 @@ export class Component {
     public attachToEntity(entity: Entity) {
         this._entity = entity;
     }
-    public update(deltaTime: number): void {
+    public update(deltaTime: number, gameSpeed: number): void {
 
     }
 }
@@ -25,15 +25,16 @@ export class Entity {
     
     public addComponent(componentId: string, component: Component): void {
         this._components[componentId] = component;
+        component.attachToEntity(this);
     }
 
     public getComponent<ComponentType extends Component>(componentId: string): ComponentType | null {
         return this._components[componentId] as ComponentType;
     }
 
-    public update(deltaTime: number): void {
+    public update(deltaTime: number, gameSpeed: number): void {
         for (const key in this._components) {
-            this._components[key].update(deltaTime);
+            this._components[key].update(deltaTime, gameSpeed);
         }
     }
 

@@ -4,6 +4,7 @@ import PositionComponent from "./positionComponent";
 
 export class ImageComponent extends Component { 
     public static COMPONENT_ID: string = "Image";
+    
     public image: HTMLImageElement;
 
     constructor(imageURL: string) {

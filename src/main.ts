@@ -1,16 +1,17 @@
-import {equippedInventory, itemsFound, equipStarterItems} from "./components/inventoryComponent";
 import {player as playerCharacter, StartingStats, player} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
-import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE} from "./global";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
 import { AnimatedComponent } from "./components/animatedComponent";
-import DragonComponent, { DragonAnimationInfo } from "./components/dragonComponent";
+import DragonComponent, { DragonAnimationInfo, DragonAnimationNames } from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import { gameState, GameState, gameSM } from "./systems/gameSystem";
 import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, objects, playerComponent, score, spawnDelay} from "./objects"
+import CollisionSystem from "./systems/collisionSystem";
+import StateMachineComponent from "./components/stateMachineComponent";
 
 
 // ORIGINAL_VALUES
@@ -97,14 +98,13 @@ function update(deltaTime: number, gameSpeed: number){
     let scoreIncreaseSpeed: number = 1;
     addScore(scoreIncreaseSpeed);
 
-    for (const entity of entities) {
-        entity.update(deltaTime);
-    }
-
+    // for (const entity of entities) {
+    //     entity.update(deltaTime, gameSpeed);
+    // }
 
     checkSpawn();
     objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
-    playerCharacter.update(deltaTime);
+    playerCharacter.update(deltaTime, gameSpeed);
     changeSpawnDelay(SPAWN_INCREMENT);
     changeFallSpeed(FALL_INCREMENT)
     scoreIncreaseSpeed += SCORE_INCREMENT;
@@ -124,9 +124,6 @@ function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     
     if (gameState != GameState.InventoryMenu){
-        for (let object of objects){
-            object.draw();
-        }
 
         // Text postition innformation
         const GOLD_TEXT_LOCATION: Record <string, number> = {
@@ -164,8 +161,7 @@ function draw() {
         }
     }
     else{
-        equippedInventory.draw();
-        itemsFound.draw();
+        // draw player inventories
     }
 }
 
@@ -178,9 +174,9 @@ function pickLane(): number{
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
 // These functions carry out a certain action
-function generateObstacle(){
+function generateRectEnemy(){
     const type: number = Math.floor(Math.random() * Object.keys(obstacleColors).length);
-    const rect: Entity = new Entity;
+    const rect: Entity = new Entity(EntityName.RectEnemy);
     rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
     rect.addComponent(DrawRectComponent.COMPONENT_ID, new DrawRectComponent(context, Object.keys(obstacleColors)[type]));
     objects.push(
@@ -189,7 +185,7 @@ function generateObstacle(){
 }
 function generateCoin(){
     const COIN_RADIUS: number = 25;
-    const circle: Entity = new Entity;
+    const circle: Entity = new Entity(EntityName.Coin);
     circle.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 0, 0, COIN_RADIUS));
     circle.addComponent(DrawCircleComponent.COMPONENT_ID, new DrawCircleComponent(context, "yellow"));
     objects.push(
@@ -198,11 +194,12 @@ function generateCoin(){
 }
 
 function generateDragon(){
-    const dragon: Entity = new Entity;
+    const dragon: Entity = new Entity(EntityName.Dragon);
     dragon.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 50, 50, 0));
     dragon.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("dragon.png", DragonAnimationInfo));
     dragon.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     dragon.addComponent(DragonComponent.COMPONENT_ID, new DragonComponent());
+    dragon.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent(DragonAnimationNames.Flying));
 
     objects.push(
         dragon
@@ -228,37 +225,40 @@ function destroyCollidingObjects(object1: Entity, object2: Entity){
 
 function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: number){
     for (let i = 0; i < objects.length; i++){
-        objects[i].move(deltaTime, gameSpeed);
-        objects[i].speed += FALL_INCREMENT;
-
-        if (objects[i].constructor == DragonEnemy){
-            (objects[i] as DragonEnemy).update(deltaTime);
+        if (objects[i].getComponent(PositionComponent.COMPONENT_ID) == null){
+            console.log("object doesn't have position component");
+            return;
         }
 
-        if (objects[i].constructor == Arrow && objects[i].y <= - (objects[i] as Arrow).height
-        || objects[i].constructor == DragonEnemy || Rects && objects[i].y >= canvas.height + (objects[i] as DragonEnemy | Rects).height/2 
-        || objects[i].constructor == Circles && objects[i].y >= canvas.height){
-            objects.splice(i,1);
-            continue;
-        }
-        if (objects[i].constructor == Circles){
-            if (objects[i].isColliding(playerCharacter)){
-                const COIN_VALUE: number = 300;
-                score += COIN_VALUE;
-                gold += 1;
-                objects.splice(i,1);
-                continue;
+        else if (objects[i].getComponent(MovementComponent.COMPONENT_ID) != null){
+            const movementComponent: MovementComponent = objects[i].getComponent(MovementComponent.COMPONENT_ID)!;
+            const positionComponent: PositionComponent = objects[i].getComponent(PositionComponent.COMPONENT_ID)!;
+            if (objects[i].getComponent(DrawCircleComponent.COMPONENT_ID) == null){
+                if (outOfBoundsCheck(movementComponent, positionComponent, positionComponent.height/2)){
+                    objects.splice(i,1);
+                    continue;
+                }
             }
+            else{
+                if (outOfBoundsCheck(movementComponent, positionComponent, positionComponent.radius)){
+                    objects.splice(i,1);
+                    continue;
+                }
+            }
+            movementComponent.speed += FALL_INCREMENT;
         }
-        else if (objects[i].constructor == Arrow){
-            const currentObject1: Arrow = objects[i] as Arrow;
+
+        objects[i].update(deltaTime, gameSpeed);
+
+        if (objects[i].name == EntityName.Arrow){
+            const currentObject1: Entity = objects[i] as Entity;
             // When I removed the current object lines, the game sometimes bugged out when arrows collided with objects, so I'm keeping this code in.
             for (let j = 0; j < objects.length; j++){
-                if (objects[j].constructor == DragonEnemy){
-                    const currentObject2: DragonEnemy = objects[j] as DragonEnemy;
+                if (objects[j].name == EntityName.Dragon){
+                    const currentObject2: Entity = objects[j] as Entity;
                     console.assert(currentObject1 != undefined);
                     console.assert(currentObject2 != undefined);
-                    if (currentObject1.isColliding(currentObject2)){
+                    if (CollisionSystem.collideObjects(currentObject1, currentObject2)){
                         destroyCollidingObjects(objects[i], objects[j]);
                     }
                 continue;
@@ -267,12 +267,29 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 }
             }
         }
-        else if (objects[i].isColliding(playerCharacter)){
-            if (!playerComponent.attacking || objects[i].constructor == Fireball){
-                playerComponent.stats.Lives -= 1;
+
+        else if (CollisionSystem.collideObjects(objects[i], playerCharacter)){
+            // check if the object is a coin, or something that can deal damage to the player
+            if (objects[i].name == EntityName.Coin) {
+                const COIN_VALUE: number = 300;
+                addScore(COIN_VALUE)
+                gold += 1;
+            }
+            else {
+                if (!playerComponent.attacking || objects[i].name == EntityName.Fireball){
+                    playerComponent.stats.Lives -= 1;
+                }
             }
             objects.splice(i,1);
             continue;
         }
     }
+}
+
+function outOfBoundsCheck(movementComponent: MovementComponent, positionComponent: PositionComponent, shapeDistance: number){
+        if (movementComponent.yDirection == -1 && positionComponent.y <= - shapeDistance || 
+            movementComponent.yDirection == 1 && positionComponent.y >= canvas.height){
+            return true;
+        }
+        return false;
 }

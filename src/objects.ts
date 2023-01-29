@@ -1,4 +1,4 @@
-import { equippedInventory, equipStarterItems } from "./components/inventoryComponent";
+import { equipStarterItems, InventoryComponent } from "./components/inventoryComponent";
 import PlayerComponent, { StartingStats } from "./components/playerComponent";
 import { player as playerCharacter } from "./components/playerComponent";
 import { Entity } from "./entityComponent";
@@ -15,12 +15,12 @@ export let spawnDelay: number = ORIGINAL_SPAWN_DELAY;
 export let score: number = 0;
 export let highScore: number = 0;
 
-export function resetGame(){
+export function resetGame(inventoryComponent: InventoryComponent){
     objects.splice(0);
     playerComponent.lane = 2;
     playerComponent.setLane();
     playerComponent.stats = StartingStats;
-    equippedInventory.resetInventory();
+    inventoryComponent.inventories[0].resetInventory();
     equipStarterItems(playerCharacter);
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_FALL_SPEED;
@@ -32,8 +32,8 @@ export function resetGame(){
 
 export const objects: Array<Entity> = [];
 
-export function addScore(scoreIncreaseSpeed: number): void {
-    score += scoreIncreaseSpeed;
+export function addScore(scoreIncreaseValue: number): void {
+    score += scoreIncreaseValue;
 }
 
 export function changeSpawnDelay(spawnIncrement: number): void {

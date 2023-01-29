@@ -13,6 +13,9 @@ export default class DrawCircleComponent extends Component {
     }
     
     public update(deltaTime: number): void {
+        this.draw();
+    }
+    private draw(): void{
         if (this._entity == null) {
             return;
         }

@@ -14,13 +14,13 @@ export default class MovementComponent extends Component {
         this.yDirection = yDirection;
     }
     
-    public update(deltaTime: number): void{
+    public update(deltaTime: number, gameSpeed: number): void{
         if (this._entity == null) {
             return;
         }
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
         console.assert(positionComponent != null);
         // TODO: Take gamespeed into account
-        positionComponent!.y += this.speed * deltaTime / 1000 * this.yDirection;// * gameSpeed;
+        positionComponent!.y += this.speed * deltaTime / 1000 * this.yDirection * gameSpeed;
     }
 }
