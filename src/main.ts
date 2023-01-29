@@ -1,4 +1,4 @@
-import {player as playerCharacter, StartingStats, player} from "./components/playerComponent";
+import {player as playerCharacter, PlayerComponent} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName} from "./global";
 import { Entity } from "./entityComponent";
@@ -9,13 +9,14 @@ import DragonComponent, { DragonAnimationInfo, DragonAnimationNames } from "./co
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import { gameState, GameState, gameSM } from "./systems/gameSystem";
-import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, objects, playerComponent, score, spawnDelay} from "./objects"
+import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, objects, score, spawnDelay} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
 
 
 // ORIGINAL_VALUES
 const backgroundMusic = new Audio("track1");
+const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
 // Obstacle Information
 const OBJECT: Record <string, number> = {

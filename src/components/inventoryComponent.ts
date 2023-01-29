@@ -1,6 +1,6 @@
 import { canvas, context } from "../global";
 import { Component, Entity } from "../entityComponent";
-import PlayerComponent from "./playerComponent";
+import {PlayerComponent} from "./playerComponent";
 
 const ITEM = {
     WIDTH: 50,

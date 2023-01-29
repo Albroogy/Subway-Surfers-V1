@@ -5,8 +5,8 @@ import { allPressedKeys, canvas, checkTime, KEYS, LANE, OFFSET, sleep, timeStart
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
-import { objects, resetGame } from "../objects";
-import { Inventory, InventoryComponent } from "./inventoryComponent";
+import { objects, resetValues, spawnDelay } from "../objects";
+import { equipStarterItems, Inventory, InventoryComponent } from "./inventoryComponent";
 
 
 export enum PlayerState {
@@ -26,7 +26,7 @@ export const PlayerAnimationName = {
     Dying: "dying"
 }
 
-export default class PlayerComponent extends Component{ 
+export class PlayerComponent extends Component{ 
     public static COMPONENT_ID: string = "Player";
 
     public equippedItems: Record <string, string | null>;
@@ -352,3 +352,14 @@ smComponent.stateMachine.addState(PlayerState.Jumping, onJumpingActivation, onJu
 smComponent.stateMachine.addState(PlayerState.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
 smComponent.stateMachine.addState(PlayerState.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
 smComponent.stateMachine.addState(PlayerState.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
+
+export function resetGame(inventoryComponent: InventoryComponent){
+    objects.splice(0);
+    const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+    playerComponent.lane = 2;
+    playerComponent.setLane();
+    playerComponent.stats = StartingStats;
+    inventoryComponent.inventories[0].resetInventory();
+    equipStarterItems(player);
+    resetValues();
+}
