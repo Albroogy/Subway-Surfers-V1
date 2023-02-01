@@ -18,7 +18,7 @@ export class ImageComponent extends Component {
         }
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
         context.drawImage(this.image, positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, 
-        positionComponent!.width, positionComponent!.height
+            positionComponent!.width, positionComponent!.height
         );
     }
 }

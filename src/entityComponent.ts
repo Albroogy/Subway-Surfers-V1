@@ -5,10 +5,15 @@ export class Component {
 
     public attachToEntity(entity: Entity) {
         this._entity = entity;
+        this.onAttached();
+    }
+    public onAttached(): void {
     }
     public update(deltaTime: number, gameSpeed: number): void {
-
     }
+    public draw(): void {
+    }
+
 }
 
 export class Entity {
@@ -35,6 +40,12 @@ export class Entity {
     public update(deltaTime: number, gameSpeed: number): void {
         for (const key in this._components) {
             this._components[key].update(deltaTime, gameSpeed);
+        }
+    }
+
+    public draw(): void {
+        for (const key in this._components) {
+            this._components[key].draw();
         }
     }
 

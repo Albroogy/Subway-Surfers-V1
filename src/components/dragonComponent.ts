@@ -20,15 +20,12 @@ const DRAGON: Record <string, number> = {
     SPAWN_LOCATION: -50
 }
 
-export default class DragonComponent extends Component{ 
-    constructor(){
-        super();
-        this.addDragonStates();
-    }
-    addDragonStates = (): void => {
+export default class DragonComponent extends Component {
+    public onAttached(): void {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<DragonState>>(StateMachineComponent.COMPONENT_ID)!;
         stateMachineComponent.stateMachine.addState(DragonState.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
         stateMachineComponent.stateMachine.addState(DragonState.Firing, onFiringActivation, onFiringUpdate, onFiringDeactivation);
+        stateMachineComponent.activate(DragonState.Flying);
         // stateMachineComponent.initialState = DragonState.Flying;
     }
 }
@@ -64,7 +61,7 @@ const onFiringActivation = (currentObject: Entity) => {
         HEIGHT: 50,
         SPEED: 150,
         DIRECTION: 1,
-        URL: "fireball.png"
+        URL: "assets/images/fireball.png"
     }
 
     fireball.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, FIREBALL.WIDTH as number, FIREBALL.HEIGHT as number, 0));
@@ -73,7 +70,7 @@ const onFiringActivation = (currentObject: Entity) => {
 
     objects.push(fireball);
 
-    var audio = new Audio('../assets/audio/dragon-roar.mp3');
+    var audio = new Audio('/assets/audio/dragon-roar.mp3');
     audio.play();
 }
 const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {

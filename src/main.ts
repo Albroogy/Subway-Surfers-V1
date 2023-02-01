@@ -1,4 +1,4 @@
-import {player as playerCharacter, PlayerComponent} from "./components/playerComponent";
+import {player, player as playerCharacter, PlayerComponent} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName} from "./global";
 import { Entity } from "./entityComponent";
@@ -66,6 +66,7 @@ let gold: number = 0;
 // 1. Figure out how to add changeLane state to player. /
 
 //Start Loop
+objects.push(player);
 requestAnimationFrame(runFrame)
 
 // Main processing objectsLoop 
@@ -123,6 +124,10 @@ function draw() {
     // before we start drawing, clear the canvas
 
     context.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const obj of objects) {
+        obj.draw();
+    }
     
     if (gameState != GameState.InventoryMenu){
 
@@ -197,10 +202,10 @@ function generateCoin(){
 function generateDragon(){
     const dragon: Entity = new Entity(EntityName.Dragon);
     dragon.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 50, 50, 0));
-    dragon.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("dragon.png", DragonAnimationInfo));
+    dragon.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/dragon.png", DragonAnimationInfo));
     dragon.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    dragon.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     dragon.addComponent(DragonComponent.COMPONENT_ID, new DragonComponent());
-    dragon.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent(DragonAnimationNames.Flying));
 
     objects.push(
         dragon

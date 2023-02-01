@@ -16,10 +16,15 @@ export class AnimatedComponent extends Component {
     public currentAnimation: SingleAnimationInfo | null;
     public currentAnimationFrame: number;
     private _timeSinceLastFrame: number;
+    private _hasSpritesheetLoaded: boolean;
 
     constructor(spritesheetURL: string, animationInfo: AnimationInfo) {
         super();
         this.spritesheet = new Image();
+        this._hasSpritesheetLoaded = false;
+        this.spritesheet.onload = () => {
+            this._hasSpritesheetLoaded = true;
+        }
         this.spritesheet.src = spritesheetURL;
         this.animationInfo = animationInfo;
         this.currentAnimation = null;
@@ -29,7 +34,6 @@ export class AnimatedComponent extends Component {
     
     public update(deltaTime: number, gameSpeed: number): void {
         this.animationUpdate(deltaTime, gameSpeed);
-        this.draw();
     }
     public playAnimation(name: string) {
         this.currentAnimation = this.animationInfo.animations[name];
@@ -46,7 +50,7 @@ export class AnimatedComponent extends Component {
         }
     }
     public draw(): void{
-        if (this._entity == null || this.currentAnimation == null) {
+        if (this._entity == null || this.currentAnimation == null || !this._hasSpritesheetLoaded) {
             return;
         }
         const frameW = this.spritesheet.width / this.currentAnimation.frameCount;

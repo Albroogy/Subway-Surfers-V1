@@ -12,10 +12,7 @@ export default class DrawCircleComponent extends Component {
         this._color = color;
     }
     
-    public update(deltaTime: number): void {
-        this.draw();
-    }
-    private draw(): void{
+    public draw(): void{
         if (this._entity == null) {
             return;
         }

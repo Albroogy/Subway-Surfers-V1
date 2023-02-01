@@ -6,7 +6,7 @@ import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
 import { objects, resetValues} from "../objects";
-import { equipStarterItems, Inventory, InventoryComponent } from "./inventoryComponent";
+import { equipStarterItems, Inventory, InventoryComponent, ItemList } from "./inventoryComponent";
 
 
 export enum PlayerState {
@@ -29,7 +29,6 @@ export const PlayerAnimationName = {
 export class PlayerComponent extends Component{ 
     public static COMPONENT_ID: string = "Player";
 
-    public equippedItems: Record <string, string | null>;
     public stats: Record <string, number>;
     public weapon: string | null;
     public weapons: Record <string, string>;
@@ -39,9 +38,8 @@ export class PlayerComponent extends Component{
     public state: PlayerState;
     public PREPARE_SPEAR_FRAMES: number;
 
-    constructor(lane: number, state: PlayerState, startingItems: Record <string, string | null>, startingStats: Record <string, number>, weapons: Record <string, string>) {
+    constructor(lane: number, state: PlayerState, startingStats: Record <string, number>, weapons: Record <string, string>) {
         super();
-        this.equippedItems = startingItems;
         this.stats = startingStats;
         this.weapon = null;
         this.weapons = weapons;
@@ -50,6 +48,10 @@ export class PlayerComponent extends Component{
         this.lane = lane;
         this.state = state;
         this.PREPARE_SPEAR_FRAMES = 4;
+    }
+
+    public onAttached(): void {
+        super.onAttached();
         this.setLane();
     }
     
@@ -60,22 +62,27 @@ export class PlayerComponent extends Component{
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
         positionComponent!.x += this.stats.RollSpeed * deltaTime/1000 * this.directionChange;
     }
-    statsUpdate(): void{
-        if (this._entity == null){
+
+    updateStats(): void{
+        if (this._entity == null) {
+            return;
+        }
+        this.stats = {};
+        const inventoryComponent = this._entity.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID);
+        inventoryComponent!.inventories[0].updateStats(this.stats);
+    }
+    updateAnimationBasedOnWeapon(): void {
+        if (this._entity == null) {
             return;
         }
         const animated = this._entity.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID);
-        if (this.equippedItems.Armor != null){
-            this.stats.Lives = 2;
-        }
-        if (this.equippedItems.Boots != null){
-            this.stats.RollSpeed = 600;
-        }
-        if (this.equippedItems.Spear != null){
+        const inventoryComponent = this._entity.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID);
+        const equippedInventory = inventoryComponent!.inventories[0];
+        if (equippedInventory.isEquipped(ItemList.Spear) != null){
             this.weapon = this.weapons.Spear;
             animated!.animationInfo = playerSpearAnimationInfo;
         }
-        else if (this.equippedItems.Bow != null){
+        else if (equippedInventory.isEquipped(ItemList.Bow)){
             this.weapon = this.weapons.Bow;
             animated!.animationInfo = playerBowAnimationInfo;
         }
@@ -91,8 +98,8 @@ export class PlayerComponent extends Component{
 }
 // Player Information
 const weapons: Record <string, string> = {
-    Spear: "../assets/images/player.png",
-    Bow: "../assets/images/playerBow.png"
+    Spear: "assets/images/player.png",
+    Bow: "assets/images/playerBow.png"
 }
 const StartingItems: Record <string, string | null> = {
     Armor: "&weapon=Leather_leather",
@@ -200,8 +207,8 @@ export const player = new Entity("Player");
 
 player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.width/3, PLAYER.WIDTH, PLAYER.HEIGHT, 0));
 player.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weapons.Bow, playerBowAnimationInfo));
-player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingItems, StartingStats, weapons));
-player.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent<PlayerState>(PlayerState.Running));
+player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingStats, weapons));
+player.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent<PlayerState>());
 player.addComponent(InventoryComponent.COMPONENT_ID, new InventoryComponent(playerInventory));
 
 // Player States
@@ -274,7 +281,7 @@ const onDuckingUpdate = () => {
     }
     // if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount){
     //     objects.push(
-    //         new Arrow(playerAnimated.x, playerAnimated.y, "../assets/images/arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
+    //         new Arrow(playerAnimated.x, playerAnimated.y, "assets/images/arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
     //     );
     // }
     if (animatedComponent!.currentAnimationFrame >= animatedComponent!.currentAnimation!.frameCount - OFFSET){
@@ -291,7 +298,7 @@ const onDuckingDeactivation = () => {
             HEIGHT: 45,
             SPEED: 150,
             DIRECTION: -1,
-            URL: "arrow.png"
+            URL: "assets/images/arrow.png"
         }
     
         arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent!.x, positionComponent!.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0));
@@ -352,6 +359,7 @@ smComponent.stateMachine.addState(PlayerState.Jumping, onJumpingActivation, onJu
 smComponent.stateMachine.addState(PlayerState.Ducking, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation);
 smComponent.stateMachine.addState(PlayerState.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
 smComponent.stateMachine.addState(PlayerState.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
+smComponent.activate(PlayerState.Running);
 
 export function resetGame(inventoryComponent: InventoryComponent){
     objects.splice(0);
@@ -361,5 +369,8 @@ export function resetGame(inventoryComponent: InventoryComponent){
     playerComponent.stats = StartingStats;
     inventoryComponent.inventories[0].resetInventory();
     equipStarterItems(player);
+    playerComponent.updateStats();
+    playerComponent.updateAnimationBasedOnWeapon();
+    smComponent.activate(PlayerState.Running);
     resetValues();
 }

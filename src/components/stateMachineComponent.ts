@@ -39,16 +39,11 @@ export class StateMachine<StateEnum extends string> {
 
 export default class StateMachineComponent<StateEnum extends string> extends Component {
     public static COMPONENT_ID: string = "StateMachine";
-
-    constructor(initialState: StateEnum) {
-        super();
-        this.initialState = initialState;
-    }
     
-    public attachToEntity(entity: Entity) {
-        super.attachToEntity(entity);
-        this.stateMachine.activeState = this.stateMachine.states[this.initialState];
-        this.stateMachine.activeState.onActivation(entity);
+    public activate(initialState: StateEnum) {
+        console.assert(this._entity != null);
+        this.stateMachine.activeState = this.stateMachine.states[initialState];
+        this.stateMachine.activeState.onActivation(this._entity!);
     }
 
     public update(deltaTime: number): void {
@@ -56,8 +51,6 @@ export default class StateMachineComponent<StateEnum extends string> extends Com
             this.stateMachine.update(deltaTime, this._entity);
         }
     }
-
-    public initialState: StateEnum;
 
     public stateMachine: StateMachine<StateEnum> = new StateMachine<StateEnum>();
 }
