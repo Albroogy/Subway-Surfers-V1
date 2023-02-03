@@ -12,6 +12,7 @@ import { gameState, GameState, gameSM } from "./systems/gameSystem";
 import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, objects, score, spawnDelay} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
+import { InventoryComponent } from "./components/inventoryComponent";
 
 
 // ORIGINAL_VALUES
@@ -60,10 +61,13 @@ let gold: number = 0;
 //    - let's pick some art
 //    - turn at least 1 type of obstacle into an animated spritesheet
 // Bugs to fix:
-// 1. Animation seems to vary. It doesn't always start at frame 0 /
-// 2. Figure out why necromancer is not appearing on screen
-// Tasks:
-// 1. Figure out how to add changeLane state to player. /
+// - restarting game causes the player to disappear
+// - too many fireballs from the dragons
+// - check the inventory system
+// - fix bug that objects[i].name = undefined. Seems to happen when player dies
+// - Make Lives text represent player lives correctly
+// - Draw coin
+
 
 //Start Loop
 objects.push(player);
@@ -124,12 +128,11 @@ function draw() {
     // before we start drawing, clear the canvas
 
     context.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (const obj of objects) {
-        obj.draw();
-    }
     
     if (gameState != GameState.InventoryMenu){
+        for (const obj of objects) {
+            obj.draw();
+        }
 
         // Text postition innformation
         const GOLD_TEXT_LOCATION: Record <string, number> = {
@@ -153,12 +156,12 @@ function draw() {
         context.font = "20px Arial";
         context.fillText(`SCORE: ${score}`, SCORE_LOCATION.x, SCORE_LOCATION.y);
         context.font = "20px Arial";
-        context.fillText(`HIGH SCORE_LOCATION: ${highScore}`, HIGH_SCORE_LOCATION.x, HIGH_SCORE_LOCATION.y);
-        context.fillText(`GOLD_TEXT_LOCATION: ${gold}`, GOLD_TEXT_LOCATION.x, GOLD_TEXT_LOCATION.y);
+        context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE_LOCATION.x, HIGH_SCORE_LOCATION.y);
+        context.fillText(`GOLD: ${gold}`, GOLD_TEXT_LOCATION.x, GOLD_TEXT_LOCATION.y);
         context.font = "20px Arial";
         if (playerComponent.stats.Lives > 0){
             context.font = "20px Arial";
-            context.fillText(`LIVES_TEXT_LOCATION: ${playerComponent.stats.Lives}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
+            context.fillText(`LIVES: ${playerComponent.stats.Lives}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
         else{
             context.fillStyle = "red";
@@ -168,6 +171,16 @@ function draw() {
     }
     else{
         // draw player inventories
+        if (playerCharacter.getComponent(InventoryComponent.COMPONENT_ID) != null) {
+            return;
+        }
+        const inventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
+
+        for (const inventory in inventoryComponent) {
+            // inventory.draw();
+            console.log();
+        }
+
     }
 }
 

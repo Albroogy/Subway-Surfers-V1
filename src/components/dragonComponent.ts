@@ -54,32 +54,15 @@ const onFiringActivation = (currentObject: Entity) => {
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying];
     movementComponent.speed = 0;
 
-    const fireball: Entity = new Entity("Fireball");
-
-    const FIREBALL: Record <string, number | string> = {
-        WIDTH: 50,
-        HEIGHT: 50,
-        SPEED: 150,
-        DIRECTION: 1,
-        URL: "assets/images/fireball.png"
-    }
-
-    fireball.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, FIREBALL.WIDTH as number, FIREBALL.HEIGHT as number, 0));
-    fireball.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(FIREBALL.URL as string));
-    fireball.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(FIREBALL.SPEED as number, FIREBALL.DIRECTION as number));
-
-    objects.push(fireball);
-
-    //var audio = new Audio('/assets/audio/dragon-roar.mp3');
-    //audio.play();
+    generateFireball(positionComponent);
 }
 const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
-    else if (checkTime(1000, timeStart)){
-        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(3000, timeStart)){
+    else if (checkTime(1000)){
+        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(2000)){
             return DragonState.Flying;
         }
     }
@@ -105,3 +88,24 @@ export const DragonAnimationInfo: AnimationInfo = {
         }
     }
 };
+
+function generateFireball(positionComponent: PositionComponent){
+    const fireball: Entity = new Entity("Fireball");
+
+    const FIREBALL: Record <string, number | string> = {
+        WIDTH: 50,
+        HEIGHT: 50,
+        SPEED: 150,
+        DIRECTION: 1,
+        URL: "assets/images/fireball.png"
+    }
+
+    fireball.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, FIREBALL.WIDTH as number, FIREBALL.HEIGHT as number, 0));
+    fireball.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(FIREBALL.URL as string));
+    fireball.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(FIREBALL.SPEED as number, FIREBALL.DIRECTION as number));
+
+    objects.push(fireball);
+
+    //var audio = new Audio('/assets/audio/dragon-roar.mp3');
+    //audio.play();
+}

@@ -1,7 +1,7 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { allPressedKeys, canvas, checkTime, KEYS, LANE, OFFSET, sleep, timeStart } from "../global";
+import { allPressedKeys, canvas, checkTime, KEYS, LANE, OFFSET, sleep} from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -237,10 +237,10 @@ const onRunningUpdate = (): PlayerState | undefined => {
 
         }
     }
-    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, timeStart)) {
+    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN)) {
         return PlayerState.Ducking;
     }
-    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, timeStart)) {
+    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN)) {
         return PlayerState.Jumping;
     }
     if (playerComponent!.stats.Lives <= 0){

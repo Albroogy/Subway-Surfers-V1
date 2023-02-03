@@ -53,7 +53,7 @@ export class AnimatedComponent extends Component {
         if (this.currentAnimation == null) {
             return;
         }
-        const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond * gameSpeed;
+        const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond * 1 / gameSpeed;
         this._timeSinceLastFrame += deltaTime;
         if (this._timeSinceLastFrame >= timeBetweenFrames) {
             this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
