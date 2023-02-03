@@ -274,7 +274,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             }
         }
 
-        else if (CollisionSystem.collideObjects(objects[i], playerCharacter)){
+        else if (objects[i] != playerCharacter && CollisionSystem.collideObjects(objects[i], playerCharacter)){
             // check if the object is a coin, or something that can deal damage to the player
             if (objects[i].name == EntityName.Coin) {
                 const COIN_VALUE: number = 300;

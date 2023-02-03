@@ -17,6 +17,8 @@ export class AnimatedComponent extends Component {
     public currentAnimationFrame: number;
     private _timeSinceLastFrame: number;
     private _hasSpritesheetLoaded: boolean;
+    private _frameW: number = 0;
+    private _frameH: number = 0;
 
     constructor(spritesheetURL: string, animationInfo: AnimationInfo) {
         super();
@@ -24,6 +26,15 @@ export class AnimatedComponent extends Component {
         this._hasSpritesheetLoaded = false;
         this.spritesheet.onload = () => {
             this._hasSpritesheetLoaded = true;
+            
+            let maxAnimationFrameCount = 0;
+            for (const anim of Object.values(this.animationInfo.animations)) {
+                if (maxAnimationFrameCount < anim.frameCount) {
+                    maxAnimationFrameCount = anim.frameCount;
+                }
+            }
+            this._frameW = this.spritesheet.width / maxAnimationFrameCount;
+            this._frameH = this.spritesheet.height / this.animationInfo.animationCount;
         }
         this.spritesheet.src = spritesheetURL;
         this.animationInfo = animationInfo;
@@ -53,17 +64,15 @@ export class AnimatedComponent extends Component {
         if (this._entity == null || this.currentAnimation == null || !this._hasSpritesheetLoaded) {
             return;
         }
-        const frameW = this.spritesheet.width / this.currentAnimation.frameCount;
-        const frameH = this.spritesheet.height / this.animationInfo.animationCount;
-        console.assert(frameW > 0);
-        console.assert(frameH > 0);
-        const frameSX = this.currentAnimationFrame * frameW;
-        const frameSY = this.currentAnimation.rowIndex * frameH;
+        console.assert(this._frameW > 0);
+        console.assert(this._frameH > 0);
+        const frameSX = this.currentAnimationFrame * this._frameW;
+        const frameSY = this.currentAnimation.rowIndex * this._frameH;
         console.assert(frameSX >= 0);
         console.assert(frameSY >= 0);
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
         context.drawImage(this.spritesheet,
-            frameSX, frameSY, frameW, frameH,
+            frameSX, frameSY, this._frameW, this._frameH,
             positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, positionComponent!.width, positionComponent!.height
         );
     }

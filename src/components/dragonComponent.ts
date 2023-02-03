@@ -70,8 +70,8 @@ const onFiringActivation = (currentObject: Entity) => {
 
     objects.push(fireball);
 
-    var audio = new Audio('/assets/audio/dragon-roar.mp3');
-    audio.play();
+    //var audio = new Audio('/assets/audio/dragon-roar.mp3');
+    //audio.play();
 }
 const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
