@@ -32,11 +32,11 @@ export default class DragonComponent extends Component {
 
 const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
-const onFlyingActivation = (currentObject: Entity) => {
+const onFlyingActivation = (currentObject: Entity, data: Record<string, number>) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying]
 }
-const onFlyingUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
+const onFlyingUpdate = (deltatime: number, currentObject: Entity, data: Record<string, number>): DragonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
@@ -47,7 +47,8 @@ const onFlyingUpdate = (deltatime: number, currentObject: Entity): DragonState |
 }
 const onFlyingDeactivation = () => {
 }
-const onFiringActivation = (currentObject: Entity) => {
+const onFiringActivation = (currentObject: Entity, data: Record<string, number>) => {
+    data.stateStart = Date.now();
     const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!;
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -56,13 +57,13 @@ const onFiringActivation = (currentObject: Entity) => {
 
     generateFireball(positionComponent);
 }
-const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
+const onFiringUpdate = (deltatime: number, currentObject: Entity, data: Record<string, number>): DragonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
-    else if (checkTime(1000)){
-        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(2000)){
+    else if (checkTime(1000, data.stateStart)){
+        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(2000, data.stateStart)){
             return DragonState.Flying;
         }
     }

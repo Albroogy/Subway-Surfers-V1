@@ -218,13 +218,13 @@ const positionComponent =  player.getComponent<PositionComponent>(PositionCompon
 const smComponent = player.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!;
 
 
-const onRunningActivation = () => {
+const onRunningActivation = (currentObject: Entity, data: Record<string, number>) => {
+    data.stateStart = Date.now();
     animatedComponent!.playAnimation(PlayerAnimationName.RunningBack);
     playerComponent!.state = PlayerState.Running;
     animatedComponent!.currentAnimationFrame = 0;
-    console.log("running")
 };
-const onRunningUpdate = (): PlayerState | undefined => {
+const onRunningUpdate = (deltatime: number, currentObject: Entity, data: Record<string, number>): PlayerState | undefined => {
     playerComponent!.directionChange = ~~(allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) -
         ~~(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]);
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
@@ -237,10 +237,10 @@ const onRunningUpdate = (): PlayerState | undefined => {
 
         }
     }
-    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN)) {
+    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, data.stateStart)) {
         return PlayerState.Ducking;
     }
-    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN)) {
+    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, data.stateStart)) {
         return PlayerState.Jumping;
     }
     if (playerComponent!.stats.Lives <= 0){
@@ -373,4 +373,5 @@ export function resetGame(inventoryComponent: InventoryComponent){
     playerComponent.updateAnimationBasedOnWeapon();
     smComponent.activate(PlayerState.Running);
     resetValues();
+    // objects.push(player)
 }
