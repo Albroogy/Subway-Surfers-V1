@@ -1,4 +1,4 @@
-import {player, player as playerCharacter, PlayerComponent} from "./components/playerComponent";
+import {player, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName} from "./global";
 import { Entity } from "./entityComponent";
@@ -67,10 +67,11 @@ let gold: number = 0;
 // - fix bug that objects[i].name = undefined. Seems to happen when player dies
 // - Make Lives text represent player lives correctly
 // - Draw coin
+// - Fix player spear animation info
 
 
 //Start Loop
-objects.push(player);
+resetGame();
 requestAnimationFrame(runFrame)
 
 // Main processing objectsLoop 

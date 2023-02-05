@@ -1,7 +1,7 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { allPressedKeys, canvas, checkTime, KEYS, LANE, OFFSET, sleep} from "../global";
+import { allPressedKeys, canvas, checkTime, EntityName, KEYS, LANE, OFFSET, sleep} from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -78,7 +78,7 @@ export class PlayerComponent extends Component{
         const animated = this._entity.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID);
         const inventoryComponent = this._entity.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID);
         const equippedInventory = inventoryComponent!.inventories[0];
-        if (equippedInventory.isEquipped(ItemList.Spear) != null){
+        if (equippedInventory.isEquipped(ItemList.Spear)){
             this.weapon = this.weapons.Spear;
             animated!.animationInfo = playerSpearAnimationInfo;
         }
@@ -270,48 +270,27 @@ const onDuckingActivation = () => {
     playerComponent!.state = PlayerState.Ducking;
     animatedComponent!.currentAnimationFrame = 0;
     if (playerComponent!.weapon == playerComponent!.weapons.Bow){
-        var audio = new Audio('../assets/audio/arrow-release.mp3');
+        var audio = new Audio('assets/audio/arrow-release.mp3');
         audio.play();
     }
 }
-const onDuckingUpdate = () => {
+const onDuckingUpdate = () => { 
     if (playerComponent!.weapon == playerComponent!.weapons.Spear){
         if (animatedComponent!.currentAnimationFrame >= playerComponent!.PREPARE_SPEAR_FRAMES - OFFSET){
             playerComponent!.attacking = true;
         }
     }
-    // if (playerAnimated.currentAnimationFrame >= playerAnimated.currentAnimation.frameCount){
-    //     objects.push(
-    //         new Arrow(playerAnimated.x, playerAnimated.y, "assets/images/arrow.png", ARROW.WIDTH, ARROW.HEIGHT, ORIGINAL_SPEED)
-    //     );
-    // }
     if (animatedComponent!.currentAnimationFrame >= animatedComponent!.currentAnimation!.frameCount - OFFSET){
         return PlayerState.Running;
     }
 }
 const onDuckingDeactivation = () => {
-    if (playerComponent!.weapon == playerComponent!.weapons.Bow){
-        const arrow: Entity = new Entity("Fireball");
-        const ARROW_DIRECTION: number = -1;
-
-        const ARROW: Record <string, number | string> = {
-            WIDTH: 7.5,
-            HEIGHT: 45,
-            SPEED: 150,
-            DIRECTION: -1,
-            URL: "assets/images/arrow.png"
-        }
-    
-        arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent!.x, positionComponent!.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0));
-        arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARROW.URL as string));
-        arrow.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(ARROW.SPEED as number, ARROW.DIRECTION as number));
-    
-        objects.push(arrow);
-    }
+    // if (playerComponent!.weapon == playerComponent!.weapons.Bow){}
     //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
     if (playerComponent!.attacking != false){
         playerComponent!.attacking = false;
     }
+    generateArrow(positionComponent!);
 }
 
 const onRollActivation = () => {
@@ -352,7 +331,7 @@ const onDyingUpdate = (): PlayerState | undefined => {
     }
 }
 const onDyingDeactivation = () => {
-    resetGame(player.getComponent(InventoryComponent.COMPONENT_ID)!);
+    resetGame();
 }
 
 smComponent.stateMachine.addState(PlayerState.Running, onRunningActivation, onRunningUpdate, onRunningDeactivation);
@@ -362,17 +341,38 @@ smComponent.stateMachine.addState(PlayerState.Roll, onRollActivation, onRollUpda
 smComponent.stateMachine.addState(PlayerState.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
 smComponent.activate(PlayerState.Running);
 
-export function resetGame(inventoryComponent: InventoryComponent){
-    objects.splice(0);
+function generateArrow(positionComponent: PositionComponent){
+    const arrow: Entity = new Entity(EntityName.Arrow);
+
+    const ARROW: Record <string, number | string> = {
+        WIDTH: 7.5,
+        HEIGHT: 45,
+        SPEED: 150,
+        DIRECTION: -1,
+        URL: "assets/images/arrow.png"
+    }
+
+    arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0));
+    arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARROW.URL as string));
+    arrow.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(ARROW.SPEED as number, ARROW.DIRECTION as number));
+
+    objects.push(arrow);
+
+    //var audio = new Audio('/assets/audio/dragon-roar.mp3');
+    //audio.play();
+}
+
+export function resetGame(){
     const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+    const inventoryComponent = player.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!
+    objects.splice(0);
+    objects.push(player);
     playerComponent.lane = 2;
     playerComponent.setLane();
-    playerComponent.stats = StartingStats;
     inventoryComponent.inventories[0].resetInventory();
     equipStarterItems(player);
     playerComponent.updateStats();
     playerComponent.updateAnimationBasedOnWeapon();
     smComponent.activate(PlayerState.Running);
     resetValues();
-    // objects.push(player)
 }

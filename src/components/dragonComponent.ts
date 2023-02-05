@@ -2,7 +2,7 @@ import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import { fallSpeed, objects} from "../objects";
 import { AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { checkTime, context, timeStart } from "../global";
+import { checkTime, context, EntityName, timeStart } from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -92,7 +92,7 @@ export const DragonAnimationInfo: AnimationInfo = {
 };
 
 function generateFireball(positionComponent: PositionComponent){
-    const fireball: Entity = new Entity("Fireball");
+    const fireball: Entity = new Entity(EntityName.Fireball);
 
     const FIREBALL: Record <string, number | string> = {
         WIDTH: 50,
