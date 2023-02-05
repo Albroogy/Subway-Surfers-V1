@@ -107,9 +107,9 @@ const StartingItems: Record <string, string | null> = {
     Spear: "&armour=Thrust_spear_2",
     Boots: null
 }
-export const StartingStats: Record <string, number> = {
+const StartingStats: Record <string, number> = {
     Lives: 1,
-    RollSpeed: 500
+    RollSpeed: 400
 }
 const PLAYER_MOVEMENT_COOLDOWN: number = 100;
 const CLICK_DELAY: number = 300; //This is in milliseconds
@@ -123,7 +123,7 @@ export const playerSpearAnimationInfo: AnimationInfo = {
         [PlayerAnimationName.RunningBack]: {
             rowIndex: 8,
             frameCount: 8,
-            framesPerSecond: 8
+            framesPerSecond: 7
         },
         [PlayerAnimationName.Jumping]: {
             rowIndex: 0,
@@ -138,12 +138,12 @@ export const playerSpearAnimationInfo: AnimationInfo = {
         [PlayerAnimationName.RollingLeft]: {
             rowIndex: 9,
             frameCount: 9,
-            framesPerSecond: 9
+            framesPerSecond: 7
         },
         [PlayerAnimationName.RollingRight]: {
             rowIndex: 11,
             frameCount: 9,
-            framesPerSecond: 9
+            framesPerSecond: 7
         },
         [PlayerAnimationName.Dying]: {
             rowIndex: 20,
@@ -158,7 +158,7 @@ export const playerBowAnimationInfo: AnimationInfo = {
         [PlayerAnimationName.RunningBack]: {
             rowIndex: 8,
             frameCount: 8,
-            framesPerSecond: 8
+            framesPerSecond: 7
         },
         [PlayerAnimationName.Jumping]: {
             rowIndex: 0,
@@ -168,17 +168,17 @@ export const playerBowAnimationInfo: AnimationInfo = {
         [PlayerAnimationName.Ducking]: {
             rowIndex: 16,
             frameCount: 13,
-            framesPerSecond: 13
+            framesPerSecond: 7
         },
         [PlayerAnimationName.RollingLeft]: {
             rowIndex: 9,
             frameCount: 9,
-            framesPerSecond: 9
+            framesPerSecond: 7
         },
         [PlayerAnimationName.RollingRight]: {
             rowIndex: 11,
             frameCount: 9,
-            framesPerSecond: 9
+            framesPerSecond: 7
         },
         [PlayerAnimationName.Dying]: {
             rowIndex: 20,
@@ -218,13 +218,14 @@ const positionComponent =  player.getComponent<PositionComponent>(PositionCompon
 const smComponent = player.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!;
 
 
-const onRunningActivation = (currentObject: Entity, data: Record<string, number>) => {
-    data.stateStart = Date.now();
+const onRunningActivation = (currentObject: Entity) => {
+    currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart = Date.now();
     animatedComponent!.playAnimation(PlayerAnimationName.RunningBack);
     playerComponent!.state = PlayerState.Running;
     animatedComponent!.currentAnimationFrame = 0;
 };
-const onRunningUpdate = (deltatime: number, currentObject: Entity, data: Record<string, number>): PlayerState | undefined => {
+const onRunningUpdate = (deltatime: number, currentObject: Entity): PlayerState | undefined => {
+    let stateStart = currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
     playerComponent!.directionChange = ~~(allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) -
         ~~(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]);
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
@@ -237,10 +238,10 @@ const onRunningUpdate = (deltatime: number, currentObject: Entity, data: Record<
 
         }
     }
-    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, data.stateStart)) {
+    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
         return PlayerState.Ducking;
     }
-    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, data.stateStart)) {
+    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
         return PlayerState.Jumping;
     }
     if (playerComponent!.stats.Lives <= 0){

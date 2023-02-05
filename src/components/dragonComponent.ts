@@ -6,7 +6,7 @@ import { checkTime, context, timeStart } from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
-import { player } from "./playerComponent";
+import { player, PlayerState } from "./playerComponent";
 
 export enum DragonState {
     Flying = "flying",
@@ -32,11 +32,11 @@ export default class DragonComponent extends Component {
 
 const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
-const onFlyingActivation = (currentObject: Entity, data: Record<string, number>) => {
+const onFlyingActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying]
 }
-const onFlyingUpdate = (deltatime: number, currentObject: Entity, data: Record<string, number>): DragonState | undefined => {
+const onFlyingUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
@@ -47,8 +47,8 @@ const onFlyingUpdate = (deltatime: number, currentObject: Entity, data: Record<s
 }
 const onFlyingDeactivation = () => {
 }
-const onFiringActivation = (currentObject: Entity, data: Record<string, number>) => {
-    data.stateStart = Date.now();
+const onFiringActivation = (currentObject: Entity) => {
+    currentObject.getComponent<StateMachineComponent<DragonState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart = Date.now();
     const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!;
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -57,13 +57,14 @@ const onFiringActivation = (currentObject: Entity, data: Record<string, number>)
 
     generateFireball(positionComponent);
 }
-const onFiringUpdate = (deltatime: number, currentObject: Entity, data: Record<string, number>): DragonState | undefined => {
+const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
+    let stateStart = currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
-    else if (checkTime(1000, data.stateStart)){
-        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(2000, data.stateStart)){
+    else if (checkTime(1000, stateStart)){
+        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(2000, stateStart)){
             return DragonState.Flying;
         }
     }

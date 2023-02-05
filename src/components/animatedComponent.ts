@@ -43,17 +43,17 @@ export class AnimatedComponent extends Component {
         this._timeSinceLastFrame = 0;
     }
     
-    public update(deltaTime: number, gameSpeed: number): void {
-        this.animationUpdate(deltaTime, gameSpeed);
+    public update(deltaTime: number): void {
+        this.animationUpdate(deltaTime);
     }
     public playAnimation(name: string) {
         this.currentAnimation = this.animationInfo.animations[name];
     }
-    public animationUpdate(deltaTime: number, gameSpeed: number): void{
+    public animationUpdate(deltaTime: number): void{
         if (this.currentAnimation == null) {
             return;
         }
-        const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond * 1 / gameSpeed;
+        const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond;
         this._timeSinceLastFrame += deltaTime;
         if (this._timeSinceLastFrame >= timeBetweenFrames) {
             this.currentAnimationFrame = (this.currentAnimationFrame + 1) % this.currentAnimation.frameCount;
