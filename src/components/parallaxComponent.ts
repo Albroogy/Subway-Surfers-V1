@@ -1,29 +1,5 @@
 import { Component, Entity } from "../entityComponent";
-import { canvas, context } from "../global";
-import { ImageComponent } from "./imageComponent";
 import PositionComponent from "./positionComponent";
-
-// export class ParallaxImage {
-//     public image: HTMLImageElement;
-//     public x: number;
-//     public y: number;
-//     public width: number;
-//     public height: number;
-
-//     constructor(imageURL: string, width: number, height: number) {
-//         this.image = new Image();
-//         this.image.src = imageURL;
-//         this.x = canvas.width/2;
-//         this.y = canvas.width/2;
-//         this.width = width;
-//         this.height = height; 
-//     }
-//     public draw(): void{
-//         context.drawImage(this.image, this.x - this.image.width / 2, this.y - this.image.height / 2, 
-//             this.image.width, this.image.height
-//         );
-//     }
-// }
 
 export class ParallaxComponent extends Component{ 
     public static COMPONENT_ID: string = "Parallax";

@@ -14,10 +14,7 @@ export enum DragonState {
 }
 
 const DRAGON: Record <string, number> = {
-    SIGHT: 300,
-    WIDTH: 50,
-    HEIGHT: 50,
-    SPAWN_LOCATION: -50
+    SIGHT: 300
 }
 
 export default class DragonComponent extends Component {
@@ -33,7 +30,7 @@ const playerPositionComponent: PositionComponent | null = player.getComponent<Po
 
 const onFlyingActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
-    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying]
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying];
 }
 const onFlyingUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -63,7 +60,7 @@ const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState |
         return;
     }
     else if (checkTime(1000, stateStart)){
-        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(2000, stateStart)){
+        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(3000, stateStart)){
             return DragonState.Flying;
         }
     }
@@ -80,7 +77,7 @@ export const DragonAnimationNames = {
 }
 
 export const DragonAnimationInfo: AnimationInfo = {
-    animationCount: 4, 
+    animationCount: 1, 
     animations: {
         [DragonAnimationNames.Flying]: {
             rowIndex: 0,
