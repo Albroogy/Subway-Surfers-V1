@@ -117,6 +117,10 @@ export class Inventory{
         if (this.equippedItems.Armor != null){
             stats.Lives = 2;
         }
+        else {
+            stats.Lives = 1;
+            // why do I need this code for it to work / not be undefined?
+        }
         if (this.equippedItems.Boots != null){
             stats.RollSpeed = 500;
         }

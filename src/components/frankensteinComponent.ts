@@ -64,6 +64,7 @@ export const FrankensteinAnimationNames = {
 
 export const FrankensteinAnimationInfo: AnimationInfo = {
     animationCount: 21, 
+    maxAnimationFrameCount: 13,
     animations: {
         [FrankensteinAnimationNames.WalkingDown]: {
             rowIndex: 10,
@@ -73,11 +74,6 @@ export const FrankensteinAnimationInfo: AnimationInfo = {
         [FrankensteinAnimationNames.Hitting]: {
             rowIndex: 6,
             frameCount: 8,
-            framesPerSecond: 8
-        },
-        [FrankensteinAnimationNames.Bow]: {
-            rowIndex: 16,
-            frameCount: 13,
             framesPerSecond: 8
         }
     }

@@ -6,6 +6,7 @@ import PositionComponent from "./positionComponent";
 export type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
 export class AnimationInfo {
     public animationCount: number = 0;
+    public maxAnimationFrameCount: number = 0;
     public animations: Record<string, SingleAnimationInfo> = {};
 }
 
@@ -27,13 +28,14 @@ export class AnimatedComponent extends Component {
         this.spritesheet.onload = () => {
             this._hasSpritesheetLoaded = true;
             
-            let maxAnimationFrameCount = 0;
-            for (const anim of Object.values(this.animationInfo.animations)) {
-                if (maxAnimationFrameCount < anim.frameCount) {
-                    maxAnimationFrameCount = anim.frameCount;
-                }
-            }
-            this._frameW = this.spritesheet.width / maxAnimationFrameCount;
+            // let maxAnimationFrameCount = 0;
+            // for (const anim of Object.values(this.animationInfo.animations)) {
+            //     if (maxAnimationFrameCount < anim.frameCount) {
+            //         maxAnimationFrameCount = anim.frameCount;
+            //     }
+            // }
+            
+            this._frameW = this.spritesheet.width / animationInfo.maxAnimationFrameCount;
             this._frameH = this.spritesheet.height / this.animationInfo.animationCount;
         }
         this.spritesheet.src = spritesheetURL;

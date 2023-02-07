@@ -78,6 +78,7 @@ export const DragonAnimationNames = {
 
 export const DragonAnimationInfo: AnimationInfo = {
     animationCount: 4, 
+    maxAnimationFrameCount: 4,
     animations: {
         [DragonAnimationNames.Flying]: {
             rowIndex: 0,

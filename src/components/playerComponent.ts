@@ -119,6 +119,7 @@ let lastClick = Date.now();
 // Player Animation Information
 export const playerSpearAnimationInfo: AnimationInfo = {
     animationCount: 21, 
+    maxAnimationFrameCount: 13,
     animations: {
         [PlayerAnimationName.RunningBack]: {
             rowIndex: 8,
@@ -154,6 +155,7 @@ export const playerSpearAnimationInfo: AnimationInfo = {
 };
 export const playerBowAnimationInfo: AnimationInfo = {
     animationCount: 21, 
+    maxAnimationFrameCount: 13,
     animations: {
         [PlayerAnimationName.RunningBack]: {
             rowIndex: 8,

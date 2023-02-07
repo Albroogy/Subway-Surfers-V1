@@ -112,6 +112,7 @@ export const MinotaurAnimationNames = {
 
 export const MinotaurAnimationInfo: AnimationInfo = {
     animationCount: 21, 
+    maxAnimationFrameCount: 13,
     animations: {
         [MinotaurAnimationNames.WalkingDown]: {
             rowIndex: 10,
@@ -131,11 +132,6 @@ export const MinotaurAnimationInfo: AnimationInfo = {
         [MinotaurAnimationNames.Hitting]: {
             rowIndex: 4,
             frameCount: 8,
-            framesPerSecond: 8
-        },
-        [MinotaurAnimationNames.Bow]: {
-            rowIndex: 16,
-            frameCount: 13,
             framesPerSecond: 8
         }
     }
