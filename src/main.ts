@@ -17,7 +17,7 @@ import { GameState, gameState } from "./components/gameComponent";
 
 
 // ORIGINAL_VALUES
-const backgroundMusic = new Audio("track1");
+const backgroundMusic = new Audio("track1.mp3");
 const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
 // Obstacle Information
@@ -93,7 +93,6 @@ function runFrame() {
     // be called one more time
     requestAnimationFrame(runFrame);
     gameEntity.update(deltaTime, gameSpeed);
-    console.log(canvas.width, canvas.height);
 }
 
 function update(deltaTime: number, gameSpeed: number){
@@ -109,7 +108,7 @@ function update(deltaTime: number, gameSpeed: number){
     changeSpawnDelay(SPAWN_INCREMENT);
     changeFallSpeed(FALL_INCREMENT)
     scoreIncreaseSpeed += SCORE_INCREMENT;
-    console.log(`This is the score increase speed: ${scoreIncreaseSpeed}`);
+    // console.log(`This is the score increase speed: ${scoreIncreaseSpeed}`);
 }
 
 
@@ -125,6 +124,7 @@ function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     
     if (gameState != GameState.InventoryMenu){
+        gameEntity.draw();
         for (const obj of objects) {
             obj.draw();
         }

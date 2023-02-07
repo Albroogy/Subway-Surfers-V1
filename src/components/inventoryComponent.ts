@@ -118,7 +118,7 @@ export class Inventory{
             stats.Lives = 2;
         }
         if (this.equippedItems.Boots != null){
-            stats.RollSpeed = 600;
+            stats.RollSpeed = 500;
         }
     }
 }

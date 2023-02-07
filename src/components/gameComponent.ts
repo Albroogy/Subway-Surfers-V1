@@ -6,9 +6,11 @@ export enum GameState {
     Playing = "playing",
     InventoryMenu = "inventoryMenu"
 }
-export let gameState: Object = GameState.Playing;
+export let gameState: GameState = GameState.Playing;
 
 export default class GameComponent extends Component {
+    public static COMPONENT_ID: string = "Game";
+
     public onAttached(): void {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<GameState>>(StateMachineComponent.COMPONENT_ID)!;
         stateMachineComponent.stateMachine.addState(GameState.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
