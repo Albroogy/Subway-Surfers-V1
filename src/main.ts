@@ -38,7 +38,7 @@ const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping, 
 
 // Changeble variables
 let lastTime: number = Date.now();
-let lastSpawn: number = Date.now(); //This is in milliseconds
+let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
 let gold: number = 0;
 
 
@@ -79,7 +79,7 @@ function runFrame() {
         gameSpeed = 1;
     }
     else{
-        gameSpeed = 0.5;
+        gameSpeed = 0.2;
     }
     // update state
     if (gameState == GameState.Playing){
@@ -352,6 +352,8 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             else {
                 if (!playerComponent.attacking || objects[i].name == EntityName.Fireball){
                     playerComponent.stats.Lives -= 1;
+                    var audio = new Audio('assets/audio/playerHit.mp3');
+                    audio.play();
                 }
             }
             objects.splice(i,1);

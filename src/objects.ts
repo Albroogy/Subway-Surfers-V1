@@ -3,7 +3,7 @@ import { Entity } from "./entityComponent";
 const ORIGINAL_FALL_SPEED: number = 150;
 export let fallSpeed: number = ORIGINAL_FALL_SPEED;
 
-export const ORIGINAL_SPAWN_DELAY: number = 1000;
+export const ORIGINAL_SPAWN_DELAY: number = 1500;
 export let spawnDelay: number = ORIGINAL_SPAWN_DELAY;
 
 export let score: number = 0;

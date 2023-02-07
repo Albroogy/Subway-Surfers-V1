@@ -111,7 +111,7 @@ const StartingStats: Record <string, number> = {
     Lives: 1,
     RollSpeed: 400
 }
-const PLAYER_MOVEMENT_COOLDOWN: number = 100;
+const PLAYER_MOVEMENT_COOLDOWN: number = 10;
 const CLICK_DELAY: number = 300; //This is in milliseconds
 
 let lastClick = Date.now();
@@ -170,7 +170,7 @@ export const playerBowAnimationInfo: AnimationInfo = {
         [PlayerAnimationName.Ducking]: {
             rowIndex: 16,
             frameCount: 13,
-            framesPerSecond: 7
+            framesPerSecond: 14
         },
         [PlayerAnimationName.RollingLeft]: {
             rowIndex: 9,
