@@ -14,7 +14,7 @@ export enum DragonState {
 }
 
 const DRAGON: Record <string, number> = {
-    SIGHT: 300
+    SIGHT: 300,
 }
 
 export default class DragonComponent extends Component {
@@ -30,7 +30,7 @@ const playerPositionComponent: PositionComponent | null = player.getComponent<Po
 
 const onFlyingActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
-    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying];
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying]
 }
 const onFlyingUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -60,7 +60,7 @@ const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState |
         return;
     }
     else if (checkTime(1000, stateStart)){
-        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(3000, stateStart)){
+        if (playerPositionComponent.x != positionComponent.x && playerPositionComponent.y <= positionComponent.y + DRAGON.SIGHT && playerPositionComponent.y > positionComponent.y || checkTime(2000, stateStart)){
             return DragonState.Flying;
         }
     }
@@ -77,7 +77,7 @@ export const DragonAnimationNames = {
 }
 
 export const DragonAnimationInfo: AnimationInfo = {
-    animationCount: 1, 
+    animationCount: 4, 
     animations: {
         [DragonAnimationNames.Flying]: {
             rowIndex: 0,
@@ -104,6 +104,6 @@ function generateFireball(positionComponent: PositionComponent){
 
     objects.push(fireball);
 
-    //var audio = new Audio('/assets/audio/dragon-roar.mp3');
-    //audio.play();
+    var audio = new Audio('assets/audio/dragon-roar.mp3');
+    audio.play();
 }

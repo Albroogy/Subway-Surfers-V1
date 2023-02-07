@@ -14,6 +14,7 @@ import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
 import { GameState, gameState } from "./components/gameComponent";
+import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
 
 
 // ORIGINAL_VALUES
@@ -30,11 +31,6 @@ enum obstacleColors {
     Orange,
     Brown,
     Black
-}
-const spawnType: Record <string, string> = {
-    generateObstacle: "generateObstacle",
-    generateCoin: "generateCoin",
-    generateRect: "generateRect"
 }
 
 const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping, "Invincible"];
@@ -209,7 +205,7 @@ function generateCoin(){
 
 function generateDragon(){
     const dragon: Entity = new Entity(EntityName.Dragon);
-    dragon.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 50, 50, 0));
+    dragon.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
     dragon.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/dragon.png", DragonAnimationInfo));
     dragon.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     dragon.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
@@ -220,17 +216,42 @@ function generateDragon(){
     )
 }
 
+function generateMinotaur(){
+    const MINOTAUR_WIDTH: number = 75;
+    const MINOTAUR_HEIGHT: number = 75;
+
+    const minotaur: Entity = new Entity(EntityName.Minotaur);
+    minotaur.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, MINOTAUR_WIDTH, MINOTAUR_HEIGHT, 0));
+    minotaur.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/minotaur.png", MinotaurAnimationInfo));
+    minotaur.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    minotaur.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
+    minotaur.addComponent(MinotaurComponent.COMPONENT_ID, new MinotaurComponent());
+
+    objects.push(
+        minotaur
+    )
+}
+
+const SpawnType = {
+    GenerateDragon: "generateDragon",
+    GenerateCoin: "generateCoin",
+    GenerateMinotaur: "generateMinotaur"
+}
+
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
-        let generateType: string = Object.keys(spawnType)[Math.floor(Math.random() * 2)];
-        if (generateType == spawnType.generateObstacle){
+        let generateType: string = Object.values(SpawnType)[Math.floor(Math.random() * 3)];
+        if (generateType == SpawnType.GenerateDragon){
             generateDragon();
-            console.log(objects);
         }
-        else if (generateType == spawnType.generateCoin){
+        else if (generateType == SpawnType.GenerateCoin){
             generateCoin();
         }
+        else if (generateType == SpawnType.GenerateMinotaur){
+            generateMinotaur();
+        }
         lastSpawn = Date.now();
+        console.log(generateType);
     }
 }
 function destroyCollidingObjects(object1: Entity, object2: Entity){
@@ -269,12 +290,14 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             const currentObject1: Entity = objects[i] as Entity;
             // When I removed the current object lines, the game sometimes bugged out when arrows collided with objects, so I'm keeping this code in.
             for (let j = 0; j < objects.length; j++){
-                if (objects[j].name == EntityName.Dragon){
+                if (objects[j].name == EntityName.Dragon || objects[j].name == EntityName.Minotaur){
                     const currentObject2: Entity = objects[j] as Entity;
                     console.assert(currentObject1 != undefined);
                     console.assert(currentObject2 != undefined);
                     if (CollisionSystem.collideObjects(currentObject1, currentObject2)){
                         destroyCollidingObjects(objects[i], objects[j]);
+                        var audio = new Audio('assets/audio/arrow-release.mp3');
+                        audio.play();
                     }
                 continue;
                 // For effiency's sake, should I split the objects array into 3 lane arrays? 

@@ -14,7 +14,7 @@ export enum MinotaurState {
 
 const MINOTAUR: Record <string, number> = {
     SIGHT: 300,
-    JUMPING_SPEED: 200,
+    JUMPING_SPEED: 250,
     WALKING_SPEED: 150
 }
 
@@ -105,11 +105,12 @@ export const MinotaurAnimationNames = {
     WalkingDown: "walkingDown",
     WalkingUp: "walkingUp",
     Jumping: "jumping",
-    Hitting: "hitting"
+    Hitting: "hitting",
+    Bow: "bow"
 }
 
 export const MinotaurAnimationInfo: AnimationInfo = {
-    animationCount: 4, 
+    animationCount: 21, 
     animations: {
         [MinotaurAnimationNames.WalkingDown]: {
             rowIndex: 10,
@@ -129,6 +130,11 @@ export const MinotaurAnimationInfo: AnimationInfo = {
         [MinotaurAnimationNames.Hitting]: {
             rowIndex: 4,
             frameCount: 8,
+            framesPerSecond: 8
+        },
+        [MinotaurAnimationNames.Bow]: {
+            rowIndex: 16,
+            frameCount: 13,
             framesPerSecond: 8
         }
     }

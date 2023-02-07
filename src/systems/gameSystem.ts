@@ -13,10 +13,10 @@ const TEXTURE_HEIGHT: number = 1080;
 let backgroundTextures: Array<Array<Entity>> = [];
 for (let i = 0; i < textureCount; i++){
     const texture1 = new Entity("ParallaxImage");
-    texture1.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(-TEXTURE_WIDTH / 2, canvas.height/2, 1920, 1080, 0));
+    texture1.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(0, canvas.height/2, 1920, 1080, 0));
     texture1.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(`assets/images/PARALLAX/layer_0${Math.abs(textureCount - i)}.png`, 0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT));
     const texture2 = new Entity("ParallaxImage");
-    texture2.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(TEXTURE_WIDTH / 2, canvas.height/2, 1920, 1080, 0));
+    texture2.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width, canvas.height/2, 1920, 1080, 0));
     texture2.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(`assets/images/PARALLAX/layer_0${Math.abs(textureCount - i)}.png`, 0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT));
     const layer = [texture1, texture2];
     backgroundTextures.push(layer);

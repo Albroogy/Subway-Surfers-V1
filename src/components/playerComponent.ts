@@ -282,10 +282,6 @@ const onDuckingDeactivation = () => {
         playerComponent!.attacking = false;
     }
     if (playerComponent!.weapon == playerComponent!.weapons.Bow){
-        var audio = new Audio('assets/audio/arrow-release.mp3');
-        audio.play();
-    }
-    if (playerComponent!.weapon == playerComponent!.weapons.Bow){
         generateArrow(positionComponent!);
     }
 }
@@ -344,7 +340,7 @@ function generateArrow(positionComponent: PositionComponent){
     const ARROW: Record <string, number | string> = {
         WIDTH: 7.5,
         HEIGHT: 45,
-        SPEED: 150,
+        SPEED: 200,
         DIRECTION: -1,
         URL: "assets/images/arrow.png"
     }
@@ -354,9 +350,6 @@ function generateArrow(positionComponent: PositionComponent){
     arrow.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(ARROW.SPEED as number, ARROW.DIRECTION as number));
 
     objects.push(arrow);
-
-    //var audio = new Audio('/assets/audio/dragon-roar.mp3');
-    //audio.play();
 }
 
 export function resetGame(){
