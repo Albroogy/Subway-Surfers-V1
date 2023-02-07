@@ -190,9 +190,6 @@ export const playerBowAnimationInfo: AnimationInfo = {
 
 // Figure out how to combine these two animation info dictionaries
 
-// Player Animation
-// export const playerAnimated = new PlayerCharacter(canvas.width/2, canvas.width/3, weapons.Bow, playerBowAnimationInfo, 2, PlayerState.Running, PLAYER.WIDTH, PLAYER.HEIGHT, StartingItems, StartingStats, weapons);
-
 const PLAYER: Record <string, number> = {
     WIDTH: 100,
     HEIGHT: 100,
@@ -269,10 +266,6 @@ const onDuckingActivation = () => {
     animatedComponent!.playAnimation(PlayerAnimationName.Ducking);
     playerComponent!.state = PlayerState.Ducking;
     animatedComponent!.currentAnimationFrame = 0;
-    if (playerComponent!.weapon == playerComponent!.weapons.Bow){
-        var audio = new Audio('assets/audio/arrow-release.mp3');
-        audio.play();
-    }
 }
 const onDuckingUpdate = () => { 
     if (playerComponent!.weapon == playerComponent!.weapons.Spear){
@@ -285,12 +278,16 @@ const onDuckingUpdate = () => {
     }
 }
 const onDuckingDeactivation = () => {
-    // if (playerComponent!.weapon == playerComponent!.weapons.Bow){}
-    //Figure out a way to put this 1 frame before the animation ends to make it seems less akward
     if (playerComponent!.attacking != false){
         playerComponent!.attacking = false;
     }
-    generateArrow(positionComponent!);
+    if (playerComponent!.weapon == playerComponent!.weapons.Bow){
+        var audio = new Audio('assets/audio/arrow-release.mp3');
+        audio.play();
+    }
+    if (playerComponent!.weapon == playerComponent!.weapons.Bow){
+        generateArrow(positionComponent!);
+    }
 }
 
 const onRollActivation = () => {

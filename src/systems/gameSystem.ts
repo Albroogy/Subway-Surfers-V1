@@ -8,7 +8,7 @@ export enum GameState {
 }
 export let gameState: Object = GameState.Playing;
 
-//Adding the states for gameSM
+// Adding the states for gameSM
 const onPlayingActivation = () => {
     gameState = GameState.Playing;
     console.log(GameState.Playing);

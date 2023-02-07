@@ -1,11 +1,11 @@
-import {player, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
+import {player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
 import { AnimatedComponent } from "./components/animatedComponent";
-import DragonComponent, { DragonAnimationInfo, DragonAnimationNames } from "./components/dragonComponent";
+import DragonComponent, { DragonAnimationInfo} from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import { gameState, GameState, gameSM } from "./systems/gameSystem";
@@ -36,8 +36,7 @@ const spawnType: Record <string, string> = {
     generateRect: "generateRect"
 }
 
-const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping,"Invincible"];
-let entities: Array<Entity> = [];
+const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping, "Invincible"];
 
 // Changeble variables
 let lastTime: number = Date.now();
@@ -61,13 +60,10 @@ let gold: number = 0;
 //    - let's pick some art
 //    - turn at least 1 type of obstacle into an animated spritesheet
 // Bugs to fix:
-// - restarting game causes the player to disappear
-// - too many fireballs from the dragons
 // - check the inventory system
-// - fix bug that objects[i].name = undefined. Seems to happen when player dies
-// - Make Lives text represent player lives correctly
 // - Draw coin
 // - Fix player spear animation info
+// - Arrow and sound effect not in sync with animation
 
 
 //Start Loop
@@ -96,6 +92,7 @@ function runFrame() {
     // be called one more time
     requestAnimationFrame(runFrame);
     gameSM.update(deltaTime, playerCharacter);
+    console.log(canvas.width, canvas.height);
 }
 
 function update(deltaTime: number, gameSpeed: number){
@@ -104,10 +101,6 @@ function update(deltaTime: number, gameSpeed: number){
     const SCORE_INCREMENT: number = 0.001;
     let scoreIncreaseSpeed: number = 1;
     addScore(scoreIncreaseSpeed);
-
-    // for (const entity of entities) {
-    //     entity.update(deltaTime, gameSpeed);
-    // }
 
     checkSpawn();
     objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
@@ -172,14 +165,14 @@ function draw() {
     }
     else{
         // draw player inventories
-        if (playerCharacter.getComponent(InventoryComponent.COMPONENT_ID) != null) {
+        if (playerCharacter.getComponent(InventoryComponent.COMPONENT_ID) == null) {
             return;
         }
+
         const inventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
 
-        for (const inventory in inventoryComponent) {
-            // inventory.draw();
-            console.log();
+        for (const inventory of inventoryComponent.inventories) {
+            inventory.draw();
         }
 
     }
@@ -231,6 +224,7 @@ function checkSpawn(){
         let generateType: string = Object.keys(spawnType)[Math.floor(Math.random() * 2)];
         if (generateType == spawnType.generateObstacle){
             generateDragon();
+            console.log(objects);
         }
         else if (generateType == spawnType.generateCoin){
             generateCoin();

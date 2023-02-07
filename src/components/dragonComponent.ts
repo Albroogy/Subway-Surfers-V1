@@ -26,7 +26,6 @@ export default class DragonComponent extends Component {
         stateMachineComponent.stateMachine.addState(DragonState.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
         stateMachineComponent.stateMachine.addState(DragonState.Firing, onFiringActivation, onFiringUpdate, onFiringDeactivation);
         stateMachineComponent.activate(DragonState.Flying);
-        // stateMachineComponent.initialState = DragonState.Flying;
     }
 }
 
