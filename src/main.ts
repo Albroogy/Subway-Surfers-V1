@@ -17,7 +17,7 @@ import { GameState, gameState } from "./components/gameComponent";
 
 
 // ORIGINAL_VALUES
-const backgroundMusic = new Audio("track1.mp3");
+const backgroundMusic = new Audio("assets/audio/track1.mp3");
 const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
 // Obstacle Information
