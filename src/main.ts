@@ -8,11 +8,12 @@ import { AnimatedComponent } from "./components/animatedComponent";
 import DragonComponent, { DragonAnimationInfo} from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
-import { gameState, GameState, gameSM } from "./systems/gameSystem";
+import { gameEntity } from "./systems/gameSystem";
 import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, objects, score, spawnDelay} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
+import { GameState, gameState } from "./components/gameComponent";
 
 
 // ORIGINAL_VALUES
@@ -91,7 +92,7 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
-    gameSM.update(deltaTime, playerCharacter);
+    gameEntity.update(deltaTime, gameSpeed);
     console.log(canvas.width, canvas.height);
 }
 

@@ -1,57 +1,28 @@
-import { StateMachine } from "../components/stateMachineComponent";
+import GameComponent from "../components/gameComponent";
+import { ParallaxComponent, ParallaxImage } from "../components/parallaxComponent";
+import StateMachineComponent, { StateMachine } from "../components/stateMachineComponent";
 import { Entity } from "../entityComponent";
-import { allPressedKeys, KEYS } from "../global";
+import { allPressedKeys, EntityName, KEYS } from "../global";
 
-export enum GameState {
-    Playing = "playing",
-    InventoryMenu = "inventoryMenu"
-}
-export let gameState: Object = GameState.Playing;
+const textureCount: number = 8;
 
-// Adding the states for gameSM
-const onPlayingActivation = () => {
-    gameState = GameState.Playing;
-    console.log(GameState.Playing);
+let backgroundTextures: Array<ParallaxImage> = [];
+for (let i = 1; i <= textureCount; i++){
+    const texture = new ParallaxImage(`layer_0${i}_1920 x 1080`, 1920, 1080);
+    backgroundTextures.push(texture)
 }
-const onPlayingUpdate = (): GameState | undefined => {
-    if (allPressedKeys[KEYS.SpaceBar]){
-        return GameState.InventoryMenu;
-    }
-}
-const onPlayingDeactivation = () => {
-}
-const onInventoryMenuActivation = () => {
-    gameState = GameState.InventoryMenu;
-    // EventListener to see if mouse clicked
-    document.addEventListener('click', mouseClicked);
-    let mouseX = null;
-    let mouseY = null;
-    function mouseClicked(e: { clientX: number; clientY: number; }) {
-        // Maybe give the variable e a better name?
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        console.log(`${e.clientX} ${e.clientY}`);
-        // if (equippedInventory.isColliding(e.clientX, e.clientY)){
-            
-        // }
-    }
-    console.log(GameState.InventoryMenu);
-}
-const onInventoryMenuUpdate = (): GameState | undefined => {
-    if (allPressedKeys[KEYS.Escape]){
-        return GameState.Playing;
-    }
-}
-const onInventoryMenuDeactivation = () => {
-    // document.removeEventListener('click', mouseClicked);
-    // mouseClicked is not defined
-}
+
+export const gameEntity = new Entity(EntityName.GameEntity);
+gameEntity.addComponent(ParallaxComponent.COMPONENT_ID, new ParallaxComponent(backgroundTextures, 150));
+gameEntity.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent);
+gameEntity.addComponent(GameComponent.COMPONENT_ID, new GameComponent)
+
 
 // Setting up state machine
-export const gameSM = new StateMachine<GameState>();
-gameSM.addState(GameState.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
-gameSM.addState(GameState.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
+// export const gameSM = new StateMachine<GameState>();
+// gameSM.addState(GameState.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
+// gameSM.addState(GameState.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
 
-// Activating state machines
-gameSM.activeState = gameSM.states[GameState.Playing];
-gameSM.activeState.onActivation(null as unknown as Entity);
+// // Activating state machines
+// gameSM.activeState = gameSM.states[GameState.Playing];
+// gameSM.activeState.onActivation(null as unknown as Entity);
