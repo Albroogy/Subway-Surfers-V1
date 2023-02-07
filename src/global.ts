@@ -39,7 +39,8 @@ export enum EntityName{
     Minotaur = "minotaur",
     Coin = "coin",
     RectEnemy = "rectEnemy",
-    GameEntity = "gameEntity"
+    GameEntity = "gameEntity",
+    Frankenstein = "frankenstein"
 }
 
 export let timeStart: number = Date.now();

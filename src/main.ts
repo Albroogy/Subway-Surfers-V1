@@ -15,6 +15,7 @@ import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
 import { GameState, gameState } from "./components/gameComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
+import FrankensteinComponent from "./components/frankensteinComponent";
 
 
 // ORIGINAL_VALUES
@@ -232,15 +233,32 @@ function generateMinotaur(){
     )
 }
 
+function generateFrankenstein(){
+    const FRANKENSTEIN_WIDTH: number = 100;
+    const FRANKENSTEIN_HEIGHT: number = 100;
+
+    const frankenstein: Entity = new Entity(EntityName.Frankenstein);
+    frankenstein.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, FRANKENSTEIN_WIDTH, FRANKENSTEIN_HEIGHT, 0));
+    frankenstein.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/frankenstein.png", MinotaurAnimationInfo));
+    frankenstein.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    frankenstein.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
+    frankenstein.addComponent(FrankensteinComponent.COMPONENT_ID, new FrankensteinComponent());
+
+    objects.push(
+        frankenstein
+    )
+}
+
 const SpawnType = {
     GenerateDragon: "generateDragon",
     GenerateCoin: "generateCoin",
-    GenerateMinotaur: "generateMinotaur"
+    GenerateMinotaur: "generateMinotaur",
+    GenerateFrankenstein: "generateFrankenstein"
 }
 
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
-        let generateType: string = Object.values(SpawnType)[Math.floor(Math.random() * 3)];
+        let generateType: string = Object.values(SpawnType)[Math.floor(Math.random() * 4)];
         if (generateType == SpawnType.GenerateDragon){
             generateDragon();
         }
@@ -250,8 +268,11 @@ function checkSpawn(){
         else if (generateType == SpawnType.GenerateMinotaur){
             generateMinotaur();
         }
+        else if (generateType == SpawnType.GenerateFrankenstein){
+            generateFrankenstein();
+        }
         lastSpawn = Date.now();
-        console.log(generateType);
+        // console.log(generateType);
     }
 }
 function destroyCollidingObjects(object1: Entity, object2: Entity){
@@ -290,12 +311,26 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             const currentObject1: Entity = objects[i] as Entity;
             // When I removed the current object lines, the game sometimes bugged out when arrows collided with objects, so I'm keeping this code in.
             for (let j = 0; j < objects.length; j++){
-                if (objects[j].name == EntityName.Dragon || objects[j].name == EntityName.Minotaur){
+                if (objects[j].name == EntityName.Dragon || objects[j].name == EntityName.Minotaur || objects[j].name == EntityName.Frankenstein){
                     const currentObject2: Entity = objects[j] as Entity;
                     console.assert(currentObject1 != undefined);
                     console.assert(currentObject2 != undefined);
                     if (CollisionSystem.collideObjects(currentObject1, currentObject2)){
-                        destroyCollidingObjects(objects[i], objects[j]);
+                        if (objects[j].name != EntityName.Frankenstein){
+                            destroyCollidingObjects(objects[i], objects[j]);
+                        }
+                        else {
+                            const frankensteinComponent = objects[j].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
+                            frankensteinComponent.health -= 1;
+                            if (frankensteinComponent.health < 1){
+                                destroyCollidingObjects(objects[i], objects[j]);
+                            }
+                            else {
+                                objects.splice(i,1);
+                                const animatedComponent = objects[j].getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+                                animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png"
+                            }
+                        }
                         var audio = new Audio('assets/audio/arrow-release.mp3');
                         audio.play();
                     }

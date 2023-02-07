@@ -55,10 +55,11 @@ const onJumpingActivation = (currentObject: Entity) => {
 }
 const onJumpingUpdate = (deltatime: number, currentObject: Entity): MinotaurState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
-    else if (playerPositionComponent.y < positionComponent.y - 200){
+    else if (playerPositionComponent.y < positionComponent.y - 200 && animatedComponent.currentAnimationFrame == 5){
         return MinotaurState.WalkingUp;
     }
 }
@@ -77,7 +78,7 @@ const onWalkingUpUpdate = (deltatime: number, currentObject: Entity): MinotaurSt
     if (playerPositionComponent == null){
         return;
     }
-    else if (playerPositionComponent.x == positionComponent.x && playerPositionComponent.y >= positionComponent.y - 100){
+    else if (playerPositionComponent.x == positionComponent.x && playerPositionComponent.y >= positionComponent.y - 100 && playerPositionComponent.y < positionComponent.y){
         return MinotaurState.Hitting;
     }
 }
