@@ -243,7 +243,7 @@ const onRunningUpdate = (deltatime: number, currentObject: Entity): PlayerState 
     else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
         return PlayerState.Jumping;
     }
-    if (playerComponent!.stats.Lives <= 0){
+    if (playerComponent!.stats.Lives <= 0 && checkTime(200, stateStart) || playerComponent!.stats.Lives <= -3){
         return PlayerState.Dying;
         // Game mechanic: As long as you keep on moving, you will never die, no matter your lives count.
     }

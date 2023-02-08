@@ -14,7 +14,7 @@ export enum MinotaurState {
 
 const MINOTAUR: Record <string, number> = {
     SIGHT: 300,
-    JUMPING_SPEED: 250,
+    JUMPING_SPEED: 300,
     WALKING_SPEED: 150
 }
 

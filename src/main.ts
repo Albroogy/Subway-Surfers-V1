@@ -79,7 +79,7 @@ function runFrame() {
         gameSpeed = 1;
     }
     else{
-        gameSpeed = 0.2;
+        gameSpeed = 0.3;
     }
     // update state
     if (gameState == GameState.Playing){
@@ -159,7 +159,7 @@ function draw() {
         else{
             context.fillStyle = "red";
             context.font = "20px Arial";
-            context.fillText("CERTAIN DEATH (MOVE TO STAY ALIVE)", LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
+            context.fillText("CERTAIN DEATH (MOVE TO STAY ALIVE. DO NOT GET HIT)", LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
     }
     else{
@@ -276,10 +276,6 @@ function checkSpawn(){
         // console.log(generateType);
     }
 }
-function destroyCollidingObjects(object1: Entity, object2: Entity){
-    objects.splice(objects.indexOf(object1),1);
-    objects.splice(objects.indexOf(object2),1);
-}
 
 function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: number){
     for (let i = 0; i < objects.length; i++){
@@ -327,9 +323,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                                 destroyCollidingObjects(objects[i], objects[j]);
                             }
                             else {
-                                objects.splice(i,1);
-                                const animatedComponent = objects[j].getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
-                                animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png"
+                                dealDamageToCollidingObjects(objects[i], objects[j])
                             }
                         }
                         var audio = new Audio('assets/audio/arrow-release.mp3');
@@ -368,4 +362,14 @@ function outOfBoundsCheck(movementComponent: MovementComponent, positionComponen
             return true;
         }
         return false;
+}
+
+function dealDamageToCollidingObjects(object1: Entity, object2: Entity){
+    objects.splice(objects.indexOf(object1),1);
+    const animatedComponent = object2.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
+}
+function destroyCollidingObjects(object1: Entity, object2: Entity){
+    objects.splice(objects.indexOf(object1),1);
+    objects.splice(objects.indexOf(object2),1);
 }
