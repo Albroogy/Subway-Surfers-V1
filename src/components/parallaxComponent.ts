@@ -72,6 +72,5 @@ export class ParallaxComponent extends Component{
             ); // left part
         }
         context.restore();
-        console.log(this._textures);
     }
 }

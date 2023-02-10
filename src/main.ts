@@ -9,7 +9,7 @@ import DragonComponent, { DragonAnimationInfo} from "./components/dragonComponen
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import { gameEntity } from "./systems/gameSystem";
-import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, objects, score, spawnDelay} from "./objects"
+import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, images, objects, score, spawnDelay} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
@@ -171,6 +171,9 @@ function draw() {
 
         for (const inventory of inventoryComponent.inventories) {
             inventory.draw();
+        }
+        for (const image of images) {
+            image.draw();
         }
 
     }

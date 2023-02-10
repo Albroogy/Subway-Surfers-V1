@@ -31,18 +31,18 @@ export class PlayerComponent extends Component{
 
     public stats: Record <string, number>;
     public weapon: string | null;
-    public weapons: Record <string, string>;
+    public weaponAnimations: Record <string, string>;
     public directionChange: number;
     public attacking: boolean;
     public lane: number;
     public state: PlayerState;
     public PREPARE_SPEAR_FRAMES: number;
 
-    constructor(lane: number, state: PlayerState, startingStats: Record <string, number>, weapons: Record <string, string>) {
+    constructor(lane: number, state: PlayerState, startingStats: Record <string, number>, weaponAnimations: Record <string, string>) {
         super();
         this.stats = startingStats;
         this.weapon = null;
-        this.weapons = weapons;
+        this.weaponAnimations = weaponAnimations;
         this.directionChange = 0;
         this.attacking = false;
         this.lane = lane;
@@ -79,11 +79,11 @@ export class PlayerComponent extends Component{
         const inventoryComponent = this._entity.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID);
         const equippedInventory = inventoryComponent!.inventories[0];
         if (equippedInventory.isEquipped(ItemList.Spear)){
-            this.weapon = this.weapons.Spear;
+            this.weapon = this.weaponAnimations.Spear;
             animated!.animationInfo = playerSpearAnimationInfo;
         }
         else if (equippedInventory.isEquipped(ItemList.Bow)){
-            this.weapon = this.weapons.Bow;
+            this.weapon = this.weaponAnimations.Bow;
             animated!.animationInfo = playerBowAnimationInfo;
         }
         if (this.weapon != null){
@@ -97,7 +97,7 @@ export class PlayerComponent extends Component{
     }
 }
 // Player Information
-const weapons: Record <string, string> = {
+const weaponAnimations: Record <string, string> = {
     Spear: "assets/images/player.png",
     Bow: "assets/images/playerBow.png"
 }
@@ -197,16 +197,21 @@ const PLAYER: Record <string, number> = {
     HEIGHT: 100,
 }
 
-export const equippedInventory = new Inventory(5, 3, 50, 200);
-export const itemsFound = new Inventory(10, 5, canvas.width/2, 0);
+const itemSize = {
+    width: 50,
+    height: 50
+}
+
+export const equippedInventory = new Inventory(5, 3, 200, 200, itemSize);
+export const itemsFound = new Inventory(10, 5, canvas.width * 3/4, 200, itemSize);
 
 export const playerInventory = [equippedInventory, itemsFound];
 
 export const player = new Entity("Player");
 
 player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.width/3, PLAYER.WIDTH, PLAYER.HEIGHT, 0));
-player.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weapons.Bow, playerBowAnimationInfo));
-player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingStats, weapons));
+player.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weaponAnimations.Bow, playerBowAnimationInfo));
+player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingStats, weaponAnimations));
 player.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent<PlayerState>());
 player.addComponent(InventoryComponent.COMPONENT_ID, new InventoryComponent(playerInventory));
 
@@ -270,7 +275,7 @@ const onDuckingActivation = () => {
     animatedComponent!.currentAnimationFrame = 0;
 }
 const onDuckingUpdate = () => { 
-    if (playerComponent!.weapon == playerComponent!.weapons.Spear){
+    if (playerComponent!.weapon == playerComponent!.weaponAnimations.Spear){
         if (animatedComponent!.currentAnimationFrame >= playerComponent!.PREPARE_SPEAR_FRAMES - OFFSET){
             playerComponent!.attacking = true;
         }
@@ -283,7 +288,7 @@ const onDuckingDeactivation = () => {
     if (playerComponent!.attacking != false){
         playerComponent!.attacking = false;
     }
-    if (playerComponent!.weapon == playerComponent!.weapons.Bow){
+    if (playerComponent!.weapon == playerComponent!.weaponAnimations.Bow){
         generateArrow(positionComponent!);
     }
 }

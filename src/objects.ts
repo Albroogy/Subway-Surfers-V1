@@ -10,6 +10,7 @@ export let score: number = 0;
 export let highScore: number = 0;
 
 export const objects: Array<Entity> = [];
+export const images: Array<Entity> = [];
 
 export function addScore(scoreIncreaseValue: number): void {
     score += scoreIncreaseValue;
