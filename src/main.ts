@@ -90,7 +90,6 @@ function runFrame() {
     // be called one more time
     requestAnimationFrame(runFrame);
     gameEntity.update(deltaTime, gameSpeed);
-    console.log(playerComponent.stats.lives)
 }
 
 function update(deltaTime: number, gameSpeed: number){

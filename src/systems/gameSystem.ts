@@ -6,10 +6,6 @@ import StateMachineComponent, { StateMachine } from "../components/stateMachineC
 import { Entity } from "../entityComponent";
 import { allPressedKeys, canvas, EntityName, KEYS } from "../global";
 
-const textureCount: number = 8;
-const TEXTURE_WIDTH: number = 1920;
-const TEXTURE_HEIGHT: number = 1080;
-
 // let backgroundTextures: Array<Array<Entity>> = [];
 // for (let i = 0; i < textureCount; i++){
 //     const texture1 = new Entity("ParallaxImage");
@@ -22,12 +18,22 @@ const TEXTURE_HEIGHT: number = 1080;
 //     backgroundTextures.push(layer);
 //     console.log(backgroundTextures);
 // }
+//for (let i = 0; i < textureCount; i++){
+//     const texture = new Entity("ParallaxImage");
+//     texture.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.height/2, 1920, 1080, 0));
+//     texture.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(`assets/images/PARALLAX/layer_0${Math.abs(i - textureCount)}.png`));
+//     backgroundTextures.push(texture);
+// }
 
-let backgroundTextures: Array<Entity> = [];
+let backgroundTextures: Array<HTMLImageElement> = [];
+
+const textureCount: number = 8;
+const TEXTURE_WIDTH: number = 1920;
+const TEXTURE_HEIGHT: number = 1080;
+
 for (let i = 0; i < textureCount; i++){
-    const texture = new Entity("ParallaxImage");
-    texture.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.height/2, 1920, 1080, 0));
-    texture.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(`assets/images/PARALLAX/layer_0${Math.abs(i - textureCount)}.png`));
+    const texture: HTMLImageElement = new Image(TEXTURE_WIDTH, TEXTURE_HEIGHT);
+    texture.src = `assets/images/PARALLAX/layer_0${Math.abs(i - textureCount)}.png`;
     backgroundTextures.push(texture);
 }
 
