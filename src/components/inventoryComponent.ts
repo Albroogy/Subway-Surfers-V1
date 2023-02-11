@@ -44,7 +44,7 @@ export class Inventory{
             }
         }
     }
-    private placeItemCheck(item: InventoryItem, cellRow: number, cellCol: number): boolean {
+    public placeItemCheck(item: InventoryItem, cellRow: number, cellCol: number): boolean {
         // Go through all the coordinates of the item and figure out if the cells are null;
         // If they are, place the item AND apply some effect to the player
         // If even 1 cell is taken, do nothing 
@@ -130,14 +130,14 @@ export class Inventory{
     }
     
     public searchInventory(slot: slot): InventoryItem | void{
-        if (this.cells[slot.column][slot.row] == null){
+        if (this.cells[slot.row][slot.column] == null){
             return;
         }
-        else if (this.cells[slot.column][slot.row]!.constructor == InventoryItem){
-            return this.cells[slot.column][slot.row]! as InventoryItem;
+        else if (this.cells[slot.row][slot.column]!.constructor == InventoryItem){
+            return this.cells[slot.row][slot.column]! as InventoryItem;
         }
         else{
-            return (this.cells[slot.column][slot.row]! as Record<string, InventoryItem>).inventoryItem;
+            return (this.cells[slot.row][slot.column]! as Record<string, InventoryItem>).inventoryItem;
         }
     }
     public hideItem(name: string){
