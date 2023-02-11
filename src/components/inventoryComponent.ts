@@ -79,10 +79,18 @@ export class Inventory{
             }
         }
     }
-    public removeItem(item: { width: number; height: number; }, cellRow: number, cellCol: number){
-        for (let i = 0; i < item.width; i++){
-            for (let j = 0; j < item.height; j++){
-                this.cells[cellRow + i][cellCol + j] = null;
+    public removeItem(item: InventoryItem){
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                if (this.cells[i][j] instanceof InventoryItem){
+                    if (this.cells[i][j]!.name == item.name){
+                        for (let a = 0; a < item.width; a++){
+                            for (let b = 0; b < item.height; b++){
+                                this.cells[a + i][b + j] = null;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -166,6 +174,15 @@ bootsImage.src = "assets/images/boots.png";
 export const ItemInfo: Record<string, Record<string, string>> = {
     Armor: {
         src: "assets/images/armor.png"
+    },
+    Bow: {
+        src: "assets/images/bow.png"
+    },
+    Boots: {
+        src: "assets/images/boots.png"
+    }, 
+    Spear: {
+        src: "assets/images/spear.png"
     }
 }
 

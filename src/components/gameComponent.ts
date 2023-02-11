@@ -1,9 +1,9 @@
 import { Component, Entity } from "../entityComponent";
-import { allPressedKeys, KEYS } from "../global";
+import { allPressedKeys, EntityName, KEYS } from "../global";
 import { images } from "../objects";
 import CollisionSystem from "../systems/collisionSystem";
 import { ImageComponent } from "./imageComponent";
-import { InventoryComponent, InventoryItem, ItemInfo } from "./inventoryComponent";
+import { Inventory, InventoryComponent, InventoryItem, ItemInfo } from "./inventoryComponent";
 import { player, PlayerComponent } from "./playerComponent";
 import PositionComponent from "./positionComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -60,7 +60,7 @@ let mouseDownBoolean = true;
 function mouseDown(e: { clientX: number; clientY: number; }) {
     mouseDownBoolean = true;
     
-    const mouse = {
+    let mouse = {
         x: e.clientX,
         y: e.clientY,
         width: 25,
@@ -70,24 +70,14 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
     const inventoryComponent = player.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
 
     for (const inventory of inventoryComponent.inventories){
-        if (
-            mouse.x - mouse.width/2 <= inventory.x + inventory.width * inventory.itemSize.width/2 &&
-            mouse.x + mouse.width/2 >= inventory.x - inventory.width * inventory.itemSize.width/2 &&
-            mouse.y + mouse.height/2 >= inventory.y - inventory.height * inventory.itemSize.height/2 &&
-            mouse.y - mouse.height/2 <= inventory.y + inventory.height * inventory.itemSize.height/2
-        ){
-            console.log(`${e.clientX} ${e.clientY}`);
-            const inventorySlotPosition: slot = {
-                column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2) / inventory.itemSize.height),
-                row: Math.floor((mouse.x - inventory.x + inventory.width * inventory.itemSize.width/2) / inventory.itemSize.width)
-            }
-            console.log(inventorySlotPosition);
+        if (checkMouseCollision(mouse, inventory)) {
+            const inventorySlotPosition = calculateInventorySlotPosition(mouse, inventory)
             const inventoryItem = inventory.searchInventory(inventorySlotPosition);
 
             if (inventoryItem!){
                 inventory.hideItem(inventoryItem.name);
 
-                const item = new Entity();
+                const item = new Entity(EntityName.ItemFrame);
                 item.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(mouse.x, mouse.y, inventoryItem.width * 50, inventoryItem.height * 50, 0));
                 item.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ItemInfo[inventoryItem.name].src));
                 images.push(item);
@@ -107,42 +97,46 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
 
                 function mouseUp(e: {clientX: number, clientY: number}){
                     mouseDownBoolean = false;
-                
-                    const mouse = {
-                        x: e.clientX,
-                        y: e.clientY,
-                        width: 25,
-                        height: 25
-                    }
-                
-                    const inventoryComponent = player.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
-                
+
+                    mouse.x = e.clientX;
+                    mouse.y = e.clientY; 
                     for (const placeInventory of inventoryComponent.inventories){
-                        if (
-                            mouse.x - mouse.width/2 <= placeInventory.x + placeInventory.width * placeInventory.itemSize.width/2 &&
-                            mouse.x + mouse.width/2 >= placeInventory.x - placeInventory.width * placeInventory.itemSize.width/2 &&
-                            mouse.y + mouse.height/2 >= placeInventory.y - placeInventory.height * placeInventory.itemSize.height/2 &&
-                            mouse.y - mouse.height/2 <= placeInventory.y + placeInventory.height * placeInventory.itemSize.height/2
-                        ){
-                            console.log(`${e.clientX} ${e.clientY}`);
-                            const newInventorySlotPosition: slot = {
-                                column: Math.floor((mouse.y - placeInventory.y + placeInventory.height * placeInventory.itemSize.height/2) / placeInventory.itemSize.height),
-                                row: Math.floor((mouse.x - placeInventory.x + placeInventory.width * placeInventory.itemSize.width/2) / placeInventory.itemSize.width)
-                            }
-                            console.log(newInventorySlotPosition);
+                        if (checkMouseCollision(mouse, placeInventory)) {
+                            const newInventorySlotPosition = calculateInventorySlotPosition2(mouse, placeInventory);
                             if (placeInventory.placeItemCheck(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column)){
+                                inventory.removeItem(inventoryItem!);
                                 placeInventory.placeItem(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column);
-                                inventory.removeItem(inventoryItem!, inventorySlotPosition.row, inventorySlotPosition.column);
-                                console.log(inventory);
                             }
                         }
                     }
                     
                     images.splice(0, 1);
                     inventory.hideItem("");
+                    removeEventListener('mouseup', mouseUp);
                 }
             }
         }
     }
 }
 
+function checkMouseCollision(mouse: Record<string, number>, inventory: Inventory){
+    return (
+        mouse.x - mouse.width/2 <= inventory.x + inventory.width * inventory.itemSize.width/2 &&
+        mouse.x + mouse.width/2 >= inventory.x - inventory.width * inventory.itemSize.width/2 &&
+        mouse.y + mouse.height/2 >= inventory.y - inventory.height * inventory.itemSize.height/2 &&
+        mouse.y - mouse.height/2 <= inventory.y + inventory.height * inventory.itemSize.height/2
+    )
+}
+
+function calculateInventorySlotPosition(mouse: Record<string, number>, inventory: Inventory): slot{
+    return {
+        row: Math.floor((mouse.x - inventory.x + inventory.width * inventory.itemSize.width/2) / inventory.itemSize.width),
+        column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2) / inventory.itemSize.height)
+    }
+}
+function calculateInventorySlotPosition2(mouse: Record<string, number>, inventory: Inventory): slot{
+    return {
+        row: Math.floor((mouse.x - inventory.x + inventory.width * inventory.itemSize.width/2 - 25) / inventory.itemSize.width),
+        column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2 - 25) / inventory.itemSize.height)
+    }
+}
