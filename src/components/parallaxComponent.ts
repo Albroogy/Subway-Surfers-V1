@@ -1,29 +1,5 @@
-import { Component, Entity } from "../entityComponent";
+import { Component} from "../entityComponent";
 import { canvas, context } from "../global";
-import PositionComponent from "./positionComponent";
-
-// export class ParallaxComponent extends Component{ 
-//     public static COMPONENT_ID: string = "Parallax";
-//     private _textures: Array<HTMLImageElement>;
-//     private _speed: number;
-
-//     constructor(textures: Array<HTMLImageElement>, speed: number){
-//         super();
-//         this._textures = textures;
-//         this._speed = speed;
-//     }
-//     public update(deltaTime: number, gameSpeed: number): void {
-//         for (let i = 0; i < this._textures.length; i++){
-//             const positionComponent = this._textures[i].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-//             positionComponent.x += this._speed / (Math.abs(this._textures.length - i)) * gameSpeed;
-//         }
-//     }
-//     public draw(): void {
-//         for (const texture of this._textures){
-//             texture.draw();
-//         }
-//     }
-// }
 
 export class ParallaxComponent extends Component{ 
     public static COMPONENT_ID: string = "Parallax";
@@ -47,13 +23,11 @@ export class ParallaxComponent extends Component{
     }
     public update(deltaTime: number, gameSpeed: number): void {
         for (let i = 0; i < this._speeds.length; i++) {
-            this._xPositions[i] -= this._speeds[i];
+            this._xPositions[i] -= this._speeds[i] * gameSpeed;
             if (this._xPositions[i] <= -this._textures[i].width) {
                 this._xPositions[i] = 0;
             }
         }
-        //this.topSourceX = (this.topSourceX + this._speed * gameSpeed) % 1920;
-        //this.bottomSourceX = (this.bottomSourceX + this._speed * gameSpeed) % 1920;
     }
     public draw(): void {
         context.save();

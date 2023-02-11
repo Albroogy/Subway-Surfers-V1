@@ -1,7 +1,8 @@
 import { Component, Entity } from "../entityComponent";
-import { allPressedKeys, EntityName, KEYS } from "../global";
+import { allPressedKeys, context, EntityName, KEYS } from "../global";
 import { images } from "../objects";
 import CollisionSystem from "../systems/collisionSystem";
+import DrawOutlineComponent from "./drawOutlineComponent";
 import { ImageComponent } from "./imageComponent";
 import { Inventory, InventoryComponent, InventoryItem, ItemInfo } from "./inventoryComponent";
 import { player, PlayerComponent } from "./playerComponent";
@@ -71,6 +72,12 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
 
     for (const inventory of inventoryComponent.inventories){
         if (checkMouseCollision(mouse, inventory)) {
+
+            // const rect = new Entity();
+            // rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(inventory.x - inventory.width/2, inventory.y - inventory.height/2, inventory.width, inventory.height, 0));
+            // rect.addComponent(DrawOutlineComponent.COMPONENT_ID, new DrawOutlineComponent(context, "blue"));
+            // images.push(rect);
+
             const inventorySlotPosition = calculateInventorySlotPosition(mouse, inventory)
             const inventoryItem = inventory.searchInventory(inventorySlotPosition);
 
@@ -91,6 +98,19 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
                     if (mouseDownBoolean == false){
                         removeEventListener('mousemove', mouseMove);
                     }
+
+                    mouse.x = e.clientX;
+                    mouse.y = e.clientY; 
+
+                    // for (const placeInventory of inventoryComponent.inventories){
+                    //     if (checkMouseCollision(mouse, placeInventory)) {
+                    //         const rect = new Entity();
+                    //         rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(inventory.x - inventory.width/2, inventory.y - inventory.height/2, inventory.width, inventory.height, 0));
+                    //         rect.addComponent(DrawOutlineComponent.COMPONENT_ID, new DrawOutlineComponent(context, "blue"));
+                    //         images.push(rect);
+                    //         console.log("rect");
+                    //     }
+                    // }
                 }
 
                 addEventListener('mouseup', mouseUp);
@@ -100,12 +120,17 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
 
                     mouse.x = e.clientX;
                     mouse.y = e.clientY; 
+
                     for (const placeInventory of inventoryComponent.inventories){
                         if (checkMouseCollision(mouse, placeInventory)) {
-                            const newInventorySlotPosition = calculateInventorySlotPosition2(mouse, placeInventory);
+                            const newInventorySlotPosition = calculateInventorySlotPosition2(mouse, placeInventory, inventoryItem!);
                             if (placeInventory.placeItemCheck(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column)){
                                 inventory.removeItem(inventoryItem!);
                                 placeInventory.placeItem(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column);
+                                
+                                const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+                                playerComponent.updateStats();
+                                playerComponent.updateAnimationBasedOnWeapon();
                             }
                         }
                     }
@@ -134,9 +159,9 @@ function calculateInventorySlotPosition(mouse: Record<string, number>, inventory
         column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2) / inventory.itemSize.height)
     }
 }
-function calculateInventorySlotPosition2(mouse: Record<string, number>, inventory: Inventory): slot{
+function calculateInventorySlotPosition2(mouse: Record<string, number>, inventory: Inventory, inventoryItem: InventoryItem): slot{
     return {
-        row: Math.floor((mouse.x - inventory.x + inventory.width * inventory.itemSize.width/2 - 25) / inventory.itemSize.width),
-        column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2 - 25) / inventory.itemSize.height)
+        row: Math.floor((mouse.x - inventory.x + inventory.width * inventory.itemSize.width/2 - 25 * (inventoryItem.width - 1)) / inventory.itemSize.width),
+        column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2 - 25 * (inventoryItem.height - 1)) / inventory.itemSize.height)
     }
 }

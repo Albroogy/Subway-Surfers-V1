@@ -1,6 +1,7 @@
 import { context } from "../global";
 import {Component} from "../entityComponent";
 import PositionComponent from "./positionComponent";
+import { player, PlayerComponent } from "./playerComponent";
 
 
 export type SingleAnimationInfo = { rowIndex: number, frameCount: number, framesPerSecond: number };
@@ -73,9 +74,26 @@ export class AnimatedComponent extends Component {
         console.assert(frameSX >= 0);
         console.assert(frameSY >= 0);
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
-        context.drawImage(this.spritesheet,
-            frameSX, frameSY, this._frameW, this._frameH,
-            positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, positionComponent!.width, positionComponent!.height
-        );
+        const playerComponent = this._entity.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID);
+        if (playerComponent == null ){
+            context.drawImage(this.spritesheet,
+                frameSX, frameSY, this._frameW, this._frameH,
+                positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, positionComponent!.width, positionComponent!.height
+            );
+        }
+        else {
+            if (playerComponent!.attacking == false){
+                context.drawImage(this.spritesheet,
+                    frameSX, frameSY, this._frameW, this._frameH,
+                    positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height, positionComponent!.width, positionComponent!.height
+                );
+            }
+            else{
+                context.drawImage(this.spritesheet,
+                    frameSX, frameSY, this._frameW, this._frameH,
+                    positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, positionComponent!.width, positionComponent!.height
+                );
+            }
+        }
     }
 }

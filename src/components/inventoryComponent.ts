@@ -2,6 +2,11 @@ import { context } from "../global";
 import { Component, Entity } from "../entityComponent";
 import { slot } from "./gameComponent";
 
+enum Status{
+    Add = "add",
+    Remove = "remove"
+}
+
 export class InventoryItem {
     public width: number;
     public height: number;
@@ -63,18 +68,7 @@ export class Inventory{
                 for (let j = 0; j < item.height; j++){
                     this.cells[cellRow + i][cellCol + j] = {inventoryItem: item};
                     this.cells[cellRow][cellCol] = item;
-                    if (item.iconURL == ItemList.Armor.iconURL){
-                        this.equippedItems.Armor = ItemList.Armor.name;
-                    }
-                    if (item.iconURL == ItemList.Boots.iconURL){
-                        this.equippedItems.Boots = ItemList.Boots.name;
-                    }
-                    if (item.iconURL == ItemList.Spear.iconURL){
-                        this.equippedItems.Spear = ItemList.Spear.name;
-                    }
-                    if (item.iconURL == ItemList.Bow.iconURL){
-                        this.equippedItems.Bow = ItemList.Bow.name;
-                    }
+                    this._updateEquippedItem(item, Status.Add);
                 }
             }
         }
@@ -84,6 +78,7 @@ export class Inventory{
             for (let j = 0; j < this.height; j++) {
                 if (this.cells[i][j] instanceof InventoryItem){
                     if (this.cells[i][j]!.name == item.name){
+                        this._updateEquippedItem(item, Status.Remove);
                         for (let a = 0; a < item.width; a++){
                             for (let b = 0; b < item.height; b++){
                                 this.cells[a + i][b + j] = null;
@@ -95,7 +90,7 @@ export class Inventory{
         }
     }
     public isEquipped(item: InventoryItem): boolean {
-        return Object.keys(this.equippedItems).includes(item.name);
+        return Object.values(this.equippedItems).includes(item.name);
     }
     public draw() {
         // for every row and col
@@ -130,11 +125,14 @@ export class Inventory{
         }
         else {
             stats.Lives = 1;
-            // why do I need this code for it to work / not be undefined?
         }
         if (this.equippedItems.Boots != null){
             stats.RollSpeed = 500;
         }
+        else {
+            stats.RollSpeed = 400;
+        }
+        console.log(stats)
     }
     
     public searchInventory(slot: slot): InventoryItem | void{
@@ -151,6 +149,36 @@ export class Inventory{
     public hideItem(name: string){
         this._hiddenItem = name;
     }
+    private _updateEquippedItem(item: InventoryItem, status: string){
+        if (status == Status.Add){
+            if (item.name == ItemList.Armor.name){
+                this.equippedItems.Armor = ItemList.Armor.name;
+            }
+            if (item.name == ItemList.Boots.name){
+                this.equippedItems.Boots = ItemList.Boots.name;
+            }
+            if (item.name == ItemList.Spear.name){
+                this.equippedItems.Spear = ItemList.Spear.name;
+            }
+            if (item.name == ItemList.Bow.name){
+                this.equippedItems.Bow = ItemList.Bow.name;
+            }
+        }
+        else{
+            if (item.name == ItemList.Armor.name){
+                this.equippedItems.Armor = null;
+            }
+            if (item.name == ItemList.Boots.name){
+                this.equippedItems.Boots = null;
+            }
+            if (item.name == ItemList.Spear.name){
+                this.equippedItems.Spear = null;
+            }
+            if (item.name == ItemList.Bow.name){
+                this.equippedItems.Bow = null;
+            }
+        }
+    }
 }
 export class InventoryComponent extends Component {
     public static COMPONENT_ID: string = "Inventory";
@@ -161,15 +189,6 @@ export class InventoryComponent extends Component {
         this.inventories = inventories;
     }
 }
-
-const spearImage = new Image;
-spearImage.src = "assets/images/spear.png";
-const bowImage = new Image;
-bowImage.src = "assets/images/bow.png";
-const armorImage = new Image;
-armorImage.src = "assets/images/armor.png";
-const bootsImage = new Image;
-bootsImage.src = "assets/images/boots.png";
 
 export const ItemInfo: Record<string, Record<string, string>> = {
     Armor: {
@@ -186,6 +205,15 @@ export const ItemInfo: Record<string, Record<string, string>> = {
     }
 }
 
+const spearImage = new Image;
+spearImage.src = ItemInfo.Spear.src;
+const bowImage = new Image;
+bowImage.src = ItemInfo.Bow.src;
+const armorImage = new Image;
+armorImage.src = ItemInfo.Armor.src;
+const bootsImage = new Image;
+bootsImage.src = ItemInfo.Boots.src;
+
 export const ItemList: Record<string, InventoryItem> = {
     Spear: new InventoryItem(2, 1, spearImage.src, spearImage, "Spear"),
     Bow: new InventoryItem(1, 2, bowImage.src, bowImage, "Bow"),
@@ -198,5 +226,6 @@ export function equipStarterItems(currentObject: Entity){
     inventoryComponent.inventories[0].placeItem(ItemList.Bow, 1, 0);
     inventoryComponent.inventories[0].placeItem(ItemList.Armor, 2, 0);
     inventoryComponent.inventories[0].placeItem(ItemList.Boots, 0, 0);
+    inventoryComponent.inventories[1].placeItem(ItemList.Spear, 0, 0);
 }
 

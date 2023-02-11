@@ -58,10 +58,10 @@ let gold: number = 0;
 //    - let's pick some art
 //    - turn at least 1 type of obstacle into an animated spritesheet
 // Bugs to fix:
-// - check the inventory system
-// - Draw coin
-// - Fix player spear animation info
-// - Arrow and sound effect not in sync with animation
+// - Item unable to be placed half into the item's past position.
+// TODO:
+// - Add helpful UI for inventory system.
+// - Entities are on top of player when colliding.
 
 
 //Start Loop
@@ -175,7 +175,6 @@ function draw() {
         for (const image of images) {
             image.draw();
         }
-
     }
 }
 
@@ -344,16 +343,32 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 const COIN_VALUE: number = 300;
                 addScore(COIN_VALUE)
                 gold += 1;
+                objects.splice(i,1);
+                continue;
             }
             else {
                 if (!playerComponent.attacking || objects[i].name == EntityName.Fireball){
                     playerComponent.stats.Lives -= 1;
                     var audio = new Audio('assets/audio/playerHit.mp3');
                     audio.play();
+                    objects.splice(i,1);
+                    continue;
+                }
+                else if (objects[i].name == EntityName.Frankenstein){
+                    const positionComponent = objects[i].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
+                    const frankensteinComponent = objects[i].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
+                    positionComponent.y -= 200;
+                    frankensteinComponent.health -= 1;
+                    if (frankensteinComponent.health < 1){
+                        objects.splice(i,1);
+                        continue;
+                    }
+                }
+                else {
+                    objects.splice(i,1);
+                    continue;
                 }
             }
-            objects.splice(i,1);
-            continue;
         }
     }
 }

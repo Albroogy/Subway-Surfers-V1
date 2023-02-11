@@ -278,6 +278,8 @@ const onDuckingUpdate = () => {
     if (playerComponent!.weapon == playerComponent!.weaponAnimations.Spear){
         if (animatedComponent!.currentAnimationFrame >= playerComponent!.PREPARE_SPEAR_FRAMES - OFFSET){
             playerComponent!.attacking = true;
+            const spearAttackY = canvas.width/3 - positionComponent!.height/2;
+            positionComponent!.y = spearAttackY;
         }
     }
     if (animatedComponent!.currentAnimationFrame >= animatedComponent!.currentAnimation!.frameCount - OFFSET){
@@ -287,6 +289,8 @@ const onDuckingUpdate = () => {
 const onDuckingDeactivation = () => {
     if (playerComponent!.attacking != false){
         playerComponent!.attacking = false;
+        const playerWalkingY = canvas.width/3;
+        positionComponent!.y = playerWalkingY;
     }
     if (playerComponent!.weapon == playerComponent!.weaponAnimations.Bow){
         generateArrow(positionComponent!);
@@ -366,7 +370,9 @@ export function resetGame(){
     objects.push(player);
     playerComponent.lane = 2;
     playerComponent.setLane();
-    inventoryComponent.inventories[0].resetInventory();
+    for (const inventory of inventoryComponent.inventories){
+        inventory.resetInventory();
+    }
     equipStarterItems(player);
     playerComponent.updateStats();
     playerComponent.updateAnimationBasedOnWeapon();
