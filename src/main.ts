@@ -357,11 +357,17 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 else if (objects[i].name == EntityName.Frankenstein){
                     const positionComponent = objects[i].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
                     const frankensteinComponent = objects[i].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
-                    positionComponent.y -= 200;
+                    for (let i = 0; i < 200; i++){
+                        positionComponent.y -= 1;
+                    }
                     frankensteinComponent.health -= 1;
                     if (frankensteinComponent.health < 1){
                         objects.splice(i,1);
                         continue;
+                    }
+                    else{
+                        const animatedComponent = objects[i].getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+                        animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
                     }
                 }
                 else {
