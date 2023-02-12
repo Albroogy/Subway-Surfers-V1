@@ -3,9 +3,13 @@ import { Component } from "../entityComponent";
 export class SoundComponent extends Component { 
     public static COMPONENT_ID: string = "Sound";
 
-    public loadedSounds: Array<string> = [];
+    private _loadedSounds: Record<string, HTMLAudioElement> = {};
 
-    constructor(imageURL: string) {
+    constructor(sounds: Record<string, HTMLAudioElement>) {
         super();
+        this._loadedSounds = sounds;
+    }
+    public playSound(soundName: string){
+        this._loadedSounds[soundName].play();
     }
 }

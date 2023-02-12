@@ -109,7 +109,7 @@ const StartingItems: Record <string, string | null> = {
 }
 const StartingStats: Record <string, number> = {
     Lives: 1,
-    RollSpeed: 400
+    RollSpeed: 400,
 }
 const PLAYER_MOVEMENT_COOLDOWN: number = 10;
 const CLICK_DELAY: number = 300; //This is in milliseconds

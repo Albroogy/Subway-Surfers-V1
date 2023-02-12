@@ -5,7 +5,7 @@ import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
 import { AnimatedComponent } from "./components/animatedComponent";
-import DragonComponent, { DragonAnimationInfo} from "./components/dragonComponent";
+import DragonComponent, { DragonAnimationInfo, DragonSound} from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import { gameEntity } from "./systems/gameSystem";
@@ -16,6 +16,7 @@ import { InventoryComponent } from "./components/inventoryComponent";
 import { GameState, gameState } from "./components/gameComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
 import FrankensteinComponent from "./components/frankensteinComponent";
+import { SoundComponent } from "./components/soundComponent";
 
 
 // ORIGINAL_VALUES
@@ -207,12 +208,17 @@ function generateCoin(){
 }
 
 function generateDragon(){
+    const DragonAudio = {
+        [DragonSound.Roar]: new Audio('assets/audio/dragon-roar.mp3')
+    }
+
     const dragon: Entity = new Entity(EntityName.Dragon);
     dragon.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
     dragon.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/dragon.png", DragonAnimationInfo));
     dragon.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     dragon.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     dragon.addComponent(DragonComponent.COMPONENT_ID, new DragonComponent());
+    dragon.addComponent(SoundComponent.COMPONENT_ID, new SoundComponent(DragonAudio));
 
     objects.push(
         dragon

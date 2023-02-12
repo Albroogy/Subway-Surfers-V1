@@ -1,5 +1,6 @@
 import GameComponent from "../components/gameComponent";
 import { ParallaxComponent} from "../components/parallaxComponent";
+import { SoundComponent } from "../components/soundComponent";
 import StateMachineComponent from "../components/stateMachineComponent";
 import { Entity } from "../entityComponent";
 import { EntityName} from "../global";
@@ -16,7 +17,16 @@ for (let i = 0; i < textureCount; i++){
     backgroundTextures.push(texture);
 }
 
+export enum GameSound {
+    Track1 = "track1"
+}
+
+const GameAudio = {
+    [GameSound.Track1]: new Audio('assets/audio/track1.mp3')
+}
+
 export const gameEntity = new Entity(EntityName.GameEntity);
 gameEntity.addComponent(ParallaxComponent.COMPONENT_ID, new ParallaxComponent(backgroundTextures, 10));
 gameEntity.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent);
-gameEntity.addComponent(GameComponent.COMPONENT_ID, new GameComponent);
+gameEntity.addComponent(GameComponent.COMPONENT_ID, new GameComponent());
+gameEntity.addComponent(SoundComponent.COMPONENT_ID, new SoundComponent(GameAudio));

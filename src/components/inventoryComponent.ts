@@ -1,4 +1,4 @@
-import { context } from "../global";
+import { context, OFFSET } from "../global";
 import { Component, Entity } from "../entityComponent";
 import { slot } from "./gameComponent";
 
@@ -23,6 +23,7 @@ export class InventoryItem {
 }
 
 export const TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true };
+
 export class Inventory{
     public width: number;
     public height: number;
@@ -55,8 +56,20 @@ export class Inventory{
         // If even 1 cell is taken, do nothing 
         for (let i = cellRow; i < cellRow + item.width; i++){
             for (let j = cellCol; j < cellCol + item.height; j++){
-                if (this.cells[i][j] != null){
+                if (i > this.width - OFFSET || j > this.height - OFFSET){
                     return false;
+                }
+                else if (this.cells[i][j] != null){
+                    if (this.cells[i][j] instanceof InventoryItem){
+                        if (this.cells[i][j]!.name != item.name){
+                            return false;
+                        }
+                    }
+                    else{
+                        if ((this.cells[i][j]! as  Record<string, InventoryItem>).inventoryItem.name != item.name){
+                            return false;
+                        }
+                    }
                 }
             }
         }

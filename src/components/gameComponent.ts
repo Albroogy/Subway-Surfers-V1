@@ -72,12 +72,6 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
 
     for (const inventory of inventoryComponent.inventories){
         if (checkMouseCollision(mouse, inventory)) {
-
-            // const rect = new Entity();
-            // rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(inventory.x - inventory.width/2, inventory.y - inventory.height/2, inventory.width, inventory.height, 0));
-            // rect.addComponent(DrawOutlineComponent.COMPONENT_ID, new DrawOutlineComponent(context, "blue"));
-            // images.push(rect);
-
             const inventorySlotPosition = calculateInventorySlotPosition(mouse, inventory)
             const inventoryItem = inventory.searchInventory(inventorySlotPosition);
 
@@ -92,6 +86,10 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
                 const positionComponent = images[0].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
 
                 addEventListener('mousemove', mouseMove);
+                // const rect = new Entity();
+                // rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(inventory.x - inventory.width/2, inventory.y - inventory.height/2, inventory.width, inventory.height, 0));
+                // rect.addComponent(DrawOutlineComponent.COMPONENT_ID, new DrawOutlineComponent(context, "blue"));
+                // images.push(rect);
                 function mouseMove(e: {clientX: number, clientY: number}) {
                     positionComponent.x = e.clientX;
                     positionComponent.y = e.clientY;
@@ -124,6 +122,9 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
                     for (const placeInventory of inventoryComponent.inventories){
                         if (checkMouseCollision(mouse, placeInventory)) {
                             const newInventorySlotPosition = calculateInventorySlotPosition2(mouse, placeInventory, inventoryItem!);
+                            newInventorySlotPosition.column = checkNumberSmallerThanZero(newInventorySlotPosition.column);
+                            newInventorySlotPosition.row = checkNumberSmallerThanZero(newInventorySlotPosition.row);
+                            
                             if (placeInventory.placeItemCheck(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column)){
                                 inventory.removeItem(inventoryItem!);
                                 placeInventory.placeItem(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column);
@@ -164,4 +165,11 @@ function calculateInventorySlotPosition2(mouse: Record<string, number>, inventor
         row: Math.floor((mouse.x - inventory.x + inventory.width * inventory.itemSize.width/2 - 25 * (inventoryItem.width - 1)) / inventory.itemSize.width),
         column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2 - 25 * (inventoryItem.height - 1)) / inventory.itemSize.height)
     }
+}
+
+function checkNumberSmallerThanZero(number: number){
+    if (number < 0){
+        number = 0;
+    }
+    return number;
 }

@@ -2,15 +2,20 @@ import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import { fallSpeed, objects} from "../objects";
 import { AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { checkTime, context, EntityName, timeStart } from "../global";
+import { checkTime, EntityName} from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
 import { player, PlayerState } from "./playerComponent";
+import { SoundComponent } from "./soundComponent";
 
 export enum DragonState {
     Flying = "flying",
     Firing = "firing"
+}
+
+export enum DragonSound {
+    Roar = "roar"
 }
 
 const DRAGON: Record <string, number> = {
@@ -51,7 +56,7 @@ const onFiringActivation = (currentObject: Entity) => {
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying];
     movementComponent.speed = 0;
 
-    generateFireball(positionComponent);
+    generateFireball(positionComponent, currentObject);
 }
 const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState | undefined => {
     let stateStart = currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
@@ -88,7 +93,7 @@ export const DragonAnimationInfo: AnimationInfo = {
     }
 };
 
-function generateFireball(positionComponent: PositionComponent){
+function generateFireball(positionComponent: PositionComponent, currentObject: Entity){
     const fireball: Entity = new Entity(EntityName.Fireball);
 
     const FIREBALL: Record <string, number | string> = {
@@ -105,6 +110,7 @@ function generateFireball(positionComponent: PositionComponent){
 
     objects.push(fireball);
 
-    var audio = new Audio('assets/audio/dragon-roar.mp3');
-    audio.play();
+    const soundComponent = currentObject.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+
+    soundComponent.playSound(DragonSound.Roar)
 }
