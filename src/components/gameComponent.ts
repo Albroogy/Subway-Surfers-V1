@@ -86,45 +86,39 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
                 const positionComponent = images[0].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
 
                 addEventListener('mousemove', mouseMove);
-                // const rect = new Entity();
-                // rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(inventory.x - inventory.width/2, inventory.y - inventory.height/2, inventory.width, inventory.height, 0));
-                // rect.addComponent(DrawOutlineComponent.COMPONENT_ID, new DrawOutlineComponent(context, "blue"));
-                // images.push(rect);
+
                 function mouseMove(e: {clientX: number, clientY: number}) {
-                    positionComponent.x = e.clientX;
-                    positionComponent.y = e.clientY;
-                    if (mouseDownBoolean == false){
-                        removeEventListener('mousemove', mouseMove);
+                    setObjectToClientXY(positionComponent, e);
+
+                    setObjectToClientXY(mouse, e);
+
+                    for (const selectedInventory of inventoryComponent.inventories){
+                        if (checkMouseCollision(mouse, selectedInventory)) {
+                            selectedInventory.highlight = true;
+                        }
+                        else if (selectedInventory.highlight == true){
+                            selectedInventory.highlight = false;
+                        }
                     }
-
-                    mouse.x = e.clientX;
-                    mouse.y = e.clientY; 
-
-                    // for (const placeInventory of inventoryComponent.inventories){
-                    //     if (checkMouseCollision(mouse, placeInventory)) {
-                    //         const rect = new Entity();
-                    //         rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(inventory.x - inventory.width/2, inventory.y - inventory.height/2, inventory.width, inventory.height, 0));
-                    //         rect.addComponent(DrawOutlineComponent.COMPONENT_ID, new DrawOutlineComponent(context, "blue"));
-                    //         images.push(rect);
-                    //         console.log("rect");
-                    //     }
-                    // }
                 }
 
                 addEventListener('mouseup', mouseUp);
 
                 function mouseUp(e: {clientX: number, clientY: number}){
+                    removeEventListener('mousemove', mouseMove);
                     mouseDownBoolean = false;
 
-                    mouse.x = e.clientX;
-                    mouse.y = e.clientY; 
+                    setObjectToClientXY(mouse, e);
 
                     for (const placeInventory of inventoryComponent.inventories){
+                        if (placeInventory.highlight == true){
+                            placeInventory.highlight = false;
+                        }
                         if (checkMouseCollision(mouse, placeInventory)) {
                             const newInventorySlotPosition = calculateInventorySlotPosition2(mouse, placeInventory, inventoryItem!);
                             newInventorySlotPosition.column = checkNumberSmallerThanZero(newInventorySlotPosition.column);
                             newInventorySlotPosition.row = checkNumberSmallerThanZero(newInventorySlotPosition.row);
-                            
+
                             if (placeInventory.placeItemCheck(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column)){
                                 inventory.removeItem(inventoryItem!);
                                 placeInventory.placeItem(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column);
@@ -172,4 +166,9 @@ function checkNumberSmallerThanZero(number: number){
         number = 0;
     }
     return number;
+}
+
+function setObjectToClientXY(object: Record<string, number> | PositionComponent, event: {clientX: number, clientY: number}){
+    object.x = event.clientX;
+    object.y = event.clientY;
 }

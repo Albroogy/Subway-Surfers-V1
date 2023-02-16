@@ -33,6 +33,7 @@ export class Inventory{
     public equippedItems: Record <string, string | null>;
     public itemSize: Record<string, number>;
     private _hiddenItem: string;
+    public highlight: boolean = false;
 
     constructor(width: number, height: number, x: number, y: number, itemSize: Record<string, number>) {
         this.equippedItems = {};
@@ -110,17 +111,22 @@ export class Inventory{
         //   go through every cell, that is the top-left coordinate of an item and draw the image
         // for every row and col
         //   go through every cell, draw box <-- context.strokeRect
+        const centeringWidthOffset = this.width/2 * this.itemSize.width;
+        const centeringHeightOffset = this.height/2 * this.itemSize.height;
+
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
-                const centeringWidthOffset = this.width/2 * this.itemSize.width;
-                const centeringHeightOffset = this.height/2 * this.itemSize.height;
-
+                context.strokeStyle = "black";
                 context.strokeRect(this.x + i * this.itemSize.width - centeringWidthOffset, this.y + j * this.itemSize.height - centeringHeightOffset, this.itemSize.width, this.itemSize.height);
                 const currentCell = this.cells[i][j];
                 if (currentCell instanceof InventoryItem && currentCell.name != this._hiddenItem){
                     context.drawImage(currentCell.image, this.x + i * this.itemSize.width - centeringWidthOffset, this.y + j * this.itemSize.height - centeringHeightOffset, this.itemSize.width * currentCell.width, this.itemSize.height * currentCell.height)
                 }
             }
+        }
+        if (this.highlight == true){
+            context.strokeStyle = "blue";
+            context.strokeRect(this.x - centeringWidthOffset, this.y - centeringHeightOffset, this.itemSize.width * this.width, this.itemSize.height * this.height);
         }
     }
     public resetInventory(){
@@ -145,7 +151,7 @@ export class Inventory{
         else {
             stats.RollSpeed = 400;
         }
-        console.log(stats)
+        console.log(stats);
     }
     
     public searchInventory(slot: slot): InventoryItem | void{
@@ -192,6 +198,14 @@ export class Inventory{
             }
         }
     }
+    // public highlight(){
+    //     const centeringWidthOffset = this.width/2 * this.itemSize.width;
+    //     const centeringHeightOffset = this.height/2 * this.itemSize.height;
+
+    //     context.strokeStyle = "blue";
+    //     context.strokeRect(this.x - centeringWidthOffset, this.y - centeringHeightOffset, this.itemSize.width * this.width, this.itemSize.height * this.height);
+    //     console.log(this.x - centeringWidthOffset, this.y - centeringHeightOffset, this.itemSize.width * this.width, this.itemSize.height * this.height)
+    // }
 }
 export class InventoryComponent extends Component {
     public static COMPONENT_ID: string = "Inventory";
