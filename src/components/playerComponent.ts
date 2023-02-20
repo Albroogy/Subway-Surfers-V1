@@ -192,7 +192,7 @@ export const playerBowAnimationInfo: AnimationInfo = {
 
 // Figure out how to combine these two animation info dictionaries
 
-const PLAYER: Record <string, number> = {
+export const PLAYER: Record <string, number> = {
     WIDTH: 100,
     HEIGHT: 100,
 }

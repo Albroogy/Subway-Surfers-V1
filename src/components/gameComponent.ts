@@ -1,8 +1,6 @@
 import { Component, Entity } from "../entityComponent";
-import { allPressedKeys, context, EntityName, KEYS } from "../global";
+import { allPressedKeys, EntityName, KEYS } from "../global";
 import { images } from "../objects";
-import CollisionSystem from "../systems/collisionSystem";
-import DrawOutlineComponent from "./drawOutlineComponent";
 import { ImageComponent } from "./imageComponent";
 import { Inventory, InventoryComponent, InventoryItem, ItemInfo } from "./inventoryComponent";
 import { player, PlayerComponent } from "./playerComponent";
@@ -115,7 +113,7 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
                             placeInventory.highlight = false;
                         }
                         if (checkMouseCollision(mouse, placeInventory)) {
-                            const newInventorySlotPosition = calculateInventorySlotPosition2(mouse, placeInventory, inventoryItem!);
+                            const newInventorySlotPosition = calculateInventorySlotPositionWithOffset(mouse, placeInventory, inventoryItem!);
                             newInventorySlotPosition.column = checkNumberSmallerThanZero(newInventorySlotPosition.column);
                             newInventorySlotPosition.row = checkNumberSmallerThanZero(newInventorySlotPosition.row);
 
@@ -154,7 +152,7 @@ function calculateInventorySlotPosition(mouse: Record<string, number>, inventory
         column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2) / inventory.itemSize.height)
     }
 }
-function calculateInventorySlotPosition2(mouse: Record<string, number>, inventory: Inventory, inventoryItem: InventoryItem): slot{
+function calculateInventorySlotPositionWithOffset(mouse: Record<string, number>, inventory: Inventory, inventoryItem: InventoryItem): slot{
     return {
         row: Math.floor((mouse.x - inventory.x + inventory.width * inventory.itemSize.width/2 - 25 * (inventoryItem.width - 1)) / inventory.itemSize.width),
         column: Math.floor((mouse.y - inventory.y + inventory.height * inventory.itemSize.height/2 - 25 * (inventoryItem.height - 1)) / inventory.itemSize.height)

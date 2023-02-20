@@ -1,4 +1,4 @@
-import {player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
+import {PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName} from "./global";
 import { Entity } from "./entityComponent";
@@ -8,7 +8,7 @@ import { AnimatedComponent } from "./components/animatedComponent";
 import DragonComponent, { DragonAnimationInfo, DragonSound} from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
-import { gameEntity } from "./systems/gameSystem";
+import { gameEntity, GameSound } from "./systems/gameSystem";
 import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, images, objects, score, spawnDelay} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
@@ -17,31 +17,18 @@ import { GameState, gameState } from "./components/gameComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
 import FrankensteinComponent from "./components/frankensteinComponent";
 import { SoundComponent } from "./components/soundComponent";
+import { ImagePartComponent } from "./components/imagePartComponent";
+document.addEventListener('input', function(e) {
+    console.log("played")
+    const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+    soundComponent.playSound(GameSound.Track1);
+});
 
-
-// ORIGINAL_VALUES
-const backgroundMusic = new Audio("assets/audio/track1.mp3");
+// Player Component
 const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
-// Obstacle Information
-const OBJECT: Record <string, number> = {
-    WIDTH: 50,
-    HEIGHT: 50,
-    SPAWN_LOCATION: -50
-}
-enum obstacleColors {
-    Orange,
-    Brown,
-    Black
-}
-
-const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping, "Invincible"];
-
 // Changeble variables
-let lastTime: number = Date.now();
-let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
 let gold: number = 0;
-
 
 // Creating the state machines
 
@@ -67,7 +54,9 @@ let gold: number = 0;
 
 //Start Loop
 resetGame();
-requestAnimationFrame(runFrame)
+requestAnimationFrame(runFrame);
+
+let lastTime: number = Date.now();
 
 // Main processing objectsLoop 
 function runFrame() {
@@ -109,7 +98,9 @@ function update(deltaTime: number, gameSpeed: number){
     // console.log(`This is the score increase speed: ${scoreIncreaseSpeed}`);
 }
 
-
+const playerImage = new Entity();
+playerImage.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(500, 500, PLAYER.WIDTH * 5, PLAYER.HEIGHT * 5, 0));
+playerImage.addComponent(ImagePartComponent.COMPONENT_ID, new ImagePartComponent(playerCharacter.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!.spritesheet.src, 0, 140, 60, 60));
 
 function draw() {
     // 2d context can do primitive graphic object manipulation
@@ -176,6 +167,7 @@ function draw() {
         for (const image of images) {
             image.draw();
         }
+        playerImage.draw();
     }
 }
 
@@ -187,7 +179,23 @@ function calculateLaneLocation(lane: number): number{
 function pickLane(): number{
     return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
 }
-// These functions carry out a certain action
+
+// Obstacle/Object Information
+
+enum obstacleColors {
+    Orange,
+    Brown,
+    Black
+}
+
+const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping, "Invincible"];
+
+const OBJECT: Record <string, number> = {
+    WIDTH: 50,
+    HEIGHT: 50,
+    SPAWN_LOCATION: -50
+}
+
 function generateRectEnemy(){
     const type: number = Math.floor(Math.random() * Object.keys(obstacleColors).length);
     const rect: Entity = new Entity(EntityName.RectEnemy);
@@ -264,6 +272,8 @@ const SpawnType = {
     GenerateFrankenstein: "generateFrankenstein"
 }
 
+let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
+
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
         let generateType: string = Object.values(SpawnType)[Math.floor(Math.random() * 4)];
@@ -333,8 +343,8 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                                 dealDamageToCollidingObjects(objects[i], objects[j])
                             }
                         }
-                        var audio = new Audio('assets/audio/arrow-release.mp3');
-                        audio.play();
+                        const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+                        soundComponent.playSound(GameSound.ArrowHit);
                     }
                 continue;
                 // For effiency's sake, should I split the objects array into 3 lane arrays? 
@@ -355,8 +365,8 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             else {
                 if (!playerComponent.attacking || objects[i].name == EntityName.Fireball){
                     playerComponent.stats.Lives -= 1;
-                    var audio = new Audio('assets/audio/playerHit.mp3');
-                    audio.play();
+                    const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+                    soundComponent.playSound(GameSound.PlayerHit);
                     objects.splice(i,1);
                     continue;
                 }

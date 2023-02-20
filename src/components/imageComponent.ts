@@ -6,8 +6,6 @@ export class ImageComponent extends Component {
     public static COMPONENT_ID: string = "Image";
     
     public image: HTMLImageElement;
-    public imageSX: number | undefined;
-    public imageSY: number | undefined;
 
     constructor(imageURL: string) {
         super();

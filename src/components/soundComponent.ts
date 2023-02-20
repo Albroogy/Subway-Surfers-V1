@@ -12,4 +12,7 @@ export class SoundComponent extends Component {
     public playSound(soundName: string){
         this._loadedSounds[soundName].play();
     }
+    public playSoundOnLoop(soundName: string){
+        this.playSound(soundName);
+    }
 }
