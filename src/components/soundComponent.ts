@@ -13,6 +13,12 @@ export class SoundComponent extends Component {
         this._loadedSounds[soundName].play();
     }
     public playSoundOnLoop(soundName: string){
+        // make this loop somehow
         this.playSound(soundName);
+        this._loadedSounds[soundName].addEventListener("ended", function(){ 
+            // if (){
+
+            // }
+        });
     }
 }

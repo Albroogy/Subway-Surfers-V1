@@ -46,10 +46,10 @@ let gold: number = 0;
 //    - let's pick some art
 //    - turn at least 1 type of obstacle into an animated spritesheet
 // Bugs to fix:
-// - Item unable to be placed half into the item's past position.
 // TODO:
 // - Add helpful UI for inventory system.
 // - Entities are on top of player when colliding.
+// - Add looping music function to soundComponent.
 
 
 //Start Loop
