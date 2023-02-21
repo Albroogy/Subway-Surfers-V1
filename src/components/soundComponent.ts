@@ -15,10 +15,6 @@ export class SoundComponent extends Component {
     public playSoundOnLoop(soundName: string){
         // make this loop somehow
         this.playSound(soundName);
-        this._loadedSounds[soundName].addEventListener("ended", function(){ 
-            // if (){
-
-            // }
-        });
+        this._loadedSounds[soundName].loop = true;
     }
 }

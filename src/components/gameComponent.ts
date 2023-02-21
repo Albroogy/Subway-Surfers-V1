@@ -56,10 +56,32 @@ export type slot = { row: number, column: number };
 
 let mouseDownBoolean = true;
 
-function mouseDown(e: { clientX: number; clientY: number; }) {
+type MouseData = { x: number, y: number, width: number, height: number };
+
+function mouseMove(
+    mouse: MouseData,
+    positionComponent: PositionComponent,
+    inventoryComponent: InventoryComponent,
+    e: MouseEvent
+    ) {
+    setObjectToClientXY(positionComponent, e);
+
+    setObjectToClientXY(mouse, e);
+
+    for (const selectedInventory of inventoryComponent.inventories){
+        if (checkMouseCollision(mouse, selectedInventory)) {
+            selectedInventory.highlight = true;
+        }
+        else if (selectedInventory.highlight == true){
+            selectedInventory.highlight = false;
+        }
+    }
+}
+
+function mouseDown(e: MouseEvent) {
     mouseDownBoolean = true;
     
-    let mouse = {
+    let mouse: MouseData = {
         x: e.clientX,
         y: e.clientY,
         width: 25,
@@ -83,27 +105,17 @@ function mouseDown(e: { clientX: number; clientY: number; }) {
 
                 const positionComponent = images[0].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
 
-                addEventListener('mousemove', mouseMove);
+                const closuredMouseMove = (e: MouseEvent) => {
+                    mouseMove(mouse, positionComponent, inventoryComponent, e);
+                };
+                const curriedMouseMove = mouseMove.bind(undefined, mouse, positionComponent, inventoryComponent);
+                addEventListener('mousemove', curriedMouseMove);
 
-                function mouseMove(e: {clientX: number, clientY: number}) {
-                    setObjectToClientXY(positionComponent, e);
-
-                    setObjectToClientXY(mouse, e);
-
-                    for (const selectedInventory of inventoryComponent.inventories){
-                        if (checkMouseCollision(mouse, selectedInventory)) {
-                            selectedInventory.highlight = true;
-                        }
-                        else if (selectedInventory.highlight == true){
-                            selectedInventory.highlight = false;
-                        }
-                    }
-                }
 
                 addEventListener('mouseup', mouseUp);
 
                 function mouseUp(e: {clientX: number, clientY: number}){
-                    removeEventListener('mousemove', mouseMove);
+                    removeEventListener('mousemove', curriedMouseMove);
                     mouseDownBoolean = false;
 
                     setObjectToClientXY(mouse, e);

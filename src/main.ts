@@ -113,10 +113,22 @@ function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     
     if (gameState != GameState.InventoryMenu){
+        
+        context.save();
+
+        let cameraAngle: number = 0;
+        let cameraX: number = 500;
+        let cameraY: number = 0;
+        let zoomLevel: number = 1;
+        context.rotate(cameraAngle);
+        context.translate(cameraX, cameraY);
+        context.scale(zoomLevel, zoomLevel);
+        
         gameEntity.draw();
         for (const obj of objects) {
             obj.draw();
         }
+        context.restore();
 
         // Text postition innformation
         const GOLD_TEXT_LOCATION: Record <string, number> = {
