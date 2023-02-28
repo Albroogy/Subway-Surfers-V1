@@ -57,26 +57,7 @@ export type slot = { row: number, column: number };
 let mouseDownBoolean = true;
 
 type MouseData = { x: number, y: number, width: number, height: number };
-
-function mouseMove(
-    mouse: MouseData,
-    positionComponent: PositionComponent,
-    inventoryComponent: InventoryComponent,
-    e: MouseEvent
-    ) {
-    setObjectToClientXY(positionComponent, e);
-
-    setObjectToClientXY(mouse, e);
-
-    for (const selectedInventory of inventoryComponent.inventories){
-        if (checkMouseCollision(mouse, selectedInventory)) {
-            selectedInventory.highlight = true;
-        }
-        else if (selectedInventory.highlight == true){
-            selectedInventory.highlight = false;
-        }
-    }
-}
+type MouseEventFunction = (e: MouseEvent) => void;
 
 function mouseDown(e: MouseEvent) {
     mouseDownBoolean = true;
@@ -105,48 +86,70 @@ function mouseDown(e: MouseEvent) {
 
                 const positionComponent = images[0].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
 
-                const closuredMouseMove = (e: MouseEvent) => {
-                    mouseMove(mouse, positionComponent, inventoryComponent, e);
-                };
                 const curriedMouseMove = mouseMove.bind(undefined, mouse, positionComponent, inventoryComponent);
+                const curriedMouseUp = mouseUp.bind(undefined, mouse, inventoryComponent, inventory, inventoryItem, curriedMouseMove);
                 addEventListener('mousemove', curriedMouseMove);
-
-
-                addEventListener('mouseup', mouseUp);
-
-                function mouseUp(e: {clientX: number, clientY: number}){
-                    removeEventListener('mousemove', curriedMouseMove);
-                    mouseDownBoolean = false;
-
-                    setObjectToClientXY(mouse, e);
-
-                    for (const placeInventory of inventoryComponent.inventories){
-                        if (placeInventory.highlight == true){
-                            placeInventory.highlight = false;
-                        }
-                        if (checkMouseCollision(mouse, placeInventory)) {
-                            const newInventorySlotPosition = calculateInventorySlotPositionWithOffset(mouse, placeInventory, inventoryItem!);
-                            newInventorySlotPosition.column = checkNumberSmallerThanZero(newInventorySlotPosition.column);
-                            newInventorySlotPosition.row = checkNumberSmallerThanZero(newInventorySlotPosition.row);
-
-                            if (placeInventory.placeItemCheck(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column)){
-                                inventory.removeItem(inventoryItem!);
-                                placeInventory.placeItem(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column);
-                                
-                                const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
-                                playerComponent.updateStats();
-                                playerComponent.updateAnimationBasedOnWeapon();
-                            }
-                        }
-                    }
-                    
-                    images.splice(0, 1);
-                    inventory.hideItem("");
-                    removeEventListener('mouseup', mouseUp);
-                }
+                addEventListener('mouseup', curriedMouseUp);
             }
         }
     }
+}
+
+function mouseMove(
+    mouse: MouseData,
+    positionComponent: PositionComponent,
+    inventoryComponent: InventoryComponent,
+    e: MouseEvent
+    ) {
+    setObjectToClientXY(positionComponent, e);
+
+    setObjectToClientXY(mouse, e);
+
+    for (const selectedInventory of inventoryComponent.inventories){
+        if (checkMouseCollision(mouse, selectedInventory)) {
+            selectedInventory.highlight = true;
+        }
+        else if (selectedInventory.highlight == true){
+            selectedInventory.highlight = false;
+        }
+    }
+}
+
+function mouseUp(mouse: MouseData,
+    inventoryComponent: InventoryComponent, 
+    inventory: Inventory,
+    inventoryItem: InventoryItem,
+    curriedMouseMove: MouseEventFunction, 
+    e: MouseEvent,
+    curriedMouseUp: MouseEventFunction){
+    removeEventListener('mousemove', curriedMouseMove);
+    mouseDownBoolean = false;
+
+    setObjectToClientXY(mouse, e);
+
+    for (const placeInventory of inventoryComponent.inventories){
+        if (placeInventory.highlight == true){
+            placeInventory.highlight = false;
+        }
+        if (checkMouseCollision(mouse, placeInventory)) {
+            const newInventorySlotPosition = calculateInventorySlotPositionWithOffset(mouse, placeInventory, inventoryItem!);
+            newInventorySlotPosition.column = checkNumberSmallerThanZero(newInventorySlotPosition.column);
+            newInventorySlotPosition.row = checkNumberSmallerThanZero(newInventorySlotPosition.row);
+
+            if (placeInventory.placeItemCheck(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column)){
+                inventory.removeItem(inventoryItem!);
+                placeInventory.placeItem(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column);
+                
+                const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+                playerComponent.updateStats();
+                playerComponent.updateAnimationBasedOnWeapon();
+            }
+        }
+    }
+    
+    images.splice(0, 1);
+    inventory.hideItem("");
+    removeEventListener('mouseup', curriedMouseUp);
 }
 
 function checkMouseCollision(mouse: Record<string, number>, inventory: Inventory){

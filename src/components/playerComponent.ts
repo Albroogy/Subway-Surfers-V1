@@ -232,26 +232,7 @@ const onRunningUpdate = (deltatime: number, currentObject: Entity): PlayerState 
     let stateStart = currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
     playerComponent!.directionChange = ~~(allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) -
         ~~(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]);
-    if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        if (lastClick <= Date.now() - CLICK_DELAY && playerComponent!.lane + playerComponent!.directionChange <= LANE.COUNT && playerComponent!.lane + playerComponent!.directionChange >= 1){
-            if (playerComponent!.directionChange != 0){
-                playerComponent!.lane += playerComponent!.directionChange;
-                lastClick = Date.now();
-                return PlayerState.Roll;
-            }
-
-        }
-    }
-    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
-        return PlayerState.Ducking;
-    }
-    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
-        return PlayerState.Jumping;
-    }
-    if (playerComponent!.stats.Lives <= 0 && checkTime(200, stateStart) || playerComponent!.stats.Lives <= -3){
-        return PlayerState.Dying;
-        // Game mechanic: As long as you keep on moving, you will never die, no matter your lives count.
-    }
+    return checkInput(stateStart);
 };
 const onRunningDeactivation = () => {
 };
@@ -308,16 +289,23 @@ const onRollActivation = () => {
     playerComponent!.state = PlayerState.Roll;
 }
 const onRollUpdate = (deltaTime: number): PlayerState | undefined => {
+    const currentLaneX = playerComponent!.lane * LANE.WIDTH - LANE.WIDTH/2;
     if (playerComponent!.directionChange >= 1){
-        if (positionComponent!.x > playerComponent!.lane * LANE.WIDTH - LANE.WIDTH/2){
-            positionComponent!.x = playerComponent!.lane * LANE.WIDTH - LANE.WIDTH/2;
+        if (positionComponent!.x > currentLaneX){
+            positionComponent!.x = currentLaneX;
             return PlayerState.Running;
+        }
+        else if (positionComponent!.x > currentLaneX - LANE.WIDTH/2){
+            checkRollInput();
         }
     }
     else if (playerComponent!.directionChange <= -1){
-        if (positionComponent!.x < playerComponent!.lane * LANE.WIDTH - LANE.WIDTH/2){
-            positionComponent!.x = playerComponent!.lane * LANE.WIDTH - LANE.WIDTH/2;
+        if (positionComponent!.x < currentLaneX){
+            positionComponent!.x = currentLaneX;
             return PlayerState.Running;
+        }
+        else if (positionComponent!.x < currentLaneX + LANE.WIDTH/2){
+            checkRollInput();
         }
     }
     playerComponent!.roll(deltaTime);
@@ -363,7 +351,7 @@ function generateArrow(positionComponent: PositionComponent){
     objects.push(arrow);
 }
 
-export function resetGame(){
+export function resetGame(): void {
     const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
     const inventoryComponent = player.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!
     objects.splice(0);
@@ -378,4 +366,31 @@ export function resetGame(){
     playerComponent.updateAnimationBasedOnWeapon();
     smComponent.activate(PlayerState.Running);
     resetValues();
+}
+
+function checkInput(stateStart: number): PlayerState | undefined {
+    checkRollInput();
+    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
+        return PlayerState.Ducking;
+    }
+    else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
+        return PlayerState.Jumping;
+    }
+    else if (playerComponent!.stats.Lives <= 0 && checkTime(200, stateStart) || playerComponent!.stats.Lives <= -3){
+        return PlayerState.Dying;
+        // Game mechanic: As long as you keep on moving, you will never die, no matter your lives count.
+    }
+}
+
+function checkRollInput(): PlayerState | undefined {
+    if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
+        if (lastClick <= Date.now() - CLICK_DELAY && playerComponent!.lane + playerComponent!.directionChange <= LANE.COUNT && playerComponent!.lane + playerComponent!.directionChange >= 1){
+            if (playerComponent!.directionChange != 0){
+                playerComponent!.lane += playerComponent!.directionChange;
+                lastClick = Date.now();
+                return PlayerState.Roll;
+            }
+
+        }
+    }
 }

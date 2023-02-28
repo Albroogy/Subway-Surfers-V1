@@ -23,6 +23,8 @@ const DRAGON: Record <string, number> = {
 }
 
 export default class DragonComponent extends Component {
+    public static COMPONENT_ID: string = "Dragon";
+    
     public onAttached(): void {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<DragonState>>(StateMachineComponent.COMPONENT_ID)!;
         stateMachineComponent.stateMachine.addState(DragonState.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
