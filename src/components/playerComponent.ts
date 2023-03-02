@@ -352,6 +352,7 @@ function generateArrow(positionComponent: PositionComponent){
 }
 
 export function resetGame(): void {
+    // LOAD GAME STATE HERE
     const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
     const inventoryComponent = player.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!
     objects.splice(0);

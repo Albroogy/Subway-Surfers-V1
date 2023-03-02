@@ -18,10 +18,16 @@ import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurC
 import FrankensteinComponent from "./components/frankensteinComponent";
 import { SoundComponent } from "./components/soundComponent";
 import { ImagePartComponent } from "./components/imagePartComponent";
-document.addEventListener('input', function(e) {
+import CameraSystem from "./systems/cameraSystem";
+document.body.addEventListener('keydown', function(e) {
     console.log("played")
+    // if !playing
     const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
     soundComponent.playSound(GameSound.Track1);
+});
+
+window.addEventListener("beforeunload", function (e) {
+    // Save game state here
 });
 
 // Player Component
@@ -114,21 +120,13 @@ function draw() {
     
     if (gameState != GameState.InventoryMenu){
         
-        context.save();
-
-        let cameraAngle: number = 0;
-        let cameraX: number = 500;
-        let cameraY: number = 0;
-        let zoomLevel: number = 1;
-        context.rotate(cameraAngle);
-        context.translate(cameraX, cameraY);
-        context.scale(zoomLevel, zoomLevel);
+        CameraSystem.Instance.beginDraw();
         
         gameEntity.draw();
         for (const obj of objects) {
             obj.draw();
         }
-        context.restore();
+        CameraSystem.Instance.endDraw();
 
         // Text postition innformation
         const GOLD_TEXT_LOCATION: Record <string, number> = {
