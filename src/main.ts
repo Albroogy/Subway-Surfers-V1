@@ -20,6 +20,7 @@ import { ImagePartComponent } from "./components/imagePartComponent";
 import CameraSystem from "./systems/cameraSystem";
 import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
 import { ImageComponent } from "./components/imageComponent";
+import SkeletonComponent from "./components/skeletonComponent";
 
 document.body.addEventListener('keydown', startMusicTracks);
 
@@ -68,6 +69,7 @@ export function changeFallSpeed(fallIncrement: number): void {
 export function resetValues(){
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_FALL_SPEED;
+    objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
     if (score > highScore){
         highScore = score;
     }
@@ -139,7 +141,9 @@ function runFrame() {
 
 let enemyIntervalTime = 10 * IN_GAME_SECOND;
 let nextEnemyTime = Date.now() + enemyIntervalTime;
-let objectTypesCount = 2;
+
+const ORIGINAL_OBJECT_TYPES_COUNT = 2;
+let objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
 
 function checkEnemyTypesCount(currentTime: number): void {
     if (currentTime >= nextEnemyTime){
@@ -184,8 +188,8 @@ function draw() {
         CameraSystem.Instance.beginDraw();
         
         gameEntity.draw();
-        for (const obj of objects) {
-            obj.draw();
+        for (let i = objects.length - OFFSET; i >= 0; i--) {
+            objects[i].draw();
         }
         CameraSystem.Instance.endDraw();
 
@@ -244,6 +248,7 @@ function draw() {
 
 const SpawnType = {
     GenerateCoin: "generateCoin",
+    GenerateSkeleton: "generateSkeleton",
     GenerateDragon: "generateDragon",
     GenerateMinotaur: "generateMinotaur",
     GenerateFrankenstein: "generateFrankenstein"
@@ -272,11 +277,14 @@ function checkSpawn(){
 
         let objectLaneLocation = calculateLaneLocation(objectLane!);
 
-        if (generateType == SpawnType.GenerateDragon){
-            generateDragon(objectLaneLocation);
-        }
-        else if (generateType == SpawnType.GenerateCoin){
+        if (generateType == SpawnType.GenerateCoin){
             generateCoin(objectLaneLocation);
+        }
+        else if (generateType == SpawnType.GenerateSkeleton){
+            generateSkeleton(objectLaneLocation);
+        }
+        else if (generateType == SpawnType.GenerateDragon){
+            generateDragon(objectLaneLocation);
         }
         else if (generateType == SpawnType.GenerateMinotaur){
             generateMinotaur(objectLaneLocation);
@@ -285,7 +293,6 @@ function checkSpawn(){
             generateFrankenstein(objectLaneLocation);
         }
         lastSpawn = Date.now();
-        console.log(generateType);
         console.log(enemiesPerLane);
     }
 }
@@ -387,6 +394,21 @@ function generateFrankenstein(objectLaneLocation: number){
         frankenstein
     )
 }
+function generateSkeleton(objectLaneLocation: number){
+    const SKELOTON_WIDTH: number = 75;
+    const SKELOTON_HEIGHT: number = 75;
+
+    const skeleton: Entity = new Entity(EntityName.Skeleton);
+    skeleton.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, SKELOTON_WIDTH, SKELOTON_HEIGHT, 0));
+    skeleton.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/skeleton.png", MinotaurAnimationInfo));
+    skeleton.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    skeleton.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
+    skeleton.addComponent(SkeletonComponent.COMPONENT_ID, new SkeletonComponent());
+
+    objects.push(
+        skeleton
+    )
+}
 
 function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: number){
     for (let i = 0; i < objects.length; i++){
@@ -419,7 +441,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             const currentObject1: Entity = objects[i] as Entity;
             // When I removed the current object lines, the game sometimes bugged out when arrows collided with objects, so I'm keeping this code in.
             for (let j = 0; j < objects.length; j++){
-                if (objects[j].name == EntityName.Dragon || objects[j].name == EntityName.Minotaur || objects[j].name == EntityName.Frankenstein){
+                if (objects[j].name == EntityName.Dragon || objects[j].name == EntityName.Minotaur || objects[j].name == EntityName.Frankenstein || objects[j].name == EntityName.Skeleton){
                     const currentObject2: Entity = objects[j] as Entity;
                     console.assert(currentObject1 != undefined);
                     console.assert(currentObject2 != undefined);
@@ -457,7 +479,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 continue;
             }
             else {
-                if (!playerComponent.attacking && objects[i].name != EntityName.Frankenstein || objects[i].name == EntityName.Fireball){
+                if (!playerComponent.attacking && objects[i].name != EntityName.Frankenstein && objects[i].name != EntityName.Skeleton || objects[i].name == EntityName.Fireball){
                     playerComponent.stats.Lives -= 1;
                     const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
                     soundComponent.playSound(GameSound.PlayerHit);
@@ -483,7 +505,19 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                         }
                     }
                     else {
-                        console.log("safljsdakl")
+                        if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
+                            playerComponent.stats.Lives -= 1;
+                            timeCollisionStart = Date.now();
+                        }
+                    }
+                }
+                else if (objects[i].name == EntityName.Skeleton){
+                    let timeCollisionStart = Date.now();
+                    if (playerComponent.attacking){
+                        deleteObject(objects[i]);
+                        continue;
+                    }
+                    else {
                         if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
                             playerComponent.stats.Lives -= 1;
                             timeCollisionStart = Date.now();
@@ -512,7 +546,6 @@ function deleteObject(object: Entity){
     if (object.name == EntityName.Dragon || object.name == EntityName.Frankenstein || object.name == EntityName.Minotaur || object.name == EntityName.Coin){
         const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
         let objectLane = findLane(positionComponent.x);
-        console.log(objectLane)
         for (let i = 0; i < enemiesPerLane.length; i++){
             if (i == objectLane - OFFSET){
                 enemiesPerLane[i] -= 1;

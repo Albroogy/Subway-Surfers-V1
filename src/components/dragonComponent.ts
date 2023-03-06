@@ -82,7 +82,7 @@ const onFiringDeactivation = (currentObject: Entity) => {
 
 // Dragon Animation Info
 export const DragonAnimationNames = {
-    Flying: "flying",
+    Flying: "flying"
 }
 
 export const DragonAnimationInfo: AnimationInfo = {

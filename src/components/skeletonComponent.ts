@@ -1,5 +1,6 @@
 import { Component, Entity } from "../entityComponent";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
+import MovementComponent from "./movementComponent";
 import { player } from "./playerComponent";
 import PositionComponent from "./positionComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -10,7 +11,8 @@ export enum SkeletonState {
 }
 
 export default class SkeletonComponent extends Component {
-    public health: number = 2;
+    public static COMPONENT_ID: string = "Skeleton";
+
     public onAttached(): void {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<SkeletonState>>(StateMachineComponent.COMPONENT_ID)!;
         stateMachineComponent.stateMachine.addState(SkeletonState.WalkingDown, onWalkingDownActivation, onWalkingDownUpdate, onWalkingDownDeactivation);
@@ -24,6 +26,10 @@ const playerPositionComponent: PositionComponent | null = player.getComponent<Po
 const onWalkingDownActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[SkeletonAnimationNames.WalkingDown];
+    const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!
+    if (movementComponent.yDirection != 1){
+        movementComponent.yDirection = 1;
+    }
 }
 const onWalkingDownUpdate = (deltatime: number, currentObject: Entity): SkeletonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -41,6 +47,10 @@ const onHittingActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[SkeletonAnimationNames.Hitting];
     console.log(SkeletonState.Hitting);
+    const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!
+    if (movementComponent.yDirection != 0){
+        movementComponent.yDirection = 0;
+    }
 }
 const onHittingUpdate = (deltatime: number, currentObject: Entity): SkeletonState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -70,7 +80,7 @@ export const SkeletonAnimationInfo: AnimationInfo = {
             framesPerSecond: 8
         },
         [SkeletonAnimationNames.Hitting]: {
-            rowIndex: 6,
+            rowIndex: 14,
             frameCount: 8,
             framesPerSecond: 8
         }

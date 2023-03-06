@@ -19,6 +19,8 @@ const MINOTAUR: Record <string, number> = {
 }
 
 export default class MinotaurComponent extends Component {
+    public static COMPONENT_ID: string = "Minotaur";
+
     public onAttached(): void {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<MinotaurState>>(StateMachineComponent.COMPONENT_ID)!;
         stateMachineComponent.stateMachine.addState(MinotaurState.WalkingDown, onWalkingDownActivation, onWalkingDownUpdate, onWalkingDownDeactivation);
@@ -107,7 +109,6 @@ export const MinotaurAnimationNames = {
     WalkingUp: "walkingUp",
     Jumping: "jumping",
     Hitting: "hitting",
-    Bow: "bow"
 }
 
 export const MinotaurAnimationInfo: AnimationInfo = {

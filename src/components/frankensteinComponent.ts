@@ -1,5 +1,4 @@
 import { Component, Entity } from "../entityComponent";
-import { OFFSET } from "../global";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
 import MovementComponent from "./movementComponent";
 import { player } from "./playerComponent";
@@ -12,6 +11,8 @@ export enum FrankensteinState {
 }
 
 export default class FrankensteinComponent extends Component {
+    public static COMPONENT_ID: string = "Frankenstein";
+
     public health: number = 2;
     public onAttached(): void {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<FrankensteinState>>(StateMachineComponent.COMPONENT_ID)!;

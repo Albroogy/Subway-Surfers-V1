@@ -42,6 +42,7 @@ export enum EntityName{
     RectEnemy = "rectEnemy",
     GameEntity = "gameEntity",
     Frankenstein = "frankenstein",
+    Skeleton = "skeleton",
     ItemFrame = "itemFrame"   
 }
 
