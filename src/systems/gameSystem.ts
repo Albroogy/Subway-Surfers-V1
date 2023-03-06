@@ -19,12 +19,16 @@ for (let i = 0; i < textureCount; i++){
 
 export enum GameSound {
     Track1 = "track1",
+    Track2 = "track2",
+    Track3 = "track3",
     PlayerHit = "playerHit",
     ArrowHit = "arrowHit"
 }
 
 const GameAudio = {
     [GameSound.Track1]: new Audio('assets/audio/track1.mp3'),
+    [GameSound.Track2]: new Audio('assets/audio/where-the-brave-may-live-forever-viking-background-music-109867.mp3'),
+    [GameSound.Track3]: new Audio('assets/audio/dance-of-nordic-leaves-epic-folk-original-soundtrack-8324.mp3'),
     [GameSound.PlayerHit]: new Audio('assets/audio/playerHit.mp3'),
     [GameSound.ArrowHit]: new Audio('assets/audio/arrowHit.mp3'),
 }

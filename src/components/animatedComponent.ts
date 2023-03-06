@@ -75,25 +75,9 @@ export class AnimatedComponent extends Component {
         console.assert(frameSY >= 0);
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
         const playerComponent = this._entity.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID);
-        if (playerComponent == null ){
-            context.drawImage(this.spritesheet,
-                frameSX, frameSY, this._frameW, this._frameH,
-                positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, positionComponent!.width, positionComponent!.height
-            );
-        }
-        else {
-            if (playerComponent!.attacking == false){
-                context.drawImage(this.spritesheet,
-                    frameSX, frameSY, this._frameW, this._frameH,
-                    positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height, positionComponent!.width, positionComponent!.height
-                );
-            }
-            else{
-                context.drawImage(this.spritesheet,
-                    frameSX, frameSY, this._frameW, this._frameH,
-                    positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, positionComponent!.width, positionComponent!.height
-                );
-            }
-        }
+        context.drawImage(this.spritesheet,
+            frameSX, frameSY, this._frameW, this._frameH,
+            positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, positionComponent!.width, positionComponent!.height
+        );
     }
 }

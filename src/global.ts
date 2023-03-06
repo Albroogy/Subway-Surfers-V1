@@ -27,6 +27,7 @@ canvas.height = window.innerHeight;
 export const context: CanvasRenderingContext2D = canvas.getContext("2d")! as CanvasRenderingContext2D;
 
 export const OFFSET: number = 1;
+export const IN_GAME_SECOND = 10 ** 3;
 export const LANE: Record <string, number> = {
     WIDTH: canvas.width/3,
     COUNT: 3

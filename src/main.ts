@@ -1,6 +1,6 @@
 import {PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
-import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName} from "./global";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
@@ -9,7 +9,7 @@ import DragonComponent, { DragonAnimationInfo, DragonSound} from "./components/d
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import { gameEntity, GameSound } from "./systems/gameSystem";
-import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, images, objects, score, spawnDelay} from "./objects"
+import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, images, objects, score, setHighScore, spawnDelay} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
@@ -19,15 +19,22 @@ import FrankensteinComponent from "./components/frankensteinComponent";
 import { SoundComponent } from "./components/soundComponent";
 import { ImagePartComponent } from "./components/imagePartComponent";
 import CameraSystem from "./systems/cameraSystem";
+import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
+import { ImageComponent } from "./components/imageComponent";
+
 document.body.addEventListener('keydown', function(e) {
-    console.log("played")
-    // if !playing
     const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-    soundComponent.playSound(GameSound.Track1);
+    if (!soundComponent.loadedSounds[GameSound.Track1].played){
+        return;
+    }
+    // soundComponent.playSound(GameSound.Track1);
+    const sounds = [GameSound.Track1, GameSound.Track2, GameSound.Track3];
+    soundComponent.playSounds(sounds);
 });
 
 window.addEventListener("beforeunload", function (e) {
     // Save game state here
+    SaveGameSystem.Instance.saveGameData(gold, highScore);
 });
 
 // Player Component
@@ -35,6 +42,11 @@ const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComp
 
 // Changeble variables
 let gold: number = 0;
+
+// Load Game Data
+
+gold = SaveGameSystem.Instance.loadData(SaveKey.Gold) as number;
+setHighScore(SaveGameSystem.Instance.loadData(SaveKey.HighScore) as number);
 
 // Creating the state machines
 
@@ -56,7 +68,6 @@ let gold: number = 0;
 // - Add helpful UI for inventory system.
 // - Entities are on top of player when colliding.
 // - Add looping music function to soundComponent.
-
 
 //Start Loop
 resetGame();
@@ -85,7 +96,20 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
+    checkEnemyTypesCount(currentTime);
     gameEntity.update(deltaTime, gameSpeed);
+}
+
+let enemyIntervalTime = 10 * IN_GAME_SECOND;
+let nextEnemyTime = Date.now() + enemyIntervalTime;
+let objectTypesCount = 2;
+
+function checkEnemyTypesCount(currentTime: number): void {
+    if (currentTime >= nextEnemyTime){
+        objectTypesCount += 1;
+        nextEnemyTime += enemyIntervalTime;
+        enemyIntervalTime += 5 * IN_GAME_SECOND;
+    }
 }
 
 function update(deltaTime: number, gameSpeed: number){
@@ -216,10 +240,10 @@ function generateRectEnemy(){
     )
 }
 function generateCoin(){
-    const COIN_RADIUS: number = 25;
     const circle: Entity = new Entity(EntityName.Coin);
-    circle.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, 0, 0, COIN_RADIUS));
-    circle.addComponent(DrawCircleComponent.COMPONENT_ID, new DrawCircleComponent(context, "yellow"));
+    circle.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
+    circle.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/coin.png"));
+    circle.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     objects.push(
         circle
     )
@@ -276,8 +300,8 @@ function generateFrankenstein(){
 }
 
 const SpawnType = {
-    GenerateDragon: "generateDragon",
     GenerateCoin: "generateCoin",
+    GenerateDragon: "generateDragon",
     GenerateMinotaur: "generateMinotaur",
     GenerateFrankenstein: "generateFrankenstein"
 }
@@ -286,7 +310,8 @@ let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
 
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
-        let generateType: string = Object.values(SpawnType)[Math.floor(Math.random() * 4)];
+        console.log(objectTypesCount)
+        let generateType: string = Object.values(SpawnType)[Math.floor(Math.random() * objectTypesCount)];
         if (generateType == SpawnType.GenerateDragon){
             generateDragon();
         }
@@ -300,7 +325,7 @@ function checkSpawn(){
             generateFrankenstein();
         }
         lastSpawn = Date.now();
-        // console.log(generateType);
+        console.log(generateType);
     }
 }
 

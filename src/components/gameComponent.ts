@@ -50,6 +50,7 @@ export const onInventoryMenuUpdate = (): GameState | undefined => {
 export const onInventoryMenuDeactivation = () => {
     // document.removeEventListener('click', mouseClicked);
     // mouseClicked is not defined
+    // removeEventListener('mouseup', curriedMouseUp);
 }
 
 export type slot = { row: number, column: number };
@@ -149,7 +150,6 @@ function mouseUp(mouse: MouseData,
     
     images.splice(0, 1);
     inventory.hideItem("");
-    removeEventListener('mouseup', curriedMouseUp);
 }
 
 function checkMouseCollision(mouse: Record<string, number>, inventory: Inventory){

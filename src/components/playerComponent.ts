@@ -295,8 +295,10 @@ const onRollUpdate = (deltaTime: number): PlayerState | undefined => {
             positionComponent!.x = currentLaneX;
             return PlayerState.Running;
         }
-        else if (positionComponent!.x > currentLaneX - LANE.WIDTH/2){
-            checkRollInput();
+        else if (positionComponent!.x < currentLaneX - LANE.WIDTH/2){
+            if (checkRollInput() == PlayerState.Roll){
+                return PlayerState.Roll;
+            }
         }
     }
     else if (playerComponent!.directionChange <= -1){
@@ -304,8 +306,10 @@ const onRollUpdate = (deltaTime: number): PlayerState | undefined => {
             positionComponent!.x = currentLaneX;
             return PlayerState.Running;
         }
-        else if (positionComponent!.x < currentLaneX + LANE.WIDTH/2){
-            checkRollInput();
+        else if (positionComponent!.x > currentLaneX + LANE.WIDTH/2){
+            if (checkRollInput() == PlayerState.Roll){
+                return PlayerState.Roll;
+            }
         }
     }
     playerComponent!.roll(deltaTime);
@@ -370,8 +374,10 @@ export function resetGame(): void {
 }
 
 function checkInput(stateStart: number): PlayerState | undefined {
-    checkRollInput();
-    if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
+    if (checkRollInput() == PlayerState.Roll){
+        return PlayerState.Roll;
+    }
+    else if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
         return PlayerState.Ducking;
     }
     else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {

@@ -12,4 +12,15 @@ export default class SaveGameSystem {
         }
         return JSON.parse(textRepresentation) as T;
     }
+
+    public saveGameData(gold: number, highScore: number) {
+        this.saveData<number>(SaveKey.Gold, gold);
+        this.saveData<number>(SaveKey.HighScore, highScore);
+    }
 }
+
+export enum SaveKey {
+    Gold = "gold",
+    HighScore = "highScore"
+}
+

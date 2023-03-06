@@ -1,4 +1,5 @@
 import { Entity } from "./entityComponent";
+import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
 
 const ORIGINAL_FALL_SPEED: number = 150;
 export let fallSpeed: number = ORIGINAL_FALL_SPEED;
@@ -11,6 +12,10 @@ export let highScore: number = 0;
 
 export const objects: Array<Entity> = [];
 export const images: Array<Entity> = [];
+
+export function setHighScore(highScoreValue: number): void {
+    highScore = highScoreValue;
+}
 
 export function addScore(scoreIncreaseValue: number): void {
     score += scoreIncreaseValue;
