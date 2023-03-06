@@ -1,6 +1,6 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
-import { fallSpeed, objects} from "../objects";
+import { objects} from "../objects";
 import { AnimatedComponent, AnimationInfo} from "./animatedComponent";
 import { checkTime, EntityName} from "../global";
 import { ImageComponent } from "./imageComponent";
@@ -56,7 +56,9 @@ const onFiringActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[DragonAnimationNames.Flying];
-    movementComponent.speed = 0;
+    if (movementComponent.yDirection != 0){
+        movementComponent.yDirection = 0;
+    }
 
     generateFireball(positionComponent, currentObject);
 }
@@ -74,7 +76,7 @@ const onFiringUpdate = (deltatime: number, currentObject: Entity): DragonState |
 }
 const onFiringDeactivation = (currentObject: Entity) => {
     const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!;
-    movementComponent.speed = fallSpeed;
+    movementComponent.yDirection = 1;
 }
 
 

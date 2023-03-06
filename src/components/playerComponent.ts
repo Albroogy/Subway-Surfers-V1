@@ -5,8 +5,9 @@ import { allPressedKeys, canvas, checkTime, EntityName, KEYS, LANE, OFFSET, slee
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
-import { objects, resetValues} from "../objects";
+import { objects } from "../objects";
 import { equipStarterItems, Inventory, InventoryComponent, ItemList } from "./inventoryComponent";
+import { resetValues } from "../main";
 
 
 export enum PlayerState {

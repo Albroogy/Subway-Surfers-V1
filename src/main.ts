@@ -9,7 +9,7 @@ import DragonComponent, { DragonAnimationInfo, DragonSound} from "./components/d
 import MovementComponent from "./components/movementComponent";
 import DrawRectComponent from "./components/drawRectComponent";
 import { gameEntity, GameSound } from "./systems/gameSystem";
-import {addScore, changeFallSpeed, changeSpawnDelay, fallSpeed, highScore, images, objects, score, setHighScore, spawnDelay} from "./objects"
+import {images, objects} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
@@ -22,15 +22,18 @@ import CameraSystem from "./systems/cameraSystem";
 import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
 import { ImageComponent } from "./components/imageComponent";
 
-document.body.addEventListener('keydown', function(e) {
-    const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-    if (!soundComponent.loadedSounds[GameSound.Track1].played){
-        return;
-    }
-    // soundComponent.playSound(GameSound.Track1);
-    const sounds = [GameSound.Track1, GameSound.Track2, GameSound.Track3];
-    soundComponent.playSounds(sounds);
-});
+document.body.addEventListener('keydown', startMusicTracks);
+
+function startMusicTracks() {
+        const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+        if (!soundComponent.loadedSounds[GameSound.Track1].played){
+            return;
+        }
+        // soundComponent.playSound(GameSound.Track1);
+        const sounds = [GameSound.Track1, GameSound.Track2, GameSound.Track3];
+        soundComponent.playSounds(sounds);
+        document.body.removeEventListener('keydown', startMusicTracks);
+}
 
 window.addEventListener("beforeunload", function (e) {
     // Save game state here
@@ -42,11 +45,40 @@ const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComp
 
 // Changeble variables
 let gold: number = 0;
+let score: number = 0;
+let highScore: number = 0;
+
+const ORIGINAL_FALL_SPEED: number = 150;
+export let fallSpeed: number = ORIGINAL_FALL_SPEED;
+
+export const ORIGINAL_SPAWN_DELAY: number = 1500;
+export let spawnDelay: number = ORIGINAL_SPAWN_DELAY;
+
+export function addScore(scoreIncreaseValue: number): void {
+    score += scoreIncreaseValue;
+}
+
+export function changeSpawnDelay(spawnIncrement: number): void {
+    spawnDelay -= spawnIncrement;
+}
+
+export function changeFallSpeed(fallIncrement: number): void {
+    fallSpeed += fallIncrement;
+}
+
+export function resetValues(){
+    spawnDelay = ORIGINAL_SPAWN_DELAY;
+    fallSpeed = ORIGINAL_FALL_SPEED;
+    if (score > highScore){
+        highScore = score;
+    }
+    score = 0;
+}
 
 // Load Game Data
 
 gold = SaveGameSystem.Instance.loadData(SaveKey.Gold) as number;
-setHighScore(SaveGameSystem.Instance.loadData(SaveKey.HighScore) as number);
+highScore = SaveGameSystem.Instance.loadData(SaveKey.HighScore) as number;
 
 // Creating the state machines
 
@@ -398,7 +430,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 continue;
             }
             else {
-                if (!playerComponent.attacking || objects[i].name == EntityName.Fireball){
+                if (!playerComponent.attacking && objects[i].name != EntityName.Frankenstein || objects[i].name == EntityName.Fireball){
                     playerComponent.stats.Lives -= 1;
                     const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
                     soundComponent.playSound(GameSound.PlayerHit);

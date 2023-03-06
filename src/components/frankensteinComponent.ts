@@ -25,13 +25,17 @@ const playerPositionComponent: PositionComponent | null = player.getComponent<Po
 const onWalkingDownActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[FrankensteinAnimationNames.WalkingDown];
+    const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!
+    if (movementComponent.yDirection != 1){
+        movementComponent.yDirection = 1;
+    }
 }
 const onWalkingDownUpdate = (deltatime: number, currentObject: Entity): FrankensteinState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
-    else if (playerPositionComponent.x == positionComponent.x && playerPositionComponent.y <= positionComponent.y + 50 && playerPositionComponent.y > positionComponent.y){
+    else if (playerPositionComponent.x == positionComponent.x && playerPositionComponent.y <= positionComponent.y + 200 && playerPositionComponent.y >= positionComponent.y){
         return FrankensteinState.Hitting;
     }
 }
@@ -42,6 +46,10 @@ const onHittingActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[FrankensteinAnimationNames.Hitting];
     console.log(FrankensteinState.Hitting);
+    const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!
+    if (movementComponent.yDirection != 0){
+        movementComponent.yDirection = 0;
+    }
 }
 const onHittingUpdate = (deltatime: number, currentObject: Entity): FrankensteinState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -59,7 +67,6 @@ const onHittingDeactivation = () => {
 export const FrankensteinAnimationNames = {
     WalkingDown: "walkingDown",
     Hitting: "hitting",
-    Bow: "bow"
 }
 
 export const FrankensteinAnimationInfo: AnimationInfo = {
@@ -69,12 +76,12 @@ export const FrankensteinAnimationInfo: AnimationInfo = {
         [FrankensteinAnimationNames.WalkingDown]: {
             rowIndex: 10,
             frameCount: 9,
-            framesPerSecond: 8
+            framesPerSecond: 6
         },
         [FrankensteinAnimationNames.Hitting]: {
-            rowIndex: 6,
-            frameCount: 8,
-            framesPerSecond: 8
+            rowIndex: 14,
+            frameCount: 6,
+            framesPerSecond: 6
         }
     }
 };

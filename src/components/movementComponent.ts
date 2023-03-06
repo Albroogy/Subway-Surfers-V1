@@ -5,7 +5,7 @@ export default class MovementComponent extends Component {
     public static COMPONENT_ID: string = "Movement";
 
     public speed: number = 0;
-     // Either a 1 or -1
+     // Either a 1, 0, or -1
     public yDirection: number = 0;
 
     constructor(speed: number, yDirection: number) {
