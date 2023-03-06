@@ -1,4 +1,5 @@
 import { Component, Entity } from "../entityComponent";
+import { OFFSET } from "../global";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
 import MovementComponent from "./movementComponent";
 import { player } from "./playerComponent";
@@ -35,7 +36,7 @@ const onWalkingDownUpdate = (deltatime: number, currentObject: Entity): Frankens
     if (playerPositionComponent == null){
         return;
     }
-    else if (playerPositionComponent.x == positionComponent.x && playerPositionComponent.y <= positionComponent.y + 200 && playerPositionComponent.y >= positionComponent.y){
+    else if (playerPositionComponent.x == positionComponent.x && playerPositionComponent.y <= positionComponent.y + playerPositionComponent.height/2 && playerPositionComponent.y >= positionComponent.y){
         return FrankensteinState.Hitting;
     }
 }

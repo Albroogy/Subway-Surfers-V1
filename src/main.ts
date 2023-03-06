@@ -1,13 +1,12 @@
 import {PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
-import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND} from "./global";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
 import { AnimatedComponent } from "./components/animatedComponent";
 import DragonComponent, { DragonAnimationInfo, DragonSound} from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
-import DrawRectComponent from "./components/drawRectComponent";
 import { gameEntity, GameSound } from "./systems/gameSystem";
 import {images, objects} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
@@ -73,12 +72,18 @@ export function resetValues(){
         highScore = score;
     }
     score = 0;
+    enemiesPerLane = [0, 0, 0];
 }
 
 // Load Game Data
 
-gold = SaveGameSystem.Instance.loadData(SaveKey.Gold) as number;
-highScore = SaveGameSystem.Instance.loadData(SaveKey.HighScore) as number;
+if (SaveGameSystem.Instance.loadData(SaveKey.Gold) != null){
+    gold = SaveGameSystem.Instance.loadData(SaveKey.Gold) as number;
+}
+if (SaveGameSystem.Instance.loadData(SaveKey.HighScore) != null){
+    highScore = SaveGameSystem.Instance.loadData(SaveKey.HighScore) as number;
+}
+
 
 // Creating the state machines
 
@@ -237,24 +242,85 @@ function draw() {
     }
 }
 
-// These functions calculate a certain value
+const SpawnType = {
+    GenerateCoin: "generateCoin",
+    GenerateDragon: "generateDragon",
+    GenerateMinotaur: "generateMinotaur",
+    GenerateFrankenstein: "generateFrankenstein"
+}
+
+let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
+
+let enemiesPerLane = [0, 0, 0];
+
+function checkSpawn(){
+    if (lastSpawn <= Date.now() - spawnDelay){
+        let typeNumber = Math.floor(Math.random() * objectTypesCount);
+        if (checkTypeNumberViable(typeNumber) == false){
+            typeNumber = generateTypeNumber();
+        }
+
+        let generateType: string = Object.values(SpawnType)[typeNumber];
+
+        let objectLane = pickLane(enemiesPerLane);
+
+        for (let i = 0; i < enemiesPerLane.length; i++){
+            if (i == objectLane! - OFFSET){
+                enemiesPerLane[i] += 1;
+            }
+        }
+
+        let objectLaneLocation = calculateLaneLocation(objectLane!);
+
+        if (generateType == SpawnType.GenerateDragon){
+            generateDragon(objectLaneLocation);
+        }
+        else if (generateType == SpawnType.GenerateCoin){
+            generateCoin(objectLaneLocation);
+        }
+        else if (generateType == SpawnType.GenerateMinotaur){
+            generateMinotaur(objectLaneLocation);
+        }
+        else if (generateType == SpawnType.GenerateFrankenstein){
+            generateFrankenstein(objectLaneLocation);
+        }
+        lastSpawn = Date.now();
+        console.log(generateType);
+        console.log(enemiesPerLane);
+    }
+}
+
+function checkTypeNumberViable(typeNumber: number): boolean {
+    return typeNumber <= Object.keys(SpawnType).length + OFFSET;
+}
+
+function generateTypeNumber(): number {
+    let typeNumber = Math.floor(Math.random() * objectTypesCount);
+    if (checkTypeNumberViable(typeNumber) == false){
+        typeNumber = generateTypeNumber();
+    }
+    return Math.floor(Math.random() * objectTypesCount);
+}
 
 function calculateLaneLocation(lane: number): number{
     return lane * LANE.WIDTH - LANE.WIDTH/2;
 }
-function pickLane(): number{
-    return Math.floor(Math.random() * LANE.COUNT) + OFFSET;
+function pickLane(enemiesPerLane: Array<number>){
+    let weights = enemiesPerLane.map(count => 1 / (count + 1));
+
+    let totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+    let normalizedWeights = weights.map(weight => weight / totalWeight);
+
+    let randomNumber = Math.random();
+
+    let cumulativeWeight = 0;
+    for (let i = 0; i < normalizedWeights.length; i++) {
+        cumulativeWeight += normalizedWeights[i];
+        if (randomNumber <= cumulativeWeight) {
+            return i + OFFSET;
+        }
+    }
 }
-
-// Obstacle/Object Information
-
-enum obstacleColors {
-    Orange,
-    Brown,
-    Black
-}
-
-const obstacleType: Array <string> = [PlayerState.Ducking, PlayerState.Jumping, "Invincible"];
 
 const OBJECT: Record <string, number> = {
     WIDTH: 50,
@@ -262,18 +328,9 @@ const OBJECT: Record <string, number> = {
     SPAWN_LOCATION: -50
 }
 
-function generateRectEnemy(){
-    const type: number = Math.floor(Math.random() * Object.keys(obstacleColors).length);
-    const rect: Entity = new Entity(EntityName.RectEnemy);
-    rect.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
-    rect.addComponent(DrawRectComponent.COMPONENT_ID, new DrawRectComponent(context, Object.keys(obstacleColors)[type]));
-    objects.push(
-        rect
-    )
-}
-function generateCoin(){
+function generateCoin(objectLaneLocation: number){
     const circle: Entity = new Entity(EntityName.Coin);
-    circle.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
+    circle.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
     circle.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/coin.png"));
     circle.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     objects.push(
@@ -281,13 +338,13 @@ function generateCoin(){
     )
 }
 
-function generateDragon(){
+function generateDragon(objectLaneLocation: number){
     const DragonAudio = {
         [DragonSound.Roar]: new Audio('assets/audio/dragon-roar.mp3')
     }
 
     const dragon: Entity = new Entity(EntityName.Dragon);
-    dragon.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
+    dragon.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
     dragon.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/dragon.png", DragonAnimationInfo));
     dragon.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     dragon.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
@@ -299,12 +356,12 @@ function generateDragon(){
     )
 }
 
-function generateMinotaur(){
+function generateMinotaur(objectLaneLocation: number){
     const MINOTAUR_WIDTH: number = 75;
     const MINOTAUR_HEIGHT: number = 75;
 
     const minotaur: Entity = new Entity(EntityName.Minotaur);
-    minotaur.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, MINOTAUR_WIDTH, MINOTAUR_HEIGHT, 0));
+    minotaur.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, MINOTAUR_WIDTH, MINOTAUR_HEIGHT, 0));
     minotaur.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/minotaur.png", MinotaurAnimationInfo));
     minotaur.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     minotaur.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
@@ -315,12 +372,12 @@ function generateMinotaur(){
     )
 }
 
-function generateFrankenstein(){
+function generateFrankenstein(objectLaneLocation: number){
     const FRANKENSTEIN_WIDTH: number = 100;
     const FRANKENSTEIN_HEIGHT: number = 100;
 
     const frankenstein: Entity = new Entity(EntityName.Frankenstein);
-    frankenstein.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(calculateLaneLocation(pickLane()), OBJECT.SPAWN_LOCATION, FRANKENSTEIN_WIDTH, FRANKENSTEIN_HEIGHT, 0));
+    frankenstein.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, FRANKENSTEIN_WIDTH, FRANKENSTEIN_HEIGHT, 0));
     frankenstein.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/frankenstein.png", MinotaurAnimationInfo));
     frankenstein.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     frankenstein.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
@@ -331,40 +388,10 @@ function generateFrankenstein(){
     )
 }
 
-const SpawnType = {
-    GenerateCoin: "generateCoin",
-    GenerateDragon: "generateDragon",
-    GenerateMinotaur: "generateMinotaur",
-    GenerateFrankenstein: "generateFrankenstein"
-}
-
-let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
-
-function checkSpawn(){
-    if (lastSpawn <= Date.now() - spawnDelay){
-        console.log(objectTypesCount)
-        let generateType: string = Object.values(SpawnType)[Math.floor(Math.random() * objectTypesCount)];
-        if (generateType == SpawnType.GenerateDragon){
-            generateDragon();
-        }
-        else if (generateType == SpawnType.GenerateCoin){
-            generateCoin();
-        }
-        else if (generateType == SpawnType.GenerateMinotaur){
-            generateMinotaur();
-        }
-        else if (generateType == SpawnType.GenerateFrankenstein){
-            generateFrankenstein();
-        }
-        lastSpawn = Date.now();
-        console.log(generateType);
-    }
-}
-
 function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: number){
     for (let i = 0; i < objects.length; i++){
         if (objects[i].getComponent(PositionComponent.COMPONENT_ID) == null){
-            console.log("object doesn't have position component");
+            console.log("object doesn't have a position component");
             return;
         }
 
@@ -373,13 +400,13 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             const positionComponent: PositionComponent = objects[i].getComponent(PositionComponent.COMPONENT_ID)!;
             if (objects[i].getComponent(DrawCircleComponent.COMPONENT_ID) == null){
                 if (outOfBoundsCheck(movementComponent, positionComponent, positionComponent.height/2)){
-                    objects.splice(i,1);
+                    deleteObject(objects[i]);
                     continue;
                 }
             }
             else{
                 if (outOfBoundsCheck(movementComponent, positionComponent, positionComponent.radius)){
-                    objects.splice(i,1);
+                    deleteObject(objects[i]);
                     continue;
                 }
             }
@@ -426,7 +453,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 const COIN_VALUE: number = 300;
                 addScore(COIN_VALUE)
                 gold += 1;
-                objects.splice(i,1);
+                deleteObject(objects[i]);
                 continue;
             }
             else {
@@ -434,27 +461,37 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                     playerComponent.stats.Lives -= 1;
                     const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
                     soundComponent.playSound(GameSound.PlayerHit);
-                    objects.splice(i,1);
+                    deleteObject(objects[i]);
                     continue;
                 }
                 else if (objects[i].name == EntityName.Frankenstein){
-                    const positionComponent = objects[i].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
-                    const frankensteinComponent = objects[i].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
-                    for (let i = 0; i < 200; i++){
-                        positionComponent.y -= 1;
+                    let timeCollisionStart = Date.now();
+                    if (playerComponent.attacking){
+                        const positionComponent = objects[i].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
+                        const frankensteinComponent = objects[i].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
+                        for (let i = 0; i < 200; i++){
+                            positionComponent.y -= 1;
+                        }
+                        frankensteinComponent.health -= 1;
+                        if (frankensteinComponent.health < 1){
+                            deleteObject(objects[i]);
+                            continue;
+                        }
+                        else{
+                            const animatedComponent = objects[i].getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+                            animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
+                        }
                     }
-                    frankensteinComponent.health -= 1;
-                    if (frankensteinComponent.health < 1){
-                        objects.splice(i,1);
-                        continue;
-                    }
-                    else{
-                        const animatedComponent = objects[i].getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
-                        animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
+                    else {
+                        console.log("safljsdakl")
+                        if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
+                            playerComponent.stats.Lives -= 1;
+                            timeCollisionStart = Date.now();
+                        }
                     }
                 }
                 else {
-                    objects.splice(i,1);
+                    deleteObject(objects[i]);
                     continue;
                 }
             }
@@ -468,6 +505,24 @@ function outOfBoundsCheck(movementComponent: MovementComponent, positionComponen
             return true;
         }
         return false;
+}
+
+function deleteObject(object: Entity){
+    objects.splice(objects.indexOf(object),1);
+    if (object.name == EntityName.Dragon || object.name == EntityName.Frankenstein || object.name == EntityName.Minotaur || object.name == EntityName.Coin){
+        const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        let objectLane = findLane(positionComponent.x);
+        console.log(objectLane)
+        for (let i = 0; i < enemiesPerLane.length; i++){
+            if (i == objectLane - OFFSET){
+                enemiesPerLane[i] -= 1;
+            }
+        }
+    }
+}
+
+function findLane(xCoordinate: number){
+    return (xCoordinate + LANE.WIDTH/2) / LANE.WIDTH;
 }
 
 function dealDamageToCollidingObjects(object1: Entity, object2: Entity){
