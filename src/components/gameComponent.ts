@@ -36,6 +36,7 @@ export const onPlayingUpdate = (): GameState | undefined => {
 }
 export const onPlayingDeactivation = () => {
 }
+
 export const onInventoryMenuActivation = () => {
     gameState = GameState.InventoryMenu;
     // EventListener to see if mouse clicked
@@ -48,9 +49,7 @@ export const onInventoryMenuUpdate = (): GameState | undefined => {
     }
 }
 export const onInventoryMenuDeactivation = () => {
-    // document.removeEventListener('click', mouseClicked);
-    // mouseClicked is not defined
-    // removeEventListener('mouseup', curriedMouseUp);
+    removeEventListener('mousedown', mouseDown);
 }
 
 export type slot = { row: number, column: number };
@@ -60,7 +59,11 @@ let mouseDownBoolean = true;
 type MouseData = { x: number, y: number, width: number, height: number };
 type MouseEventFunction = (e: MouseEvent) => void;
 
+let curriedMouseMove: MouseEventFunction;
+let curriedMouseUp: MouseEventFunction;
+
 function mouseDown(e: MouseEvent) {
+    removeEventListener('mouseup', curriedMouseUp);
     mouseDownBoolean = true;
     
     let mouse: MouseData = {
@@ -87,8 +90,8 @@ function mouseDown(e: MouseEvent) {
 
                 const positionComponent = images[0].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
 
-                const curriedMouseMove = mouseMove.bind(undefined, mouse, positionComponent, inventoryComponent);
-                const curriedMouseUp = mouseUp.bind(undefined, mouse, inventoryComponent, inventory, inventoryItem, curriedMouseMove);
+                curriedMouseMove = mouseMove.bind(undefined, mouse, positionComponent, inventoryComponent);
+                curriedMouseUp = mouseUp.bind(undefined, mouse, inventoryComponent, inventory, inventoryItem);
                 addEventListener('mousemove', curriedMouseMove);
                 addEventListener('mouseup', curriedMouseUp);
             }
@@ -116,13 +119,13 @@ function mouseMove(
     }
 }
 
-function mouseUp(mouse: MouseData,
-    inventoryComponent: InventoryComponent, 
+function mouseUp(
+    mouse: MouseData,
+    inventoryComponent: InventoryComponent,
     inventory: Inventory,
     inventoryItem: InventoryItem,
-    curriedMouseMove: MouseEventFunction, 
-    e: MouseEvent,
-    curriedMouseUp: MouseEventFunction){
+    e: MouseEvent
+    ) {
     removeEventListener('mousemove', curriedMouseMove);
     mouseDownBoolean = false;
 
@@ -138,6 +141,7 @@ function mouseUp(mouse: MouseData,
             newInventorySlotPosition.row = checkNumberSmallerThanZero(newInventorySlotPosition.row);
 
             if (placeInventory.placeItemCheck(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column)){
+                console.log(inventoryItem);
                 inventory.removeItem(inventoryItem!);
                 placeInventory.placeItem(inventoryItem!, newInventorySlotPosition.row, newInventorySlotPosition.column);
                 

@@ -1,4 +1,5 @@
 import { Component, Entity } from "../entityComponent";
+import { checkTime } from "../global";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
 import MovementComponent from "./movementComponent";
 import { player } from "./playerComponent";
@@ -30,32 +31,41 @@ export default class GhostComponent extends Component {
 const playerPositionComponent: PositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
 
 const onWalkingActivation = (currentObject: Entity) => {
-
+    currentObject.getComponent<StateMachineComponent<GhostState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart = Date.now();
 }
 const onWalkingUpdate = (deltatime: number, currentObject: Entity): GhostState | undefined => {
+    let stateStart = currentObject.getComponent<StateMachineComponent<GhostState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
     const playerX = playerPositionComponent.x;
     const playerY = playerPositionComponent.y;
     
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     const ghostComponent = currentObject.getComponent<GhostComponent>(GhostComponent.COMPONENT_ID)!;
 
-    const deltaX = playerX - positionComponent.x;
-    const deltaY = playerY - positionComponent.y;
-
-    if (deltaX < 0) {
-    ghostComponent.direction.x = -1;
-    } else {
-    ghostComponent.direction.x = 1;
+    if (checkTime(1000, stateStart)){
+        const deltaX = playerX - positionComponent.x;
+        const deltaY = playerY - positionComponent.y;
+    
+        if (deltaX < 50) {
+            ghostComponent.direction.x = -1;
+          } else if (deltaX > 50) {
+            ghostComponent.direction.x = 1;
+          } else {
+            ghostComponent.direction.x = 0;
+          }
+        
+        if (deltaY < 50) {
+        ghostComponent.direction.y = -1;
+        } else if (deltaY > 50) {
+        ghostComponent.direction.y = 1;
+        } else {
+        ghostComponent.direction.y = 0;
+        }
+    
+        chooseWalkingAnimation(currentObject);
     }
-
-    if (deltaY < 0) {
-    ghostComponent.direction.y = -1;
-    } else if (deltaY ) {
-    ghostComponent.direction.y = 1;
-    }
-
-    positionComponent.x += ghostComponent.direction.x * ghostComponent.speed; 
-    positionComponent.y += ghostComponent.direction.y * ghostComponent.speed; 
+    stateStart = Date.now();
+    positionComponent.x += ghostComponent.direction.x * ghostComponent.speed * deltatime / 1000; 
+    positionComponent.y += ghostComponent.direction.y * ghostComponent.speed * deltatime / 1000; 
 }
 const onWalkingDeactivation = () => {
 }
@@ -103,53 +113,108 @@ export const GhostAnimationNames = {
 }
 
 export const GhostAnimationInfo: AnimationInfo = {
-    animationCount: 16, 
+    animationCount: 17, 
     maxAnimationFrameCount: 24,
     animations: {
         [GhostAnimationNames.Death]: {
             rowIndex: 0,
-            frameCount: 24,
+            frameCount: 12,
             framesPerSecond: 8
         },
         [GhostAnimationNames.WalkingEast]: {
-            rowIndex: 1,
-            frameCount: 24,
+            rowIndex: 9,
+            frameCount: 12,
             framesPerSecond: 8
         },
         [GhostAnimationNames.WalkingNorth]: {
-            rowIndex: 2,
-            frameCount: 24,
+            rowIndex: 10,
+            frameCount: 12,
             framesPerSecond: 8
         },
         [GhostAnimationNames.WalkingNorthEast]: {
-            rowIndex: 3,
-            frameCount: 24,
+            rowIndex: 11,
+            frameCount: 12,
             framesPerSecond: 8
         },
         [GhostAnimationNames.WalkingNorthWest]: {
-            rowIndex: 4,
-            frameCount: 24,
+            rowIndex: 12,
+            frameCount: 12,
             framesPerSecond: 8
         },
         [GhostAnimationNames.WalkingSouth]: {
-            rowIndex: 5,
-            frameCount: 24,
+            rowIndex: 13,
+            frameCount: 12,
             framesPerSecond: 8
         },
         [GhostAnimationNames.WalkingSouthEast]: {
-            rowIndex: 6,
-            frameCount: 24,
+            rowIndex: 14,
+            frameCount: 12,
             framesPerSecond: 8
         },
         [GhostAnimationNames.WalkingSouthWest]: {
-            rowIndex: 7,
-            frameCount: 24,
+            rowIndex: 15,
+            frameCount: 12,
             framesPerSecond: 8
         },
         [GhostAnimationNames.WalkingWest]: {
-            rowIndex: 8,
-            frameCount: 24,
+            rowIndex: 16,
+            frameCount: 12,
             framesPerSecond: 8
         },
     }
 };
+
+function chooseWalkingAnimation(currentObject: Entity) {
+    const ghostComponent = currentObject.getComponent<GhostComponent>(GhostComponent.COMPONENT_ID)!;
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+
+    switch (ghostComponent.direction.x) {
+      case -1:
+        // ghost is moving left
+        switch (ghostComponent.direction.y) {
+          case -1:
+            // ghost is moving left and up
+            animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.WalkingNorthWest];
+            break;
+          case 0:
+            // ghost is moving left
+            animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.WalkingWest];
+            break;
+          case 1:
+            // ghost is moving left and down
+            animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.WalkingSouthWest];
+            break;
+        }
+        break;
+      case 0:
+        // ghost is not moving left or right
+        switch (ghostComponent.direction.y) {
+          case -1:
+            // ghost is moving up
+            animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.WalkingNorth];
+            break;
+          case 1:
+            // ghost is moving down
+            animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.WalkingSouth];
+            break;
+        }
+        break;
+      case 1:
+        // ghost is moving right
+        switch (ghostComponent.direction.y) {
+          case -1:
+            // ghost is moving right and up
+            animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.WalkingNorthEast];
+            break;
+          case 0:
+            // ghost is moving right
+            animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.WalkingEast];
+            break;
+          case 1:
+            // ghost is moving right and down
+            animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.WalkingSouthEast];
+            break;
+        }
+        break;
+    }
+}

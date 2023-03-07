@@ -14,13 +14,14 @@ import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
 import { GameState, gameState } from "./components/gameComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
-import FrankensteinComponent from "./components/frankensteinComponent";
+import FrankensteinComponent, { FrankensteinAnimationInfo } from "./components/frankensteinComponent";
 import { SoundComponent } from "./components/soundComponent";
 import { ImagePartComponent } from "./components/imagePartComponent";
 import CameraSystem from "./systems/cameraSystem";
 import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
 import { ImageComponent } from "./components/imageComponent";
-import SkeletonComponent from "./components/skeletonComponent";
+import SkeletonComponent, { SkeletonAnimationInfo } from "./components/skeletonComponent";
+import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 
 document.body.addEventListener('keydown', startMusicTracks);
 
@@ -70,6 +71,7 @@ export function resetValues(){
     spawnDelay = ORIGINAL_SPAWN_DELAY;
     fallSpeed = ORIGINAL_FALL_SPEED;
     objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
+    objectIntervalTime = ORIGINAL_ENEMY_INTERVAL_TIME;
     if (score > highScore){
         highScore = score;
     }
@@ -135,21 +137,21 @@ function runFrame() {
     draw();
     // be called one more time
     requestAnimationFrame(runFrame);
-    checkEnemyTypesCount(currentTime);
+    checkobjectTypesCount(currentTime);
     gameEntity.update(deltaTime, gameSpeed);
 }
-
-let enemyIntervalTime = 10 * IN_GAME_SECOND;
-let nextEnemyTime = Date.now() + enemyIntervalTime;
+const ORIGINAL_ENEMY_INTERVAL_TIME = 10 * IN_GAME_SECOND;
+let objectIntervalTime = ORIGINAL_ENEMY_INTERVAL_TIME;
+let nextobjectTime = Date.now() + objectIntervalTime;
 
 const ORIGINAL_OBJECT_TYPES_COUNT = 2;
 let objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
 
-function checkEnemyTypesCount(currentTime: number): void {
-    if (currentTime >= nextEnemyTime){
+function checkobjectTypesCount(currentTime: number): void {
+    if (currentTime >= nextobjectTime && objectTypesCount <= Object.keys(SpawnType).length){
         objectTypesCount += 1;
-        nextEnemyTime += enemyIntervalTime;
-        enemyIntervalTime += 5 * IN_GAME_SECOND;
+        nextobjectTime += objectIntervalTime;
+        objectIntervalTime += 5 * IN_GAME_SECOND;
     }
 }
 
@@ -251,7 +253,8 @@ const SpawnType = {
     GenerateSkeleton: "generateSkeleton",
     GenerateDragon: "generateDragon",
     GenerateMinotaur: "generateMinotaur",
-    GenerateFrankenstein: "generateFrankenstein"
+    GenerateFrankenstein: "generateFrankenstein",
+    GenerateGhost: "generateGhost"
 }
 
 let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
@@ -261,9 +264,10 @@ let enemiesPerLane = [0, 0, 0];
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
         let typeNumber = Math.floor(Math.random() * objectTypesCount);
-        if (checkTypeNumberViable(typeNumber) == false){
-            typeNumber = generateTypeNumber();
-        }
+        // if (checkTypeNumberViable(typeNumber) == false){
+        //     typeNumber = generateTypeNumber();
+        // }
+        // Maybe use this to add some weighting to the object spawn.
 
         let generateType: string = Object.values(SpawnType)[typeNumber];
 
@@ -292,13 +296,17 @@ function checkSpawn(){
         else if (generateType == SpawnType.GenerateFrankenstein){
             generateFrankenstein(objectLaneLocation);
         }
+        else if (generateType == SpawnType.GenerateGhost){
+            generateGhost(objectLaneLocation);
+        }
         lastSpawn = Date.now();
+        console.log(generateType);
         console.log(enemiesPerLane);
     }
 }
 
 function checkTypeNumberViable(typeNumber: number): boolean {
-    return typeNumber <= Object.keys(SpawnType).length + OFFSET;
+    return typeNumber <= Object.keys(SpawnType).length - OFFSET;
 }
 
 function generateTypeNumber(): number {
@@ -385,7 +393,7 @@ function generateFrankenstein(objectLaneLocation: number){
 
     const frankenstein: Entity = new Entity(EntityName.Frankenstein);
     frankenstein.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, FRANKENSTEIN_WIDTH, FRANKENSTEIN_HEIGHT, 0));
-    frankenstein.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/frankenstein.png", MinotaurAnimationInfo));
+    frankenstein.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/frankenstein.png", FrankensteinAnimationInfo));
     frankenstein.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     frankenstein.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     frankenstein.addComponent(FrankensteinComponent.COMPONENT_ID, new FrankensteinComponent());
@@ -394,19 +402,35 @@ function generateFrankenstein(objectLaneLocation: number){
         frankenstein
     )
 }
+
 function generateSkeleton(objectLaneLocation: number){
     const SKELOTON_WIDTH: number = 75;
     const SKELOTON_HEIGHT: number = 75;
 
     const skeleton: Entity = new Entity(EntityName.Skeleton);
     skeleton.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, SKELOTON_WIDTH, SKELOTON_HEIGHT, 0));
-    skeleton.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/skeleton.png", MinotaurAnimationInfo));
+    skeleton.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/skeleton.png", SkeletonAnimationInfo));
     skeleton.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     skeleton.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     skeleton.addComponent(SkeletonComponent.COMPONENT_ID, new SkeletonComponent());
 
     objects.push(
         skeleton
+    )
+}
+
+function generateGhost(objectLaneLocation: number){
+    const GHOST_WIDTH: number = 200;
+    const GHOST_HEIGHT: number = 200;
+
+    const ghost: Entity = new Entity(EntityName.Ghost);
+    ghost.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, GHOST_WIDTH, GHOST_HEIGHT, 0));
+    ghost.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/ghost.png", GhostAnimationInfo));
+    ghost.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
+    ghost.addComponent(GhostComponent.COMPONENT_ID, new GhostComponent());
+    
+    objects.push(
+        ghost
     )
 }
 
@@ -422,13 +446,15 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             const positionComponent: PositionComponent = objects[i].getComponent(PositionComponent.COMPONENT_ID)!;
             if (objects[i].getComponent(DrawCircleComponent.COMPONENT_ID) == null){
                 if (outOfBoundsCheck(movementComponent, positionComponent, positionComponent.height/2)){
-                    deleteObject(objects[i]);
+                    const object = objects[i];
+                    deleteObject(object);
                     continue;
                 }
             }
             else{
                 if (outOfBoundsCheck(movementComponent, positionComponent, positionComponent.radius)){
-                    deleteObject(objects[i]);
+                    const object = objects[i];
+                    deleteObject(object);
                     continue;
                 }
             }
@@ -438,14 +464,14 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
         objects[i].update(deltaTime, gameSpeed);
 
         if (objects[i].name == EntityName.Arrow){
-            const currentObject1: Entity = objects[i] as Entity;
+            const arrow: Entity = objects[i] as Entity;
             // When I removed the current object lines, the game sometimes bugged out when arrows collided with objects, so I'm keeping this code in.
             for (let j = 0; j < objects.length; j++){
-                if (objects[j].name == EntityName.Dragon || objects[j].name == EntityName.Minotaur || objects[j].name == EntityName.Frankenstein || objects[j].name == EntityName.Skeleton){
-                    const currentObject2: Entity = objects[j] as Entity;
-                    console.assert(currentObject1 != undefined);
-                    console.assert(currentObject2 != undefined);
-                    if (CollisionSystem.collideObjects(currentObject1, currentObject2)){
+                const object: Entity = objects[j] as Entity;
+                if (checkNameIsNonProjectile(object) && object.name != EntityName.Coin){
+                    console.assert(arrow != undefined);
+                    console.assert(object != undefined);
+                    if (CollisionSystem.collideObjects(arrow, object)){
                         if (objects[j].name != EntityName.Frankenstein){
                             destroyCollidingObjects(objects[i], objects[j]);
                         }
@@ -535,7 +561,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
 
 function outOfBoundsCheck(movementComponent: MovementComponent, positionComponent: PositionComponent, shapeDistance: number){
         if (movementComponent.yDirection == -1 && positionComponent.y <= - shapeDistance || 
-            movementComponent.yDirection == 1 && positionComponent.y >= canvas.height){
+            movementComponent.yDirection == 1 && positionComponent.y >= canvas.height + shapeDistance){
             return true;
         }
         return false;
@@ -543,7 +569,7 @@ function outOfBoundsCheck(movementComponent: MovementComponent, positionComponen
 
 function deleteObject(object: Entity){
     objects.splice(objects.indexOf(object),1);
-    if (object.name == EntityName.Dragon || object.name == EntityName.Frankenstein || object.name == EntityName.Minotaur || object.name == EntityName.Coin){
+    if (checkNameIsNonProjectile(object)){
         const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
         let objectLane = findLane(positionComponent.x);
         for (let i = 0; i < enemiesPerLane.length; i++){
@@ -563,7 +589,21 @@ function dealDamageToCollidingObjects(object1: Entity, object2: Entity){
     const animatedComponent = object2.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
 }
+
 function destroyCollidingObjects(object1: Entity, object2: Entity){
     objects.splice(objects.indexOf(object1),1);
     objects.splice(objects.indexOf(object2),1);
+}
+
+const nonProjectiles = [EntityName.Coin, EntityName.Skeleton, EntityName.Dragon, EntityName.Minotaur, EntityName.Frankenstein, EntityName.Ghost]
+
+function checkNameIsNonProjectile(object: Entity){
+    for (const objectName of nonProjectiles){
+        console.log(object.name)
+        console.log(objectName)
+        if (object.name == objectName){
+            return true;
+        }
+    }
+    return false;
 }
