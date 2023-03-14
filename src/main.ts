@@ -257,6 +257,15 @@ const SpawnType = {
     GenerateGhost: "generateGhost"
 }
 
+const SpawnTypeGenerators = {
+    [SpawnType.GenerateCoin]: generateCoin,
+    [SpawnType.GenerateSkeleton]: generateSkeleton,
+    [SpawnType.GenerateDragon]: generateDragon,
+    [SpawnType.GenerateMinotaur]: generateMinotaur,
+    [SpawnType.GenerateFrankenstein]: generateFrankenstein,
+    [SpawnType.GenerateGhost]: generateGhost
+};
+
 let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
 
 let enemiesPerLane = [0, 0, 0];
@@ -264,41 +273,19 @@ let enemiesPerLane = [0, 0, 0];
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
         let typeNumber = Math.floor(Math.random() * objectTypesCount);
-        // if (checkTypeNumberViable(typeNumber) == false){
-        //     typeNumber = generateTypeNumber();
-        // }
-        // Maybe use this to add some weighting to the object spawn.
+        let generateType = Object.values(SpawnType)[typeNumber];
 
-        let generateType: string = Object.values(SpawnType)[typeNumber];
-
-        let objectLane = pickLane(enemiesPerLane);
+        let objectLane = pickLane(enemiesPerLane)!;
 
         for (let i = 0; i < enemiesPerLane.length; i++){
-            if (i == objectLane! - OFFSET){
+            if (i == objectLane - OFFSET){
                 enemiesPerLane[i] += 1;
             }
         }
 
-        let objectLaneLocation = calculateLaneLocation(objectLane!);
+        let objectLaneLocation = calculateLaneLocation(objectLane);
 
-        if (generateType == SpawnType.GenerateCoin){
-            generateCoin(objectLaneLocation);
-        }
-        else if (generateType == SpawnType.GenerateSkeleton){
-            generateSkeleton(objectLaneLocation);
-        }
-        else if (generateType == SpawnType.GenerateDragon){
-            generateDragon(objectLaneLocation);
-        }
-        else if (generateType == SpawnType.GenerateMinotaur){
-            generateMinotaur(objectLaneLocation);
-        }
-        else if (generateType == SpawnType.GenerateFrankenstein){
-            generateFrankenstein(objectLaneLocation);
-        }
-        else if (generateType == SpawnType.GenerateGhost){
-            generateGhost(objectLaneLocation);
-        }
+        SpawnTypeGenerators[generateType](objectLaneLocation);
         lastSpawn = Date.now();
         console.log(generateType);
         console.log(enemiesPerLane);

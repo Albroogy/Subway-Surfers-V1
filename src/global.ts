@@ -32,6 +32,7 @@ export const LANE: Record <string, number> = {
     WIDTH: canvas.width/3,
     COUNT: 3
 }
+
 export enum EntityName{
     Fireball = "fireball",
     Arrow = "arrow",
@@ -45,6 +46,18 @@ export enum EntityName{
     ItemFrame = "itemFrame",
     RectEnemy = "rectEnemy",
     GameEntity = "gameEntity",
+}
+
+export enum Tag {
+    Player = "player",
+    Fireball = "fireball",
+    Arrow = "arrow",
+    Dragon = "dragon",
+    Minotaur = "minotaur",
+    Coin = "coin",
+    Frankenstein = "frankenstein",
+    Skeleton = "skeleton",
+    Ghost = "ghost",
 }
 
 export let timeStart: number = Date.now();
