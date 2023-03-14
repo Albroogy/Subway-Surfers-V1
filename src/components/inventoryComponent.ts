@@ -1,6 +1,5 @@
 import { context, OFFSET } from "../global";
 import { Component, Entity } from "../entityComponent";
-import { slot } from "./gameComponent";
 
 enum Status{
     Add = "add",
@@ -23,6 +22,7 @@ export class InventoryItem {
 }
 
 export const TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true };
+export type slot = { row: number, column: number };
 
 export class Inventory{
     public width: number;

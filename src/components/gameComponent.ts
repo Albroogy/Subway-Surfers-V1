@@ -2,7 +2,7 @@ import { Component, Entity } from "../entityComponent";
 import { allPressedKeys, EntityName, KEYS } from "../global";
 import { images } from "../objects";
 import { ImageComponent } from "./imageComponent";
-import { Inventory, InventoryComponent, InventoryItem, ItemInfo } from "./inventoryComponent";
+import { Inventory, InventoryComponent, InventoryItem, ItemInfo, slot } from "./inventoryComponent";
 import { player, PlayerComponent } from "./playerComponent";
 import PositionComponent from "./positionComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -51,8 +51,6 @@ export const onInventoryMenuUpdate = (): GameState | undefined => {
 export const onInventoryMenuDeactivation = () => {
     removeEventListener('mousedown', mouseDown);
 }
-
-export type slot = { row: number, column: number };
 
 let mouseDownBoolean = true;
 
