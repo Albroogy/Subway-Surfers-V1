@@ -6,25 +6,25 @@ export class TagComponent extends Component {
   
     private _tags: Set<Tag>;
   
-    constructor(tags: Set<Tag>) {
-      super();
-      this._tags = new Set(tags);
+    constructor(tags: Array<Tag>) {
+        super();
+        this._tags = new Set(tags);
     }
   
     public hasTag(tag: Tag): boolean {
-      return this._tags.has(tag);
+        return this._tags.has(tag);
     }
   
     public addTag(tag: Tag): void {
-      this._tags.add(tag);
+        this._tags.add(tag);
     }
   
     public removeTag(tag: Tag): void {
-      this._tags.delete(tag);
+        this._tags.delete(tag);
     }
   
     public get tags(): Tag[] {
-      return Array.from(this._tags);
+        return Array.from(this._tags);
     }
 }
 

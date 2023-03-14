@@ -1,6 +1,6 @@
 import {PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
-import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime} from "./global";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime, Tag} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
@@ -8,7 +8,7 @@ import { AnimatedComponent } from "./components/animatedComponent";
 import DragonComponent, { DragonAnimationInfo, DragonSound} from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
 import { gameEntity, GameSound } from "./systems/gameSystem";
-import {images, objects} from "./objects"
+import {destroyCollidingObjects, images, objects} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
@@ -22,6 +22,7 @@ import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
 import { ImageComponent } from "./components/imageComponent";
 import SkeletonComponent, { SkeletonAnimationInfo } from "./components/skeletonComponent";
 import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
+import { TagComponent } from "./components/tagComponent";
 
 document.body.addEventListener('keydown', startMusicTracks);
 
@@ -384,6 +385,7 @@ function generateFrankenstein(objectLaneLocation: number){
     frankenstein.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     frankenstein.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     frankenstein.addComponent(FrankensteinComponent.COMPONENT_ID, new FrankensteinComponent());
+    frankenstein.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Frankenstein]));
 
     objects.push(
         frankenstein
@@ -451,27 +453,30 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
         objects[i].update(deltaTime, gameSpeed);
 
         if (objects[i].name == EntityName.Arrow){
-            const arrow: Entity = objects[i] as Entity;
-            // When I removed the current object lines, the game sometimes bugged out when arrows collided with objects, so I'm keeping this code in.
+            const arrow = objects[i];
             for (let j = 0; j < objects.length; j++){
-                const object: Entity = objects[j] as Entity;
+                const object = objects[j];
                 if (checkNameIsNonProjectile(object) && object.name != EntityName.Coin){
                     console.assert(arrow != undefined);
                     console.assert(object != undefined);
                     if (CollisionSystem.collideObjects(arrow, object)){
+                        // CollisionSystem.matchPair(arrow, object);
                         if (objects[j].name != EntityName.Frankenstein){
                             destroyCollidingObjects(objects[i], objects[j]);
                         }
                         else {
-                            const frankensteinComponent = objects[j].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
-                            frankensteinComponent.health -= 1;
-                            if (frankensteinComponent.health < 1){
-                                destroyCollidingObjects(objects[i], objects[j]);
-                            }
-                            else {
-                                dealDamageToCollidingObjects(objects[i], objects[j])
-                            }
+                            CollisionSystem.matchPair(arrow, object);
                         }
+                        // else {
+                        //     const frankensteinComponent = objects[j].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
+                        //     frankensteinComponent.health -= 1;
+                        //     if (frankensteinComponent.health < 1){
+                        //         destroyCollidingObjects(objects[i], objects[j]);
+                        //     }
+                        //     else {
+                        //         dealDamageToCollidingObjects(objects[i], objects[j])
+                        //     }
+                        // }
                         const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
                         soundComponent.playSound(GameSound.ArrowHit);
                     }
@@ -569,17 +574,6 @@ function deleteObject(object: Entity){
 
 function findLane(xCoordinate: number){
     return (xCoordinate + LANE.WIDTH/2) / LANE.WIDTH;
-}
-
-function dealDamageToCollidingObjects(object1: Entity, object2: Entity){
-    objects.splice(objects.indexOf(object1),1);
-    const animatedComponent = object2.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
-    animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
-}
-
-function destroyCollidingObjects(object1: Entity, object2: Entity){
-    objects.splice(objects.indexOf(object1),1);
-    objects.splice(objects.indexOf(object2),1);
 }
 
 const nonProjectiles = [EntityName.Coin, EntityName.Skeleton, EntityName.Dragon, EntityName.Minotaur, EntityName.Frankenstein, EntityName.Ghost]

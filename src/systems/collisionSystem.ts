@@ -3,12 +3,14 @@ import DrawCircleComponent from "../components/drawCircleComponent";
 import { Entity } from "../entityComponent";
 import { Tag } from "../global";
 import { TagComponent } from "../components/tagComponent";
+import FrankensteinComponent from "../components/frankensteinComponent";
+import { dealDamageToCollidingObjects, destroyCollidingObjects } from "../objects";
 
-type Func = () => void;
+type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
 
 export default class CollisionSystem {
-    public registry: Registry = {
+    public static registry: Registry = {
         [Tag.Player]: {[Tag.Coin]: playerCoinCollision},
         [Tag.Player]: {[Tag.Frankenstein]: playerFrankensteinCollision},
         [Tag.Player]: {[Tag.Fireball]: playerFireballCollision},
@@ -66,43 +68,50 @@ export default class CollisionSystem {
             )
         }
     }
-    public matchPair(entity1: Entity, entity2: Entity){
+    public static matchPair(entity1: Entity, entity2: Entity){
         const tagComponent1 = entity1.getComponent<TagComponent>(TagComponent.COMPONENT_ID)!;
         const tagComponent2 = entity2.getComponent<TagComponent>(TagComponent.COMPONENT_ID)!;
 
         for (const tag1 of tagComponent1.tags){
             for (const tag2 of tagComponent2.tags){
                 if (this.registry[tag1][tag2]){
-                    this.registry[tag1][tag2]();
+                    this.registry[tag1][tag2](entity1, entity2);
                 }
                 else if (this.registry[tag2][tag1]){
-                    this.registry[tag2][tag1]();
+                    this.registry[tag2][tag1](entity2, entity1);
                 }
             }
         }  
     }
 }
 
-function playerCoinCollision() {
+function playerCoinCollision(player: Entity, object: Entity) {
 
 }
 
-function playerFrankensteinCollision() {
+function playerFrankensteinCollision(player: Entity, object: Entity) {
 
 }
 
-function playerFireballCollision() {
+function playerFireballCollision(player: Entity, object: Entity) {
 
 }
 
-function playerGenericCollision() {
+function playerGenericCollision(player: Entity, object: Entity) {
 
 }
 
-function arrowFrankensteinCollision() {
-
+function arrowFrankensteinCollision(arrow: Entity, object: Entity) {
+    const frankensteinComponent = object.getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
+    frankensteinComponent.health -= 1;
+    if (frankensteinComponent.health < 1){
+        destroyCollidingObjects(arrow, object);
+    }
+    else {
+        dealDamageToCollidingObjects(arrow, object);
+    }
 }
 
-function arrowGenericCollision() {
+function arrowGenericCollision(arrow: Entity, object: Entity) {
 
 }
