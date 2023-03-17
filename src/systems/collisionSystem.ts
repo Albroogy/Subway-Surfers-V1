@@ -5,6 +5,10 @@ import { Tag } from "../global";
 import { TagComponent } from "../components/tagComponent";
 import FrankensteinComponent from "../components/frankensteinComponent";
 import { dealDamageToCollidingObjects, destroyCollidingObjects } from "../objects";
+import { PlayerComponent } from "../components/playerComponent";
+import { SoundComponent } from "../components/soundComponent";
+import { gameEntity, GameSound } from "./gameSystem";
+import { deleteObject } from "../main";
 
 type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
@@ -25,7 +29,7 @@ export default class CollisionSystem {
         [Tag.Arrow]: {[Tag.Ghost]: arrowGenericCollision},
     };
 
-    public static collideObjects(obj1: Entity, obj2: Entity): boolean | void {
+    public static checkObjectsColliding(obj1: Entity, obj2: Entity): boolean | void {
         // do both of these have a position component (As they should!?)
         if (obj1.getComponent(PositionComponent.COMPONENT_ID) == null || obj2.getComponent(PositionComponent.COMPONENT_ID) == null){
             return;
@@ -73,12 +77,15 @@ export default class CollisionSystem {
         const tagComponent2 = entity2.getComponent<TagComponent>(TagComponent.COMPONENT_ID)!;
 
         for (const tag1 of tagComponent1.tags){
+            const firstTag = tag1;
             for (const tag2 of tagComponent2.tags){
-                if (this.registry[tag1][tag2]){
-                    this.registry[tag1][tag2](entity1, entity2);
+                const secondTag = tag2;
+                console.log(firstTag, secondTag);
+                if (this.registry[firstTag][secondTag]){
+                    this.registry[firstTag][secondTag](entity1, entity2);
                 }
-                else if (this.registry[tag2][tag1]){
-                    this.registry[tag2][tag1](entity2, entity1);
+                else if (this.registry[secondTag][firstTag]){
+                    this.registry[secondTag][firstTag](entity2, entity1);
                 }
             }
         }  
@@ -98,7 +105,11 @@ function playerFireballCollision(player: Entity, object: Entity) {
 }
 
 function playerGenericCollision(player: Entity, object: Entity) {
-
+    const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+    playerComponent.stats.Lives -= 1;
+    const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+    soundComponent.playSound(GameSound.PlayerHit);
+    deleteObject(object);
 }
 
 function arrowFrankensteinCollision(arrow: Entity, object: Entity) {
@@ -113,5 +124,5 @@ function arrowFrankensteinCollision(arrow: Entity, object: Entity) {
 }
 
 function arrowGenericCollision(arrow: Entity, object: Entity) {
-
+    destroyCollidingObjects(arrow, object);
 }

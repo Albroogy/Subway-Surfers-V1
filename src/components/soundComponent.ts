@@ -30,11 +30,11 @@ export class SoundComponent extends Component {
     }
 }
 
-function audioTrackEnded(sounds: Array<string>, nextSoundNumber: number, soundComponent: SoundComponent){
-    if (nextSoundNumber > sounds.length - OFFSET){
+function audioTrackEnded(sounds: Array<string>, thisSoundNumber: number, soundComponent: SoundComponent){
+    if (thisSoundNumber >= sounds.length){
         return;
     }
-    soundComponent.playSound(sounds[nextSoundNumber]);
-    const curriedAudioTrackEnded = audioTrackEnded.bind(undefined, sounds, nextSoundNumber + OFFSET, soundComponent);
-    soundComponent.loadedSounds[nextSoundNumber].addEventListener("ended", curriedAudioTrackEnded);
+    soundComponent.playSound(sounds[thisSoundNumber]);
+    const curriedAudioTrackEnded = audioTrackEnded.bind(undefined, sounds, thisSoundNumber + OFFSET, soundComponent);
+    soundComponent.loadedSounds[thisSoundNumber].addEventListener("ended", curriedAudioTrackEnded);
 }

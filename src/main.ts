@@ -332,12 +332,14 @@ const OBJECT: Record <string, number> = {
 }
 
 function generateCoin(objectLaneLocation: number){
-    const circle: Entity = new Entity(EntityName.Coin);
-    circle.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
-    circle.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/coin.png"));
-    circle.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    const coin: Entity = new Entity(EntityName.Coin);
+    coin.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
+    coin.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/coin.png"));
+    coin.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    coin.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Coin]));
+
     objects.push(
-        circle
+        coin
     )
 }
 
@@ -353,6 +355,7 @@ function generateDragon(objectLaneLocation: number){
     dragon.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     dragon.addComponent(DragonComponent.COMPONENT_ID, new DragonComponent());
     dragon.addComponent(SoundComponent.COMPONENT_ID, new SoundComponent(DragonAudio));
+    dragon.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Dragon]));
 
     objects.push(
         dragon
@@ -369,6 +372,7 @@ function generateMinotaur(objectLaneLocation: number){
     minotaur.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     minotaur.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     minotaur.addComponent(MinotaurComponent.COMPONENT_ID, new MinotaurComponent());
+    minotaur.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Minotaur]));
 
     objects.push(
         minotaur
@@ -402,6 +406,7 @@ function generateSkeleton(objectLaneLocation: number){
     skeleton.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     skeleton.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     skeleton.addComponent(SkeletonComponent.COMPONENT_ID, new SkeletonComponent());
+    skeleton.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Skeleton]));
 
     objects.push(
         skeleton
@@ -417,6 +422,7 @@ function generateGhost(objectLaneLocation: number){
     ghost.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/ghost.png", GhostAnimationInfo));
     ghost.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     ghost.addComponent(GhostComponent.COMPONENT_ID, new GhostComponent());
+    ghost.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Ghost]));
     
     objects.push(
         ghost
@@ -459,14 +465,11 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 if (checkNameIsNonProjectile(object) && object.name != EntityName.Coin){
                     console.assert(arrow != undefined);
                     console.assert(object != undefined);
-                    if (CollisionSystem.collideObjects(arrow, object)){
-                        // CollisionSystem.matchPair(arrow, object);
-                        if (objects[j].name != EntityName.Frankenstein){
-                            destroyCollidingObjects(objects[i], objects[j]);
-                        }
-                        else {
-                            CollisionSystem.matchPair(arrow, object);
-                        }
+                    if (CollisionSystem.checkObjectsColliding(arrow, object)){
+                        CollisionSystem.matchPair(arrow, object);
+                        // if (objects[j].name != EntityName.Frankenstein){
+                        //     destroyCollidingObjects(objects[i], objects[j]);
+                        // }
                         // else {
                         //     const frankensteinComponent = objects[j].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
                         //     frankensteinComponent.health -= 1;
@@ -487,7 +490,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             }
         }
 
-        else if (objects[i] != playerCharacter && CollisionSystem.collideObjects(objects[i], playerCharacter)){
+        else if (objects[i] != playerCharacter && CollisionSystem.checkObjectsColliding(objects[i], playerCharacter)){
             // check if the object is a coin, or something that can deal damage to the player
             if (objects[i].name == EntityName.Coin) {
                 const COIN_VALUE: number = 300;
@@ -559,7 +562,7 @@ function outOfBoundsCheck(movementComponent: MovementComponent, positionComponen
         return false;
 }
 
-function deleteObject(object: Entity){
+export function deleteObject(object: Entity){
     objects.splice(objects.indexOf(object),1);
     if (checkNameIsNonProjectile(object)){
         const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;

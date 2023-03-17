@@ -1,13 +1,14 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { allPressedKeys, canvas, checkTime, EntityName, KEYS, LANE, OFFSET, sleep} from "../global";
+import { allPressedKeys, canvas, checkTime, EntityName, KEYS, LANE, OFFSET, sleep, Tag} from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
 import { objects } from "../objects";
 import { equipStarterItems, Inventory, InventoryComponent, ItemList } from "./inventoryComponent";
 import { resetValues } from "../main";
+import { TagComponent } from "./tagComponent";
 
 
 export enum PlayerState {
@@ -215,6 +216,7 @@ player.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weapon
 player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingStats, weaponAnimations));
 player.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent<PlayerState>());
 player.addComponent(InventoryComponent.COMPONENT_ID, new InventoryComponent(playerInventory));
+player.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Player]));
 
 // Player States
 const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID);
@@ -352,6 +354,7 @@ function generateArrow(positionComponent: PositionComponent){
     arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0));
     arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARROW.URL as string));
     arrow.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(ARROW.SPEED as number, ARROW.DIRECTION as number));
+    arrow.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Arrow]));
 
     objects.push(arrow);
 }
