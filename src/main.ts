@@ -24,18 +24,18 @@ import SkeletonComponent, { SkeletonAnimationInfo } from "./components/skeletonC
 import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 import { TagComponent } from "./components/tagComponent";
 
-document.body.addEventListener('keydown', startMusicTracks);
+// document.body.addEventListener('keydown', startMusicTracks);
 
-function startMusicTracks() {
-        const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-        if (!soundComponent.loadedSounds[GameSound.Track1].played){
-            return;
-        }
-        // soundComponent.playSound(GameSound.Track1);
-        const sounds = [GameSound.Track1, GameSound.Track2, GameSound.Track3];
-        soundComponent.playSounds(sounds);
-        document.body.removeEventListener('keydown', startMusicTracks);
-}
+// function startMusicTracks() {
+//         const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+//         if (!soundComponent.loadedSounds[GameSound.Track1].played){
+//             return;
+//         }
+//         // soundComponent.playSound(GameSound.Track1);
+//         const sounds = [GameSound.Track1, GameSound.Track2, GameSound.Track3];
+//         soundComponent.playSounds(sounds);
+//         document.body.removeEventListener('keydown', startMusicTracks);
+// }
 
 window.addEventListener("beforeunload", function (e) {
     // Save game state here
@@ -583,8 +583,6 @@ const nonProjectiles = [EntityName.Coin, EntityName.Skeleton, EntityName.Dragon,
 
 function checkNameIsNonProjectile(object: Entity){
     for (const objectName of nonProjectiles){
-        console.log(object.name)
-        console.log(objectName)
         if (object.name == objectName){
             return true;
         }

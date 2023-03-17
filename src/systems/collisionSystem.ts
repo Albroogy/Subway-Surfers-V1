@@ -15,18 +15,22 @@ type Registry = { [tag: string]: { [subtag: string]: Func } };
 
 export default class CollisionSystem {
     public static registry: Registry = {
-        [Tag.Player]: {[Tag.Coin]: playerCoinCollision},
-        [Tag.Player]: {[Tag.Frankenstein]: playerFrankensteinCollision},
-        [Tag.Player]: {[Tag.Fireball]: playerFireballCollision},
-        [Tag.Player]: {[Tag.Skeleton]: playerGenericCollision},
-        [Tag.Player]: {[Tag.Dragon]: playerGenericCollision},
-        [Tag.Player]: {[Tag.Minotaur]: playerGenericCollision},
-        [Tag.Player]: {[Tag.Ghost]: playerGenericCollision},
-        [Tag.Arrow]: {[Tag.Frankenstein]: arrowFrankensteinCollision},
-        [Tag.Arrow]: {[Tag.Skeleton]: arrowGenericCollision},
-        [Tag.Arrow]: {[Tag.Dragon]: arrowGenericCollision},
-        [Tag.Arrow]: {[Tag.Minotaur]: arrowGenericCollision},
-        [Tag.Arrow]: {[Tag.Ghost]: arrowGenericCollision},
+        [Tag.Player]: {
+            [Tag.Coin]: playerCoinCollision, 
+            [Tag.Frankenstein]: playerFrankensteinCollision, 
+            [Tag.Fireball]: playerFireballCollision, 
+            [Tag.Skeleton]: playerGenericCollision, 
+            [Tag.Dragon]: playerGenericCollision,
+            [Tag.Minotaur]: playerGenericCollision,
+            [Tag.Ghost]: playerGenericCollision,
+        },
+        [Tag.Arrow]: {
+            [Tag.Frankenstein]: arrowFrankensteinCollision,
+            [Tag.Skeleton]: arrowGenericCollision,
+            [Tag.Dragon]: arrowGenericCollision,
+            [Tag.Minotaur]: arrowGenericCollision,
+            [Tag.Ghost]: arrowGenericCollision,
+        }
     };
 
     public static checkObjectsColliding(obj1: Entity, obj2: Entity): boolean | void {
@@ -75,17 +79,19 @@ export default class CollisionSystem {
     public static matchPair(entity1: Entity, entity2: Entity){
         const tagComponent1 = entity1.getComponent<TagComponent>(TagComponent.COMPONENT_ID)!;
         const tagComponent2 = entity2.getComponent<TagComponent>(TagComponent.COMPONENT_ID)!;
-
+        console.log(tagComponent1.tags, tagComponent2.tags)
+        // console.log("colliding");
         for (const tag1 of tagComponent1.tags){
             const firstTag = tag1;
             for (const tag2 of tagComponent2.tags){
                 const secondTag = tag2;
-                console.log(firstTag, secondTag);
-                if (this.registry[firstTag][secondTag]){
+                if (this.registry[firstTag] && this.registry[firstTag][secondTag]){
                     this.registry[firstTag][secondTag](entity1, entity2);
+                    console.log(firstTag, secondTag);
                 }
-                else if (this.registry[secondTag][firstTag]){
+                else if (this.registry[secondTag] && this.registry[secondTag][firstTag]){
                     this.registry[secondTag][firstTag](entity2, entity1);
+                    console.log(firstTag, secondTag);
                 }
             }
         }  
