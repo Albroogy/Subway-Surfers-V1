@@ -23,6 +23,7 @@ import { ImageComponent } from "./components/imageComponent";
 import SkeletonComponent, { SkeletonAnimationInfo } from "./components/skeletonComponent";
 import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 import { TagComponent } from "./components/tagComponent";
+import AchievementSystem from "./systems/achievementSystem";
 
 // document.body.addEventListener('keydown', startMusicTracks);
 
@@ -162,6 +163,7 @@ function update(deltaTime: number, gameSpeed: number){
     const SCORE_INCREMENT: number = 0.001;
     let scoreIncreaseSpeed: number = 1;
     addScore(scoreIncreaseSpeed);
+    AchievementSystem.instance.checkAchievements(gold);
 
     checkSpawn();
     objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
