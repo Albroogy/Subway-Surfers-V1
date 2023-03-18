@@ -2,12 +2,13 @@ import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import { objects} from "../objects";
 import { AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { checkTime, EntityName} from "../global";
+import { checkTime, EntityName, OFFSET, Tag} from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
 import { player, PlayerState } from "./playerComponent";
 import { SoundComponent } from "./soundComponent";
+import { TagComponent } from "./tagComponent";
 
 export enum DragonState {
     Flying = "flying",
@@ -108,9 +109,10 @@ function generateFireball(positionComponent: PositionComponent, currentObject: E
         URL: "assets/images/fireball.png"
     }
 
-    fireball.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, FIREBALL.WIDTH as number, FIREBALL.HEIGHT as number, 0));
+    fireball.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y + OFFSET * 25, FIREBALL.WIDTH as number, FIREBALL.HEIGHT as number, 0));
     fireball.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(FIREBALL.URL as string));
     fireball.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(FIREBALL.SPEED as number, FIREBALL.DIRECTION as number));
+    fireball.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Fireball]));
 
     objects.push(fireball);
 

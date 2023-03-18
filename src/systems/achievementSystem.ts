@@ -1,88 +1,116 @@
-type RequirementCheck = (value: number, name: AchievementName) => void;
+import SaveGameSystem, { SaveKey } from "./saveGameSystem";
 
-interface AchievementInfo {
+enum AchievementName {
+    GoldCollector = "Gold Collector",
+    GoldHorder = "Gold Horder",
+    GoldMonger = "Gold Monger",
+    Apprentice = "Apprentice",
+    Warrior = "Master Warrior",
+    Sensei = "Sensei",
+}
+
+enum ValueType {
+    Gold = "gold",
+    EnemiesDefeated = "enemiesDefeated"
+}
+
+export interface AchievementInfo {
     name: AchievementName;
     description: string;
     isUnlocked: boolean;
-    valueType: string
-    requirementCheck: RequirementCheck
+    valueType: ValueType;
+    requisite: number
   }
   
 export default class AchievementSystem {
-    public static instance = new AchievementSystem();
-    private achievements: AchievementInfo[];
+    public static Instance = new AchievementSystem();
+    private _achievements: AchievementInfo[];
   
     constructor() {
-        this.achievements = [
-        {
-            name: AchievementName.GoldCollector,
-            description: "Collect 100 pieces of gold",
-            isUnlocked: false,
-            valueType: ValueType.Gold,
-            requirementCheck: checkGoldOver100
-        },
-        {
-            name: AchievementName.GoldHorder,
-            description: "Collect 300 pieces of gold",
-            isUnlocked: false,
-            valueType: ValueType.Gold,
-            requirementCheck: checkGoldOver300
-        },
-        {
-            name: AchievementName.GoldMonger,
-            description: "Collect 500 pieces of gold",
-            isUnlocked: false,
-            valueType: ValueType.Gold,
-            requirementCheck: checkGoldOver500
-        },
-        ];
+        if (SaveGameSystem.Instance.loadData(SaveKey.AchievementInfo)){
+            this._achievements = SaveGameSystem.Instance.loadData(SaveKey.AchievementInfo)!;
+            console.log(SaveGameSystem.Instance.loadData(SaveKey.AchievementInfo));
+        }
+        else {
+            this._achievements = [
+                {
+                    name: AchievementName.GoldCollector,
+                    description: "Collect 100 pieces of gold",
+                    isUnlocked: false,
+                    valueType: ValueType.Gold,
+                    requisite: 100
+                },
+                {
+                    name: AchievementName.GoldHorder,
+                    description: "Collect 300 pieces of gold",
+                    isUnlocked: false,
+                    valueType: ValueType.Gold,
+                    requisite: 300
+                },
+                {
+                    name: AchievementName.GoldMonger,
+                    description: "Collect 500 pieces of gold",
+                    isUnlocked: false,
+                    valueType: ValueType.Gold,
+                    requisite: 500
+                },
+                {
+                    name: AchievementName.Apprentice,
+                    description: "Defeat 10 enemies",
+                    isUnlocked: false,
+                    valueType: ValueType.EnemiesDefeated,
+                    requisite: 10
+                },
+                {
+                    name: AchievementName.Warrior,
+                    description: "Defeat 100 enemies",
+                    isUnlocked: false,
+                    valueType: ValueType.EnemiesDefeated,
+                    requisite: 100
+                },
+                {
+                    name: AchievementName.Sensei,
+                    description: "Collect 300 pieces of gold",
+                    isUnlocked: false,
+                    valueType: ValueType.EnemiesDefeated,
+                    requisite: 300
+                },
+            ];
+        }
     }
-    public checkAchievements(gold: number) {
+    public checkAchievements(gold: number, enemiesDefeated: number) {
         const achievementsLeft = this.getLockedAchievements();
         for (const achievement of achievementsLeft){
             if (achievement.valueType == ValueType.Gold){
-                achievement.requirementCheck(gold, achievement.name);
-                console.log(achievement.name);
+                this.checkAchievementAccomplishedFunction(gold, achievement.name, achievement.requisite);
+            }
+            if (achievement.valueType == ValueType.EnemiesDefeated){
+                this.checkAchievementAccomplishedFunction(gold, achievement.name, achievement.requisite);
             }
         }
     }
+    public checkAchievementAccomplishedFunction(value: number, name: AchievementName, requisite: number) {
+        if (value >= requisite){
+            AchievementSystem.Instance.unlockAchievement(name);
+        }
+    }
     public unlockAchievement(name: AchievementName): void {
-        const achievement = this.achievements.find(a => a.name === name);
+        const achievement = this._achievements.find(a => a.name === name);
         if (achievement && !achievement.isUnlocked) {
             achievement.isUnlocked = true;
             console.log(`Achievement unlocked: ${achievement.name}`);
         }
     }
     public getLockedAchievements(): AchievementInfo[] {
-        return this.achievements.filter(a => !a.isUnlocked);
+        return this._achievements.filter(a => !a.isUnlocked);
     }
     public getUnlockedAchievements(): AchievementInfo[] {
-        return this.achievements.filter(a => a.isUnlocked);
+        return this._achievements.filter(a => a.isUnlocked);
+    }
+    public drawAchievements() {
+        
+    }
+    public get AchievementInfo(): AchievementInfo[] {
+        return this._achievements;
     }
 }  
-
-enum AchievementName {
-    GoldCollector = "Gold Collector",
-    GoldHorder = "Gold Horder",
-    GoldMonger = "Gold Monger",
-}
-
-enum ValueType {
-    Gold = "gold"
-}
-
-function checkGoldOver100 (gold: number, name: AchievementName): void {
-    if (gold >= 1){
-        AchievementSystem.instance.unlockAchievement(name);
-    }
-}
-function checkGoldOver300 (gold: number, name: AchievementName): void {
-    if (gold >= 300){
-        AchievementSystem.instance.unlockAchievement(name);
-    }
-}
-function checkGoldOver500 (gold: number, name: AchievementName): void {
-    if (gold >= 500){
-        AchievementSystem.instance.unlockAchievement(name);
-    }
-}

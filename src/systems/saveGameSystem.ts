@@ -1,3 +1,5 @@
+import AchievementSystem, { AchievementInfo } from "./achievementSystem";
+
 export default class SaveGameSystem {
     public static Instance = new SaveGameSystem();
 
@@ -13,14 +15,16 @@ export default class SaveGameSystem {
         return JSON.parse(textRepresentation) as T;
     }
 
-    public saveGameData(gold: number, highScore: number) {
+    public saveGameData(gold: number, highScore: number, achievementInfo: AchievementInfo[]) {
         this.saveData<number>(SaveKey.Gold, gold);
         this.saveData<number>(SaveKey.HighScore, highScore);
+        this.saveData<AchievementInfo[]>(SaveKey.AchievementInfo, achievementInfo);
     }
 }
 
 export enum SaveKey {
     Gold = "gold",
-    HighScore = "highScore"
+    HighScore = "highScore",
+    AchievementInfo = "achivementInfo"
 }
 

@@ -1,4 +1,4 @@
-import {PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
+import {player, PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime, Tag} from "./global";
 import { Entity } from "./entityComponent";
@@ -8,7 +8,7 @@ import { AnimatedComponent } from "./components/animatedComponent";
 import DragonComponent, { DragonAnimationInfo, DragonSound} from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
 import { gameEntity, GameSound } from "./systems/gameSystem";
-import {destroyCollidingObjects, images, objects} from "./objects"
+import {images, objects} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent } from "./components/inventoryComponent";
@@ -25,22 +25,22 @@ import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 import { TagComponent } from "./components/tagComponent";
 import AchievementSystem from "./systems/achievementSystem";
 
-// document.body.addEventListener('keydown', startMusicTracks);
+document.body.addEventListener('keydown', startMusicTracks);
 
-// function startMusicTracks() {
-//         const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-//         if (!soundComponent.loadedSounds[GameSound.Track1].played){
-//             return;
-//         }
-//         // soundComponent.playSound(GameSound.Track1);
-//         const sounds = [GameSound.Track1, GameSound.Track2, GameSound.Track3];
-//         soundComponent.playSounds(sounds);
-//         document.body.removeEventListener('keydown', startMusicTracks);
-// }
+function startMusicTracks() {
+        const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+        if (!soundComponent.loadedSounds[GameSound.Track1].played){
+            return;
+        }
+        // soundComponent.playSound(GameSound.Track1);
+        const sounds = [GameSound.Track1, GameSound.Track2, GameSound.Track3];
+        soundComponent.playSounds(sounds);
+        document.body.removeEventListener('keydown', startMusicTracks);
+}
 
 window.addEventListener("beforeunload", function (e) {
     // Save game state here
-    SaveGameSystem.Instance.saveGameData(gold, highScore);
+    SaveGameSystem.Instance.saveGameData(gold, highScore, AchievementSystem.Instance.AchievementInfo);
 });
 
 // Player Component
@@ -59,6 +59,10 @@ export let spawnDelay: number = ORIGINAL_SPAWN_DELAY;
 
 export function addScore(scoreIncreaseValue: number): void {
     score += scoreIncreaseValue;
+}
+
+export function addGold(goldIncreaseValue: number): void {
+    gold += goldIncreaseValue;
 }
 
 export function changeSpawnDelay(spawnIncrement: number): void {
@@ -163,7 +167,7 @@ function update(deltaTime: number, gameSpeed: number){
     const SCORE_INCREMENT: number = 0.001;
     let scoreIncreaseSpeed: number = 1;
     addScore(scoreIncreaseSpeed);
-    AchievementSystem.instance.checkAchievements(gold);
+    AchievementSystem.Instance.checkAchievements(gold, enemiesDefeated);
 
     checkSpawn();
     objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
@@ -276,6 +280,9 @@ let enemiesPerLane = [0, 0, 0];
 function checkSpawn(){
     if (lastSpawn <= Date.now() - spawnDelay){
         let typeNumber = Math.floor(Math.random() * objectTypesCount);
+        if (typeNumber > Object.keys(SpawnTypeGenerators).length - OFFSET){
+            typeNumber = Object.keys(SpawnTypeGenerators).length - OFFSET;
+        }
         let generateType = Object.values(SpawnType)[typeNumber];
 
         let objectLane = pickLane(enemiesPerLane)!;
@@ -469,21 +476,6 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                     console.assert(object != undefined);
                     if (CollisionSystem.checkObjectsColliding(arrow, object)){
                         CollisionSystem.matchPair(arrow, object);
-                        // if (objects[j].name != EntityName.Frankenstein){
-                        //     destroyCollidingObjects(objects[i], objects[j]);
-                        // }
-                        // else {
-                        //     const frankensteinComponent = objects[j].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
-                        //     frankensteinComponent.health -= 1;
-                        //     if (frankensteinComponent.health < 1){
-                        //         destroyCollidingObjects(objects[i], objects[j]);
-                        //     }
-                        //     else {
-                        //         dealDamageToCollidingObjects(objects[i], objects[j])
-                        //     }
-                        // }
-                        const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-                        soundComponent.playSound(GameSound.ArrowHit);
                     }
                 continue;
                 // For effiency's sake, should I split the objects array into 3 lane arrays? 
@@ -494,64 +486,63 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
 
         else if (objects[i] != playerCharacter && CollisionSystem.checkObjectsColliding(objects[i], playerCharacter)){
             // check if the object is a coin, or something that can deal damage to the player
-            if (objects[i].name == EntityName.Coin) {
-                const COIN_VALUE: number = 300;
-                addScore(COIN_VALUE)
-                gold += 1;
-                deleteObject(objects[i]);
-                continue;
-            }
-            else {
-                if (!playerComponent.attacking && objects[i].name != EntityName.Frankenstein && objects[i].name != EntityName.Skeleton || objects[i].name == EntityName.Fireball){
-                    playerComponent.stats.Lives -= 1;
-                    const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-                    soundComponent.playSound(GameSound.PlayerHit);
-                    deleteObject(objects[i]);
-                    continue;
-                }
-                else if (objects[i].name == EntityName.Frankenstein){
-                    let timeCollisionStart = Date.now();
-                    if (playerComponent.attacking){
-                        const positionComponent = objects[i].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
-                        const frankensteinComponent = objects[i].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
-                        for (let i = 0; i < 200; i++){
-                            positionComponent.y -= 1;
-                        }
-                        frankensteinComponent.health -= 1;
-                        if (frankensteinComponent.health < 1){
-                            deleteObject(objects[i]);
-                            continue;
-                        }
-                        else{
-                            const animatedComponent = objects[i].getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
-                            animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
-                        }
-                    }
-                    else {
-                        if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
-                            playerComponent.stats.Lives -= 1;
-                            timeCollisionStart = Date.now();
-                        }
-                    }
-                }
-                else if (objects[i].name == EntityName.Skeleton){
-                    let timeCollisionStart = Date.now();
-                    if (playerComponent.attacking){
-                        deleteObject(objects[i]);
-                        continue;
-                    }
-                    else {
-                        if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
-                            playerComponent.stats.Lives -= 1;
-                            timeCollisionStart = Date.now();
-                        }
-                    }
-                }
-                else {
-                    deleteObject(objects[i]);
-                    continue;
-                }
-            }
+            // if (objects[i].name == EntityName.Coin) {
+            //     const COIN_VALUE: number = 300;
+            //     addScore(COIN_VALUE)
+            //     gold += 1;
+            //     deleteObject(objects[i]);
+            //     continue;
+            // }
+            CollisionSystem.matchPair(objects[i], playerCharacter);
+            // if (!playerComponent.attacking && objects[i].name != EntityName.Frankenstein && objects[i].name != EntityName.Skeleton || objects[i].name == EntityName.Fireball){
+            //     playerComponent.stats.Lives -= 1;
+            //     const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+            //     soundComponent.playSound(GameSound.PlayerHit);
+            //     deleteObject(objects[i]);
+            //     continue;
+            // }
+            // else if (objects[i].name == EntityName.Frankenstein){
+            //     let timeCollisionStart = Date.now();
+            //     if (playerComponent.attacking){
+            //         const positionComponent = objects[i].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
+            //         const frankensteinComponent = objects[i].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
+            //         for (let i = 0; i < 200; i++){
+            //             positionComponent.y -= 1;
+            //         }
+            //         frankensteinComponent.health -= 1;
+            //         if (frankensteinComponent.health < 1){
+            //             deleteObject(objects[i]);
+            //             continue;
+            //         }
+            //         else{
+            //             const animatedComponent = objects[i].getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+            //             animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
+            //         }
+            //     }
+            //     else {
+            //         if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
+            //             playerComponent.stats.Lives -= 1;
+            //             timeCollisionStart = Date.now();
+            //         }
+            //     }
+            // }
+            // else if (objects[i].name == EntityName.Skeleton){
+            //     let timeCollisionStart = Date.now();
+            //     if (playerComponent.attacking){
+            //         deleteObject(objects[i]);
+            //         continue;
+            //     }
+            //     else {
+            //         if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
+            //             playerComponent.stats.Lives -= 1;
+            //             timeCollisionStart = Date.now();
+            //         }
+            //     }
+            // }
+            // else {
+            //     deleteObject(objects[i]);
+            //     continue;
+            // }
         }
     }
 }
@@ -564,6 +555,8 @@ function outOfBoundsCheck(movementComponent: MovementComponent, positionComponen
         return false;
 }
 
+let enemiesDefeated = 0;
+
 export function deleteObject(object: Entity){
     objects.splice(objects.indexOf(object),1);
     if (checkNameIsNonProjectile(object)){
@@ -572,9 +565,29 @@ export function deleteObject(object: Entity){
         for (let i = 0; i < enemiesPerLane.length; i++){
             if (i == objectLane - OFFSET){
                 enemiesPerLane[i] -= 1;
+                const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID)!;
+                if (!tagComponent.tags.includes(Tag.Coin)){
+                    enemiesDefeated += 1;
+                    console.log(enemiesDefeated);
+                }
             }
         }
     }
+}
+
+export function destroyCollidingObjects(arrow: Entity, object: Entity){
+    objects.splice(objects.indexOf(arrow), 1);
+    objects.splice(objects.indexOf(object), 1);
+
+    const positionComponent2 = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    let objectLane2 = findLane(positionComponent2.x);
+    for (let i = 0; i < enemiesPerLane.length; i++){
+        if (i == objectLane2 - OFFSET){
+            enemiesPerLane[i] -= 1;
+        }
+    }
+    enemiesDefeated += 1;
+    console.log(enemiesDefeated);
 }
 
 function findLane(xCoordinate: number){

@@ -4,11 +4,12 @@ import { Entity } from "../entityComponent";
 import { Tag } from "../global";
 import { TagComponent } from "../components/tagComponent";
 import FrankensteinComponent from "../components/frankensteinComponent";
-import { dealDamageToCollidingObjects, destroyCollidingObjects } from "../objects";
+import { objects } from "../objects";
 import { PlayerComponent } from "../components/playerComponent";
 import { SoundComponent } from "../components/soundComponent";
 import { gameEntity, GameSound } from "./gameSystem";
-import { deleteObject } from "../main";
+import { addGold, addScore, deleteObject, destroyCollidingObjects } from "../main";
+import { AnimatedComponent } from "../components/animatedComponent";
 
 type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
@@ -18,8 +19,8 @@ export default class CollisionSystem {
         [Tag.Player]: {
             [Tag.Coin]: playerCoinCollision, 
             [Tag.Frankenstein]: playerFrankensteinCollision, 
-            [Tag.Fireball]: playerFireballCollision, 
-            [Tag.Skeleton]: playerGenericCollision, 
+            [Tag.Fireball]: playerGenericCollision, 
+            [Tag.Skeleton]: playerSkeletonCollision, 
             [Tag.Dragon]: playerGenericCollision,
             [Tag.Minotaur]: playerGenericCollision,
             [Tag.Ghost]: playerGenericCollision,
@@ -87,11 +88,9 @@ export default class CollisionSystem {
                 const secondTag = tag2;
                 if (this.registry[firstTag] && this.registry[firstTag][secondTag]){
                     this.registry[firstTag][secondTag](entity1, entity2);
-                    console.log(firstTag, secondTag);
                 }
                 else if (this.registry[secondTag] && this.registry[secondTag][firstTag]){
                     this.registry[secondTag][firstTag](entity2, entity1);
-                    console.log(firstTag, secondTag);
                 }
             }
         }  
@@ -99,22 +98,27 @@ export default class CollisionSystem {
 }
 
 function playerCoinCollision(player: Entity, object: Entity) {
-
+    const COIN_VALUE: number = 300;
+    addScore(COIN_VALUE)
+    addGold(1);
+    deleteObject(object);
 }
 
 function playerFrankensteinCollision(player: Entity, object: Entity) {
 
 }
 
-function playerFireballCollision(player: Entity, object: Entity) {
+function playerSkeletonCollision(player: Entity, object: Entity) {
 
 }
 
 function playerGenericCollision(player: Entity, object: Entity) {
     const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
-    playerComponent.stats.Lives -= 1;
-    const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-    soundComponent.playSound(GameSound.PlayerHit);
+    if (playerComponent.attacking == false){
+        playerComponent.stats.Lives -= 1;
+        const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+        soundComponent.playSound(GameSound.PlayerHit);
+    } 
     deleteObject(object);
 }
 
@@ -127,8 +131,21 @@ function arrowFrankensteinCollision(arrow: Entity, object: Entity) {
     else {
         dealDamageToCollidingObjects(arrow, object);
     }
+    playArrowImpactSound();
 }
 
 function arrowGenericCollision(arrow: Entity, object: Entity) {
     destroyCollidingObjects(arrow, object);
+    playArrowImpactSound();
+}
+
+function playArrowImpactSound() {
+    const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+    soundComponent.playSound(GameSound.ArrowHit);
+}
+
+export function dealDamageToCollidingObjects(object1: Entity, object2: Entity){
+    objects.splice(objects.indexOf(object1), 1);
+    const animatedComponent = object2.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
 }
