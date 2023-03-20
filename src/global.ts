@@ -48,6 +48,9 @@ export enum EntityName{
     GameEntity = "gameEntity",
 }
 
+
+
+
 export enum Tag {
     Player = "player",
     Fireball = "fireball",
@@ -58,6 +61,8 @@ export enum Tag {
     Frankenstein = "frankenstein",
     Skeleton = "skeleton",
     Ghost = "ghost",
+    ExtendedVisionPowerup = "ExtendedVisionPowerup",
+    AuraPowerup = "AuraPowerup"
 }
 
 export let timeStart: number = Date.now();

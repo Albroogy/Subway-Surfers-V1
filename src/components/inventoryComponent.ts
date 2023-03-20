@@ -198,14 +198,6 @@ export class Inventory{
             }
         }
     }
-    // public highlight(){
-    //     const centeringWidthOffset = this.width/2 * this.itemSize.width;
-    //     const centeringHeightOffset = this.height/2 * this.itemSize.height;
-
-    //     context.strokeStyle = "blue";
-    //     context.strokeRect(this.x - centeringWidthOffset, this.y - centeringHeightOffset, this.itemSize.width * this.width, this.itemSize.height * this.height);
-    //     console.log(this.x - centeringWidthOffset, this.y - centeringHeightOffset, this.itemSize.width * this.width, this.itemSize.height * this.height)
-    // }
 }
 export class InventoryComponent extends Component {
     public static COMPONENT_ID: string = "Inventory";

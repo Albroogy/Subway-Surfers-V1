@@ -1,15 +1,16 @@
 import PositionComponent from "../components/positionComponent";
 import DrawCircleComponent from "../components/drawCircleComponent";
 import { Entity } from "../entityComponent";
-import { Tag } from "../global";
+import { IN_GAME_SECOND, Tag } from "../global";
 import { TagComponent } from "../components/tagComponent";
 import FrankensteinComponent from "../components/frankensteinComponent";
 import { objects } from "../objects";
-import { PlayerComponent } from "../components/playerComponent";
+import { player, PlayerComponent } from "../components/playerComponent";
 import { SoundComponent } from "../components/soundComponent";
 import { gameEntity, GameSound } from "./gameSystem";
 import { addGold, addScore, deleteObject, destroyCollidingObjects } from "../main";
 import { AnimatedComponent } from "../components/animatedComponent";
+import CameraSystem from "./cameraSystem";
 
 type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
@@ -24,6 +25,8 @@ export default class CollisionSystem {
             [Tag.Dragon]: playerGenericCollision,
             [Tag.Minotaur]: playerGenericCollision,
             [Tag.Ghost]: playerGenericCollision,
+            [Tag.ExtendedVisionPowerup]: playerExtendedVisionPowerupCollision,
+            [Tag.AuraPowerup]: playerAuraPowerupCollision,
         },
         [Tag.Arrow]: {
             [Tag.Frankenstein]: arrowFrankensteinCollision,
@@ -112,13 +115,88 @@ function playerSkeletonCollision(player: Entity, object: Entity) {
 
 }
 
+let extendedVisionCollectedAgain = false;
+
+function playerExtendedVisionPowerupCollision(player: Entity, object: Entity){
+    if (CameraSystem.Instance.zoomLevel != 1){
+        extendedVisionCollectedAgain = true;
+    }
+    else {
+        const startZoom = CameraSystem.Instance.zoomLevel;
+        const endZoom = startZoom - 0.2; // Set the end zoom level here
+        
+        const duration = 100; // Number of frames for the transition
+        let elapsedFrames = 0;
+        
+        function lerp(start: number, end: number, t: number): number {
+            return start * (1 - t) + end * t;
+        }
+        
+        function updateZoom() {
+            if (elapsedFrames >= duration) {
+                return; // End the transition if we've reached the end
+            }
+            
+            const t = elapsedFrames / duration; // Calculate the progress of the transition
+            const newZoom = lerp(startZoom, endZoom, t); // Calculate the new zoom level
+            CameraSystem.Instance.zoomLevel = newZoom; // Update the camera zoom level
+            elapsedFrames++;
+            
+            // Call this function again on the next frame to continue the transition
+            requestAnimationFrame(updateZoom);
+        }
+
+        // Start the transition
+        requestAnimationFrame(updateZoom);
+    }
+    
+    setTimeout(()=>{
+        if (extendedVisionCollectedAgain == false){
+            CameraSystem.Instance.zoomLevel = 1;
+        }
+        else {
+            extendedVisionCollectedAgain = false;
+        }
+    }, IN_GAME_SECOND * 15);
+
+    deleteObject(object);
+}
+
+let auraCollectedAgain = false;
+
+function playerAuraPowerupCollision(player: Entity, object: Entity) {
+    const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+    if (playerComponent.aura == false){
+        playerComponent.aura = true;
+    }
+    else {
+        auraCollectedAgain = true;
+    }
+    setTimeout(()=>{
+        if (auraCollectedAgain == false){
+            playerComponent.aura = false;
+        }
+        else {
+            auraCollectedAgain = false;
+        }
+    }, IN_GAME_SECOND * 15);
+
+    deleteObject(object);
+}
+
 function playerGenericCollision(player: Entity, object: Entity) {
     const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+
     if (playerComponent.attacking == false){
-        playerComponent.stats.Lives -= 1;
-        const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-        soundComponent.playSound(GameSound.PlayerHit);
-    } 
+        if (playerComponent.aura == true) {
+            playerComponent.aura = false;
+        }
+        else {
+            playerComponent.stats.Lives -= 1;
+            const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
+            soundComponent.playSound(GameSound.PlayerHit);
+        }
+    }
     deleteObject(object);
 }
 

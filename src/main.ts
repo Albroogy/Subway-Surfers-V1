@@ -78,11 +78,13 @@ export function resetValues(){
     fallSpeed = ORIGINAL_FALL_SPEED;
     objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
     objectIntervalTime = ORIGINAL_ENEMY_INTERVAL_TIME;
+    currentSpawnTypes = ORIGINAL_SPAWN_TYPES;
+    enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE;
+    enemiesPerLane = [0, 0, 0];
     if (score > highScore){
         highScore = score;
     }
     score = 0;
-    enemiesPerLane = [0, 0, 0];
 }
 
 // Load Game Data
@@ -150,16 +152,21 @@ const ORIGINAL_ENEMY_INTERVAL_TIME = 10 * IN_GAME_SECOND;
 let objectIntervalTime = ORIGINAL_ENEMY_INTERVAL_TIME;
 let nextobjectTime = Date.now() + objectIntervalTime;
 
-const ORIGINAL_OBJECT_TYPES_COUNT = 2;
+const ORIGINAL_OBJECT_TYPES_COUNT = 1;
 let objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
 
 function checkobjectTypesCount(currentTime: number): void {
-    if (currentTime >= nextobjectTime && objectTypesCount <= Object.keys(SpawnType).length){
+    if (currentTime >= nextobjectTime && objectTypesCount <= Object.keys(EnemyType).length){
         objectTypesCount += 1;
+        currentSpawnTypes.push(
+            Object.values(EnemyType)[objectTypesCount - OFFSET]
+        )
         nextobjectTime += objectIntervalTime;
         objectIntervalTime += 5 * IN_GAME_SECOND;
     }
 }
+
+let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
 
 function update(deltaTime: number, gameSpeed: number){
     const SPAWN_INCREMENT: number = 0.1;
@@ -169,7 +176,16 @@ function update(deltaTime: number, gameSpeed: number){
     addScore(scoreIncreaseSpeed);
     AchievementSystem.Instance.checkAchievements(gold, enemiesDefeated);
 
-    checkSpawn();
+    if (lastSpawn <= Date.now() - spawnDelay){
+        const randomNum = Math.random();
+        if (randomNum <= 0.8) {
+            spawnEnemy();
+        }
+        else {
+            spawnPowerup();
+        }
+        lastSpawn = Date.now();
+    }
     objectsLoop(deltaTime, gameSpeed, FALL_INCREMENT);
     playerCharacter.update(deltaTime, gameSpeed);
     changeSpawnDelay(SPAWN_INCREMENT);
@@ -255,71 +271,60 @@ function draw() {
     }
 }
 
-const SpawnType = {
-    GenerateCoin: "generateCoin",
-    GenerateSkeleton: "generateSkeleton",
-    GenerateDragon: "generateDragon",
-    GenerateMinotaur: "generateMinotaur",
-    GenerateFrankenstein: "generateFrankenstein",
-    GenerateGhost: "generateGhost"
+enum EnemyType {
+    GenerateSkeleton = "generateSkeleton",
+    GenerateDragon = "generateDragon",
+    GenerateMinotaur = "generateMinotaur",
+    GenerateFrankenstein = "generateFrankenstein",
+    GenerateGhost = "generateGhost"
 }
 
-const SpawnTypeGenerators = {
-    [SpawnType.GenerateCoin]: generateCoin,
-    [SpawnType.GenerateSkeleton]: generateSkeleton,
-    [SpawnType.GenerateDragon]: generateDragon,
-    [SpawnType.GenerateMinotaur]: generateMinotaur,
-    [SpawnType.GenerateFrankenstein]: generateFrankenstein,
-    [SpawnType.GenerateGhost]: generateGhost
+const EnemyTypeGenerator = {
+    [EnemyType.GenerateSkeleton]: generateSkeleton,
+    [EnemyType.GenerateDragon]: generateDragon,
+    [EnemyType.GenerateMinotaur]: generateMinotaur,
+    [EnemyType.GenerateFrankenstein]: generateFrankenstein,
+    [EnemyType.GenerateGhost]: generateGhost
 };
 
-let lastSpawn: number = Date.now() - spawnDelay; //This is in milliseconds
+const ORIGINAL_ENEMIES_PER_LANE = [0, 0, 0];
+let enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE;
 
-let enemiesPerLane = [0, 0, 0];
+const ORIGINAL_SPAWN_TYPES = [EnemyType.GenerateSkeleton];
+let currentSpawnTypes = ORIGINAL_SPAWN_TYPES;
 
-function checkSpawn(){
-    if (lastSpawn <= Date.now() - spawnDelay){
-        let typeNumber = Math.floor(Math.random() * objectTypesCount);
-        if (typeNumber > Object.keys(SpawnTypeGenerators).length - OFFSET){
-            typeNumber = Object.keys(SpawnTypeGenerators).length - OFFSET;
+function spawnEnemy(){
+    const spawnProbabilities = currentSpawnTypes.map((spawnType: string, index: number) => {
+        const difficultyFactor = index + 1; // Difficulty factor = enemy type index + 1
+        const baseProbability = 1 / Object.values(currentSpawnTypes).length; // Base probability for each enemy type
+        const difficultyBonus = difficultyFactor * 0.1; // Increase probability by 10% for each difficulty factor
+        const spawnProbability: number = baseProbability + difficultyBonus;
+        return spawnProbability;
+    });
+
+    let spawnIndex = weightedRandom(spawnProbabilities)
+
+    let generateType = Object.values(currentSpawnTypes)[spawnIndex];
+
+    let weights = enemiesPerLane.map(count => 1 / (count + 1));
+    let objectLane = weightedRandom(weights) + OFFSET;
+
+    for (let i = 0; i < enemiesPerLane.length; i++){
+        if (i == objectLane - OFFSET){
+            enemiesPerLane[i] += 1;
         }
-        let generateType = Object.values(SpawnType)[typeNumber];
-
-        let objectLane = pickLane(enemiesPerLane)!;
-
-        for (let i = 0; i < enemiesPerLane.length; i++){
-            if (i == objectLane - OFFSET){
-                enemiesPerLane[i] += 1;
-            }
-        }
-
-        let objectLaneLocation = calculateLaneLocation(objectLane);
-
-        SpawnTypeGenerators[generateType](objectLaneLocation);
-        lastSpawn = Date.now();
-        console.log(generateType);
-        console.log(enemiesPerLane);
     }
-}
 
-function checkTypeNumberViable(typeNumber: number): boolean {
-    return typeNumber <= Object.keys(SpawnType).length - OFFSET;
-}
+    let objectLaneLocation = calculateLaneLocation(objectLane);
 
-function generateTypeNumber(): number {
-    let typeNumber = Math.floor(Math.random() * objectTypesCount);
-    if (checkTypeNumberViable(typeNumber) == false){
-        typeNumber = generateTypeNumber();
-    }
-    return Math.floor(Math.random() * objectTypesCount);
+    EnemyTypeGenerator[generateType](objectLaneLocation);
 }
 
 function calculateLaneLocation(lane: number): number{
     return lane * LANE.WIDTH - LANE.WIDTH/2;
 }
-function pickLane(enemiesPerLane: Array<number>){
-    let weights = enemiesPerLane.map(count => 1 / (count + 1));
 
+function weightedRandom(weights: number[]): number {
     let totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
     let normalizedWeights = weights.map(weight => weight / totalWeight);
 
@@ -329,9 +334,34 @@ function pickLane(enemiesPerLane: Array<number>){
     for (let i = 0; i < normalizedWeights.length; i++) {
         cumulativeWeight += normalizedWeights[i];
         if (randomNumber <= cumulativeWeight) {
-            return i + OFFSET;
+            return i;
         }
     }
+    return 0;
+}
+
+enum PowerupType {
+    Coin = "coin",
+    ExtendedVision = "extendedVision",
+    Aura = "aura"
+}
+
+const PowerupTypeGenerator = {
+    [PowerupType.Coin]: generateCoin,
+    [PowerupType.ExtendedVision]: generateExtendedVision,
+    [PowerupType.Aura]: generateAura,
+};
+
+function spawnPowerup(){
+    let spawnIndex = Math.floor(Math.random() * Object.values(PowerupType).length);
+
+    let generateType = Object.values(PowerupType)[spawnIndex];
+
+    let objectLane = Math.ceil(Math.random() * LANE.COUNT);
+    let objectLaneLocation = calculateLaneLocation(objectLane);
+
+    console.log(generateType, objectLaneLocation);
+    PowerupTypeGenerator[generateType](objectLaneLocation);
 }
 
 const OBJECT: Record <string, number> = {
@@ -349,6 +379,32 @@ function generateCoin(objectLaneLocation: number){
 
     objects.push(
         coin
+    )
+}
+
+function generateExtendedVision(objectLaneLocation: number){
+    const extendedVisionPowerup: Entity = new Entity("ExtendedVisionPowerup");
+    extendedVisionPowerup.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
+    extendedVisionPowerup.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/extendedVisionPowerup.png"));
+    extendedVisionPowerup.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    extendedVisionPowerup.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.ExtendedVisionPowerup]));
+
+    objects.push(
+        extendedVisionPowerup
+    )
+}
+
+function generateAura(objectLaneLocation: number){
+    const positionComponent = playerCharacter.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+
+    const auraPowerup: Entity = new Entity("ExtendedVisionPowerup");
+    auraPowerup.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, positionComponent.width, positionComponent.height, 0));
+    auraPowerup.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/aura.png"));
+    auraPowerup.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    auraPowerup.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.AuraPowerup]));
+
+    objects.push(
+        auraPowerup
     )
 }
 
@@ -568,7 +624,6 @@ export function deleteObject(object: Entity){
                 const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID)!;
                 if (!tagComponent.tags.includes(Tag.Coin)){
                     enemiesDefeated += 1;
-                    console.log(enemiesDefeated);
                 }
             }
         }

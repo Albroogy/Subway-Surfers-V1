@@ -1,7 +1,7 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { allPressedKeys, canvas, checkTime, EntityName, KEYS, LANE, OFFSET, sleep, Tag} from "../global";
+import { allPressedKeys, canvas, checkTime, context, EntityName, KEYS, LANE, OFFSET, sleep, Tag} from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -39,6 +39,7 @@ export class PlayerComponent extends Component{
     public lane: number;
     public state: PlayerState;
     public PREPARE_SPEAR_FRAMES: number;
+    public aura: boolean;
 
     constructor(lane: number, state: PlayerState, startingStats: Record <string, number>, weaponAnimations: Record <string, string>) {
         super();
@@ -50,6 +51,7 @@ export class PlayerComponent extends Component{
         this.lane = lane;
         this.state = state;
         this.PREPARE_SPEAR_FRAMES = 4;
+        this.aura = false;
     }
 
     public onAttached(): void {
@@ -96,6 +98,17 @@ export class PlayerComponent extends Component{
         console.assert(this._entity != null);
         const positionComponent = this._entity!.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
         positionComponent.x = this.lane * LANE.WIDTH - LANE.WIDTH/2;
+    }
+    draw() {
+        if (this.aura){
+            const aura = new Image();
+            aura.src = "assets/images/aura.png";
+            context.drawImage(aura, 
+                positionComponent!.x - positionComponent!.width/2, 
+                positionComponent!.y - positionComponent!.height/2, 
+                100, 100
+            )
+        }
     }
 }
 // Player Information
@@ -230,6 +243,7 @@ const onRunningActivation = (currentObject: Entity) => {
     animatedComponent!.playAnimation(PlayerAnimationName.RunningBack);
     playerComponent!.state = PlayerState.Running;
     animatedComponent!.currentAnimationFrame = 0;
+    addEventListener("click", () => {return PlayerState.Ducking;});
 };
 const onRunningUpdate = (deltatime: number, currentObject: Entity): PlayerState | undefined => {
     let stateStart = currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
@@ -238,6 +252,7 @@ const onRunningUpdate = (deltatime: number, currentObject: Entity): PlayerState 
     return checkInput(stateStart);
 };
 const onRunningDeactivation = () => {
+    removeEventListener("click", () => {return PlayerState.Ducking;});
 };
 
 const onJumpingActivation = () => {
@@ -395,13 +410,20 @@ function checkInput(stateStart: number): PlayerState | undefined {
 
 function checkRollInput(): PlayerState | undefined {
     if (allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft] || allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]){
-        if (lastClick <= Date.now() - CLICK_DELAY && playerComponent!.lane + playerComponent!.directionChange <= LANE.COUNT && playerComponent!.lane + playerComponent!.directionChange >= 1){
+        if (checkTime(CLICK_DELAY, lastClick) && playerComponent!.lane + playerComponent!.directionChange <= LANE.COUNT && playerComponent!.lane + playerComponent!.directionChange >= 1){
             if (playerComponent!.directionChange != 0){
                 playerComponent!.lane += playerComponent!.directionChange;
                 lastClick = Date.now();
                 return PlayerState.Roll;
             }
-
+        }
+    }
+    else if (playerComponent!.state == PlayerState.Roll && checkTime(CLICK_DELAY, lastClick)){
+        if (playerComponent!.directionChange != 0){
+            playerComponent!.lane += playerComponent!.directionChange;
+            lastClick = Date.now();
+            console.log("rolled");
+            return PlayerState.Roll;
         }
     }
 }
