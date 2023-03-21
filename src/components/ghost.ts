@@ -45,22 +45,21 @@ const onWalkingUpdate = (deltatime: number, currentObject: Entity): GhostState |
         const deltaX = playerX - positionComponent.x;
         const deltaY = playerY - positionComponent.y;
     
-        if (deltaX < 50) {
-            ghostComponent.direction.x = -1;
-          } else if (deltaX > 50) {
-            ghostComponent.direction.x = 1;
-          } else {
-            ghostComponent.direction.x = 0;
-          }
-        
-        if (deltaY < 50) {
-        ghostComponent.direction.y = -1;
-        } else if (deltaY > 50) {
-        ghostComponent.direction.y = 1;
+        if (deltaX < 0) {
+          ghostComponent.direction.x = -1;
+        } else if (deltaX > 0) {
+          ghostComponent.direction.x = 1;
         } else {
-        ghostComponent.direction.y = 0;
+          ghostComponent.direction.x = 0;
         }
-    
+        
+        if (deltaY < 0) {
+          ghostComponent.direction.y = -1;
+        } else if (deltaY > 0) {
+          ghostComponent.direction.y = 1;
+        } else {
+          ghostComponent.direction.y = 0;
+        }
         chooseWalkingAnimation(currentObject);
     }
     stateStart = Date.now();

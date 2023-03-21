@@ -302,7 +302,7 @@ function spawnEnemy(){
         return spawnProbability;
     });
 
-    let spawnIndex = weightedRandom(spawnProbabilities)
+    let spawnIndex = weightedRandom(spawnProbabilities);
 
     let generateType = Object.values(currentSpawnTypes)[spawnIndex];
 
@@ -356,6 +356,8 @@ const PowerupTypeGenerator = {
 
 function spawnPowerup(){
     let spawnIndex = Math.floor(Math.random() * Object.values(PowerupType).length);
+
+    console.log(spawnIndex)
 
     let generateType = Object.values(PowerupType)[spawnIndex];
 
@@ -558,22 +560,7 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
         }
 
         else if (objects[i] != playerCharacter && CollisionSystem.checkObjectsColliding(objects[i], playerCharacter)){
-            // check if the object is a coin, or something that can deal damage to the player
-            // if (objects[i].name == EntityName.Coin) {
-            //     const COIN_VALUE: number = 300;
-            //     addScore(COIN_VALUE)
-            //     gold += 1;
-            //     deleteObject(objects[i]);
-            //     continue;
-            // }
             CollisionSystem.matchPair(objects[i], playerCharacter);
-            // if (!playerComponent.attacking && objects[i].name != EntityName.Frankenstein && objects[i].name != EntityName.Skeleton || objects[i].name == EntityName.Fireball){
-            //     playerComponent.stats.Lives -= 1;
-            //     const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
-            //     soundComponent.playSound(GameSound.PlayerHit);
-            //     deleteObject(objects[i]);
-            //     continue;
-            // }
             // else if (objects[i].name == EntityName.Frankenstein){
             //     let timeCollisionStart = Date.now();
             //     if (playerComponent.attacking){

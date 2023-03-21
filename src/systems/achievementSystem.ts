@@ -70,7 +70,7 @@ export default class AchievementSystem {
                 },
                 {
                     name: AchievementName.Sensei,
-                    description: "Collect 300 pieces of gold",
+                    description: "Defeat 300 enemies",
                     isUnlocked: false,
                     valueType: ValueType.EnemiesDefeated,
                     requisite: 300
@@ -85,7 +85,7 @@ export default class AchievementSystem {
                 this.checkAchievementAccomplishedFunction(gold, achievement.name, achievement.requisite);
             }
             if (achievement.valueType == ValueType.EnemiesDefeated){
-                this.checkAchievementAccomplishedFunction(gold, achievement.name, achievement.requisite);
+                this.checkAchievementAccomplishedFunction(enemiesDefeated, achievement.name, achievement.requisite);
             }
         }
     }

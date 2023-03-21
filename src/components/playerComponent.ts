@@ -1,7 +1,7 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { allPressedKeys, canvas, checkTime, context, EntityName, KEYS, LANE, mouseDown, OFFSET, sleep, Tag} from "../global";
+import { allPressedKeys, canvas, checkTime, context, EntityName, KEYS, LANE, mouse, mouseDown, OFFSET, sleep, Tag} from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -9,6 +9,7 @@ import { objects } from "../objects";
 import { equipStarterItems, Inventory, InventoryComponent, ItemList } from "./inventoryComponent";
 import { resetValues } from "../main";
 import { TagComponent } from "./tagComponent";
+import ArrowComponent from "./arrowComponent";
 
 
 export enum PlayerState {
@@ -224,7 +225,7 @@ export const playerInventory = [equippedInventory, itemsFound];
 
 export const player = new Entity("Player");
 
-player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.width/2, PLAYER.WIDTH, PLAYER.HEIGHT, 0));
+player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.width/3, PLAYER.WIDTH, PLAYER.HEIGHT, 0));
 player.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weaponAnimations.Bow, playerBowAnimationInfo));
 player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingStats, weaponAnimations));
 player.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent<PlayerState>());
@@ -272,13 +273,13 @@ const onDuckingActivation = () => {
     animatedComponent!.currentAnimationFrame = 0;
 }
 const onDuckingUpdate = () => { 
-    if (playerComponent!.weapon == playerComponent!.weaponAnimations.Spear){
-        if (animatedComponent!.currentAnimationFrame >= playerComponent!.PREPARE_SPEAR_FRAMES - OFFSET){
-            playerComponent!.attacking = true;
-            const spearAttackY = canvas.width/3 - positionComponent!.height/2;
-            positionComponent!.y = spearAttackY;
-        }
-    }
+    // if (playerComponent!.weapon == playerComponent!.weaponAnimations.Spear){
+    //     if (animatedComponent!.currentAnimationFrame >= playerComponent!.PREPARE_SPEAR_FRAMES - OFFSET){
+    //         playerComponent!.attacking = true;
+    //         const spearAttackY = canvas.width/3 - positionComponent!.height/2;
+    //         positionComponent!.y = spearAttackY;
+    //     }
+    // }
     if (animatedComponent!.currentAnimationFrame >= animatedComponent!.currentAnimation!.frameCount - OFFSET){
         return PlayerState.Running;
     }
@@ -359,14 +360,20 @@ function generateArrow(positionComponent: PositionComponent){
     const ARROW: Record <string, number | string> = {
         WIDTH: 7.5,
         HEIGHT: 45,
-        SPEED: 200,
-        DIRECTION: -1,
+        SPEED: 300,
         URL: "assets/images/arrow.png"
+    }
+
+    const angle = Math.atan2(mouse.y - positionComponent.y, mouse.x - positionComponent.x);
+
+    const Direction = {
+        x: Math.cos(angle),
+        y: Math.sin(angle)
     }
 
     arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0));
     arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARROW.URL as string));
-    arrow.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(ARROW.SPEED as number, ARROW.DIRECTION as number));
+    arrow.addComponent(ArrowComponent.COMPONENT_ID, new ArrowComponent(ARROW.SPEED as number, Direction));
     arrow.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Arrow]));
 
     objects.push(arrow);
@@ -394,9 +401,9 @@ function checkInput(stateStart: number): PlayerState | undefined {
     if (checkRollInput() == PlayerState.Roll){
         return PlayerState.Roll;
     }
-    else if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
-        return PlayerState.Ducking;
-    }
+    // else if (allPressedKeys[KEYS.S] || allPressedKeys[KEYS.ArrowDown] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
+    //     return PlayerState.Ducking;
+    // }
     else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
         return PlayerState.Jumping;
     }
@@ -417,14 +424,6 @@ function checkRollInput(): PlayerState | undefined {
                 lastClick = Date.now();
                 return PlayerState.Roll;
             }
-        }
-    }
-    else if (playerComponent!.state == PlayerState.Roll && checkTime(CLICK_DELAY, lastClick)){
-        if (playerComponent!.directionChange != 0){
-            playerComponent!.lane += playerComponent!.directionChange;
-            lastClick = Date.now();
-            console.log("rolled");
-            return PlayerState.Roll;
         }
     }
 }

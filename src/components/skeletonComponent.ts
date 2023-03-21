@@ -12,6 +12,7 @@ export enum SkeletonState {
 
 export default class SkeletonComponent extends Component {
     public static COMPONENT_ID: string = "Skeleton";
+    public lastHit: number = 0;
 
     public onAttached(): void {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<SkeletonState>>(StateMachineComponent.COMPONENT_ID)!;

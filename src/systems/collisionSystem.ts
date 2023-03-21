@@ -1,7 +1,7 @@
 import PositionComponent from "../components/positionComponent";
 import DrawCircleComponent from "../components/drawCircleComponent";
 import { Entity } from "../entityComponent";
-import { IN_GAME_SECOND, Tag } from "../global";
+import { checkTime, IN_GAME_SECOND, Tag } from "../global";
 import { TagComponent } from "../components/tagComponent";
 import FrankensteinComponent from "../components/frankensteinComponent";
 import { objects } from "../objects";
@@ -11,6 +11,7 @@ import { gameEntity, GameSound } from "./gameSystem";
 import { addGold, addScore, deleteObject, destroyCollidingObjects } from "../main";
 import { AnimatedComponent } from "../components/animatedComponent";
 import CameraSystem from "./cameraSystem";
+import SkeletonComponent from "../components/skeletonComponent";
 
 type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
@@ -109,51 +110,65 @@ function playerCoinCollision(player: Entity, object: Entity) {
 }
 
 function playerFrankensteinCollision(player: Entity, object: Entity) {
-
+    const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+    if (playerComponent.attacking){
+        const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
+        const frankensteinComponent = object.getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
+        for (let i = 0; i < 200; i++){
+            positionComponent.y -= 1;
+        }
+        frankensteinComponent.health -= 1;
+        if (frankensteinComponent.health < 1){
+            deleteObject(object);
+        }
+        else{
+            const animatedComponent = object.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+            animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
+        }
+    }
+    else {
+        const frankensteinComponent = object.getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
+        if (checkTime(IN_GAME_SECOND * 3, frankensteinComponent.lastHit)){
+            playerComponent.stats.Lives -= 1;
+            frankensteinComponent.lastHit = Date.now();
+        }
+    }
 }
 
 function playerSkeletonCollision(player: Entity, object: Entity) {
-
+    const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+    if (playerComponent.attacking){
+        deleteObject(object);
+    }
+    else {
+        const skeletonComponent = object.getComponent<SkeletonComponent>(SkeletonComponent.COMPONENT_ID)!;
+        if (checkTime(IN_GAME_SECOND * 3, skeletonComponent.lastHit)){
+            playerComponent.stats.Lives -= 1;
+            skeletonComponent.lastHit = Date.now();
+            console.log("hit");
+        }
+    }
 }
 
 let extendedVisionCollectedAgain = false;
 
 function playerExtendedVisionPowerupCollision(player: Entity, object: Entity){
+    const zoomChange = 0.2;
+
     if (CameraSystem.Instance.zoomLevel != 1){
         extendedVisionCollectedAgain = true;
     }
     else {
         const startZoom = CameraSystem.Instance.zoomLevel;
-        const endZoom = startZoom - 0.2; // Set the end zoom level here
-        
-        const duration = 100; // Number of frames for the transition
-        let elapsedFrames = 0;
-        
-        function lerp(start: number, end: number, t: number): number {
-            return start * (1 - t) + end * t;
-        }
-        
-        function updateZoom() {
-            if (elapsedFrames >= duration) {
-                return; // End the transition if we've reached the end
-            }
-            
-            const t = elapsedFrames / duration; // Calculate the progress of the transition
-            const newZoom = lerp(startZoom, endZoom, t); // Calculate the new zoom level
-            CameraSystem.Instance.zoomLevel = newZoom; // Update the camera zoom level
-            elapsedFrames++;
+        const endZoom = startZoom - zoomChange; // Set the end zoom level here
 
-            // Call this function again on the next frame to continue the transition
-            requestAnimationFrame(updateZoom);
-        }
-
-        // Start the transition
-        requestAnimationFrame(updateZoom);
+        zoomCamera(startZoom, endZoom);
     }
     
     setTimeout(()=>{
         if (extendedVisionCollectedAgain == false){
-            CameraSystem.Instance.zoomLevel = 1;
+            const startZoom = CameraSystem.Instance.zoomLevel;
+            const endZoom = startZoom + zoomChange; // Set the end zoom level here
         }
         else {
             extendedVisionCollectedAgain = false;
@@ -161,6 +176,32 @@ function playerExtendedVisionPowerupCollision(player: Entity, object: Entity){
     }, IN_GAME_SECOND * 15);
 
     deleteObject(object);
+}
+
+function zoomCamera(startZoom: number, endZoom: number) { 
+    const duration = 100; // Number of frames for the transition
+    let elapsedFrames = 0;
+    
+    function lerp(start: number, end: number, t: number): number {
+        return start * (1 - t) + end * t;
+    }
+    
+    function updateZoom() {
+        if (elapsedFrames >= duration) {
+            return; // End the transition if we've reached the end
+        }
+        
+        const t = elapsedFrames / duration; // Calculate the progress of the transition
+        const newZoom = lerp(startZoom, endZoom, t); // Calculate the new zoom level
+        CameraSystem.Instance.zoomLevel = newZoom; // Update the camera zoom level
+        elapsedFrames++;
+
+        // Call this function again on the next frame to continue the transition
+        requestAnimationFrame(updateZoom);
+    }
+
+    // Start the transition
+    requestAnimationFrame(updateZoom);
 }
 
 let auraCollectedAgain = false;

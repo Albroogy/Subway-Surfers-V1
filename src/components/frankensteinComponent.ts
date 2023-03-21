@@ -12,6 +12,7 @@ export enum FrankensteinState {
 
 export default class FrankensteinComponent extends Component {
     public static COMPONENT_ID: string = "Frankenstein";
+    public lastHit: number = 0;
 
     public health: number = 2;
     public onAttached(): void {

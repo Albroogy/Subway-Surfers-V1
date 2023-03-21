@@ -22,9 +22,15 @@ export const KEYS = {
 };
 
 export let mouseDown = false;
+export let mouse = {
+    x: 0,
+    y: 0,
+}
 
 window.addEventListener("mousedown", function (event) {
     mouseDown = true;
+    mouse.x = event.x
+    mouse.y = event.y
 });
 window.addEventListener("mouseup", function (event) {
     mouseDown = false;
@@ -56,37 +62,6 @@ export enum EntityName{
     RectEnemy = "rectEnemy",
     GameEntity = "gameEntity",
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export enum Tag {
     Player = "player",
