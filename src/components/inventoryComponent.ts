@@ -6,23 +6,40 @@ enum Status{
     Remove = "remove"
 }
 
+enum InventoryItemStat {
+    Lives,
+    RollSpeed
+}
+
+type StatPair = { stat: InventoryItemStat, modifiedValue: number };
+
 export class InventoryItem {
     public width: number;
     public height: number;
     public iconURL: string;
     public image: HTMLImageElement;
-    public name: string
-    constructor(width: number, height: number, iconURL: string, image: HTMLImageElement, name: string) {
+    public name: string;
+    public slot: InventorySlot;
+    public stats: Array<StatPair>;
+    constructor(width: number, height: number, iconURL: string, image: HTMLImageElement, name: string, slot: InventorySlot, stats: Array<StatPair>) {
         this.width = width;
         this.height = height;
         this.iconURL = iconURL;
         this.image = image;
         this.name = name;
+        this.slot = slot;
+        this.stats = stats;
     }
 }
 
 export const TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true };
 export type slot = { row: number, column: number };
+
+enum InventorySlot {
+    Armor,
+    Boots,
+    Weapon
+}
 
 export class Inventory{
     public width: number;
@@ -30,10 +47,12 @@ export class Inventory{
     public x: number;
     public y: number;
     public cells: Array<Array<InventoryItem | Record<string, InventoryItem> | null>>
-    public equippedItems: Record <string, string | null>;
+    public equippedItems: Record <InventorySlot, InventoryItem | null>;
     public itemSize: Record<string, number>;
     private _hiddenItem: string;
     public highlight: boolean = false;
+
+    private _supportsEquipment: boolean = false;
 
     constructor(width: number, height: number, x: number, y: number, itemSize: Record<string, number>) {
         this.equippedItems = {};
@@ -104,6 +123,7 @@ export class Inventory{
         }
     }
     public isEquipped(item: InventoryItem): boolean {
+        console.assert(this._supportsEquipment);
         return Object.values(this.equippedItems).includes(item.name);
     }
     public draw() {
@@ -138,20 +158,29 @@ export class Inventory{
         }
     }
 
-    public updateStats(stats: Record<string, number>): void {
-        if (this.equippedItems.Armor != null){
-            stats.Lives = 2;
+    public updateStats(stats: Record<InventoryItemStat, number>): void {
+        for (const item of Object.values(this.equippedItems)) {
+            if (!item) {
+                continue;
+            }
+            for (const statModifier of item.stats) {
+                stats[statModifier.stat] += statModifier.modifiedValue;
+            }
         }
-        else {
-            stats.Lives = 1;
-        }
-        if (this.equippedItems.Boots != null){
-            stats.RollSpeed = 500;
-        }
-        else {
-            stats.RollSpeed = 400;
-        }
-        console.log(stats);
+        // --- to be deleted
+        //if (this.equippedItems.Armor != null){
+        //    stats.Lives = 2;
+        //}
+        //else {
+        //    stats.Lives = 1;
+        //}
+        //if (this.equippedItems.Boots != null){
+        //    stats.RollSpeed = 500;
+        //}
+        //else {
+        //    stats.RollSpeed = 400;
+        //}
+        //console.log(stats);
     }
     
     public searchInventory(slot: slot): InventoryItem | void{
@@ -170,6 +199,7 @@ export class Inventory{
     }
     private _updateEquippedItem(item: InventoryItem, status: string){
         if (status == Status.Add){
+            this.equippedItems[item.slot] = item;
             if (item.name == ItemList.Armor.name){
                 this.equippedItems.Armor = ItemList.Armor.name;
             }
@@ -184,6 +214,7 @@ export class Inventory{
             }
         }
         else{
+            this.equippedItems[item.slot] = null;
             if (item.name == ItemList.Armor.name){
                 this.equippedItems.Armor = null;
             }
