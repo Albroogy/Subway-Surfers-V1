@@ -343,13 +343,15 @@ function weightedRandom(weights: number[]): number {
 enum PowerupType {
     Coin = "coin",
     ExtendedVision = "extendedVision",
-    Aura = "aura"
+    Aura = "aura",
+    DeathStar = "deathStar"
 }
 
 const PowerupTypeGenerator = {
     [PowerupType.Coin]: generateCoin,
     [PowerupType.ExtendedVision]: generateExtendedVision,
     [PowerupType.Aura]: generateAura,
+    [PowerupType.DeathStar]: generateDeathStar,
 };
 
 function spawnPowerup(){
@@ -375,7 +377,7 @@ function generateCoin(objectLaneLocation: number){
     coin.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
     coin.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/coin.png"));
     coin.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
-    coin.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Coin]));
+    coin.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Coin, Tag.Powerup]));
 
     objects.push(
         coin
@@ -387,12 +389,13 @@ function generateExtendedVision(objectLaneLocation: number){
     extendedVisionPowerup.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT, 0));
     extendedVisionPowerup.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/extendedVisionPowerup.png"));
     extendedVisionPowerup.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
-    extendedVisionPowerup.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.ExtendedVisionPowerup]));
+    extendedVisionPowerup.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.ExtendedVisionPowerup, Tag.Powerup]));
 
     objects.push(
         extendedVisionPowerup
     )
 }
+
 
 function generateAura(objectLaneLocation: number){
     const positionComponent = playerCharacter.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -401,10 +404,24 @@ function generateAura(objectLaneLocation: number){
     auraPowerup.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, positionComponent.width, positionComponent.height, 0));
     auraPowerup.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/aura.png"));
     auraPowerup.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
-    auraPowerup.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.AuraPowerup]));
+    auraPowerup.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.AuraPowerup, Tag.Powerup]));
 
     objects.push(
         auraPowerup
+    )
+}
+
+function generateDeathStar(objectLaneLocation: number){
+    const positionComponent = playerCharacter.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+
+    const deathStarPowerup: Entity = new Entity("ExtendedVisionPowerup");
+    deathStarPowerup.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, OBJECT.SPAWN_LOCATION, OBJECT.WIDTH, OBJECT.HEIGHT + OFFSET * 10, 0));
+    deathStarPowerup.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent("assets/images/deathStar.png"));
+    deathStarPowerup.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    deathStarPowerup.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.DeathStarPowerup, Tag.Powerup]));
+
+    objects.push(
+        deathStarPowerup
     )
 }
 
@@ -615,8 +632,17 @@ let enemiesDefeated = 0;
 
 export function deleteObject(object: Entity){
     objects.splice(objects.indexOf(object),1);
-    if (checkNameIsNonProjectile(object)){
+    const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID);
+    if (tagComponent!.tags.includes(Tag.Enemy)){
         const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        
+        const randomNum = Math.random();
+
+        if (randomNum >= 0.8) {
+            // Drop item
+            
+        }
+
         let objectLane = findLane(positionComponent.x);
         for (let i = 0; i < enemiesPerLane.length; i++){
             if (i == objectLane - OFFSET){
@@ -642,7 +668,6 @@ export function destroyCollidingObjects(arrow: Entity, object: Entity){
         }
     }
     enemiesDefeated += 1;
-    console.log(enemiesDefeated);
 }
 
 function findLane(xCoordinate: number){

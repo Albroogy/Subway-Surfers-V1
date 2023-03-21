@@ -27,6 +27,7 @@ export default class CollisionSystem {
             [Tag.Ghost]: playerGenericCollision,
             [Tag.ExtendedVisionPowerup]: playerExtendedVisionPowerupCollision,
             [Tag.AuraPowerup]: playerAuraPowerupCollision,
+            [Tag.DeathStarPowerup]: playerDeathStarPowerupCollision,
         },
         [Tag.Arrow]: {
             [Tag.Frankenstein]: arrowFrankensteinCollision,
@@ -141,7 +142,7 @@ function playerExtendedVisionPowerupCollision(player: Entity, object: Entity){
             const newZoom = lerp(startZoom, endZoom, t); // Calculate the new zoom level
             CameraSystem.Instance.zoomLevel = newZoom; // Update the camera zoom level
             elapsedFrames++;
-            
+
             // Call this function again on the next frame to continue the transition
             requestAnimationFrame(updateZoom);
         }
@@ -182,6 +183,16 @@ function playerAuraPowerupCollision(player: Entity, object: Entity) {
     }, IN_GAME_SECOND * 15);
 
     deleteObject(object);
+}
+
+function playerDeathStarPowerupCollision(player: Entity, object: Entity) {
+    deleteObject(object);
+    for (const object of objects){
+        const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID);
+        if (!tagComponent!.tags.includes(Tag.Powerup) && !tagComponent!.tags.includes(Tag.Player)){
+            deleteObject(object);
+        }
+    }
 }
 
 function playerGenericCollision(player: Entity, object: Entity) {

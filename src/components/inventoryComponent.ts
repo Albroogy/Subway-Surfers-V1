@@ -237,7 +237,7 @@ export const ItemList: Record<string, InventoryItem> = {
     Spear: new InventoryItem(2, 1, spearImage.src, spearImage, "Spear"),
     Bow: new InventoryItem(1, 2, bowImage.src, bowImage, "Bow"),
     Armor: new InventoryItem(2, 2, armorImage.src, armorImage, "Armor"),
-    Boots: new InventoryItem(1, 1, bootsImage.src, bootsImage, "Boots")
+    Boots: new InventoryItem(1, 1, bootsImage.src, bootsImage, "Boots"),
 }
 
 export function equipStarterItems(currentObject: Entity){

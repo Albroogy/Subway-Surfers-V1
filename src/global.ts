@@ -21,6 +21,15 @@ export const KEYS = {
     E: 69
 };
 
+export let mouseDown = false;
+
+window.addEventListener("mousedown", function (event) {
+    mouseDown = true;
+});
+window.addEventListener("mouseup", function (event) {
+    mouseDown = false;
+});
+
 export const canvas: HTMLCanvasElement = document.getElementById("game-canvas")! as HTMLCanvasElement;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -51,6 +60,34 @@ export enum EntityName{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export enum Tag {
     Player = "player",
     Fireball = "fireball",
@@ -62,7 +99,10 @@ export enum Tag {
     Skeleton = "skeleton",
     Ghost = "ghost",
     ExtendedVisionPowerup = "ExtendedVisionPowerup",
-    AuraPowerup = "AuraPowerup"
+    AuraPowerup = "AuraPowerup",
+    DeathStarPowerup = "DeathStarPowerup",
+    Powerup = "Powerup",
+    Enemy = "Enemy"
 }
 
 export let timeStart: number = Date.now();

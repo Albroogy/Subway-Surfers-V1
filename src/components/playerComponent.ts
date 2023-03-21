@@ -1,7 +1,7 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { allPressedKeys, canvas, checkTime, context, EntityName, KEYS, LANE, OFFSET, sleep, Tag} from "../global";
+import { allPressedKeys, canvas, checkTime, context, EntityName, KEYS, LANE, mouseDown, OFFSET, sleep, Tag} from "../global";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -224,7 +224,7 @@ export const playerInventory = [equippedInventory, itemsFound];
 
 export const player = new Entity("Player");
 
-player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.width/3, PLAYER.WIDTH, PLAYER.HEIGHT, 0));
+player.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(canvas.width/2, canvas.width/2, PLAYER.WIDTH, PLAYER.HEIGHT, 0));
 player.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(weaponAnimations.Bow, playerBowAnimationInfo));
 player.addComponent(PlayerComponent.COMPONENT_ID, new PlayerComponent(1, PlayerState.Running, StartingStats, weaponAnimations));
 player.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent<PlayerState>());
@@ -243,7 +243,6 @@ const onRunningActivation = (currentObject: Entity) => {
     animatedComponent!.playAnimation(PlayerAnimationName.RunningBack);
     playerComponent!.state = PlayerState.Running;
     animatedComponent!.currentAnimationFrame = 0;
-    addEventListener("click", () => {return PlayerState.Ducking;});
 };
 const onRunningUpdate = (deltatime: number, currentObject: Entity): PlayerState | undefined => {
     let stateStart = currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
@@ -252,7 +251,6 @@ const onRunningUpdate = (deltatime: number, currentObject: Entity): PlayerState 
     return checkInput(stateStart);
 };
 const onRunningDeactivation = () => {
-    removeEventListener("click", () => {return PlayerState.Ducking;});
 };
 
 const onJumpingActivation = () => {
@@ -405,6 +403,9 @@ function checkInput(stateStart: number): PlayerState | undefined {
     else if (playerComponent!.stats.Lives <= 0 && checkTime(200, stateStart) || playerComponent!.stats.Lives <= -3){
         return PlayerState.Dying;
         // Game mechanic: As long as you keep on moving, you will never die, no matter your lives count.
+    }
+    else if (mouseDown == true && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)){
+        return PlayerState.Ducking
     }
 }
 
