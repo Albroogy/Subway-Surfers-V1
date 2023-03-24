@@ -6,7 +6,7 @@ import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
 import { objects } from "../objects";
-import { equipStarterItems, Inventory, InventoryComponent, ItemList } from "./inventoryComponent";
+import { equipStarterItems, Inventory, InventoryComponent, InventoryItemStat, ItemList } from "./inventoryComponent";
 import { resetValues } from "../main";
 import { TagComponent } from "./tagComponent";
 import ArrowComponent from "./arrowComponent";
@@ -72,9 +72,8 @@ export class PlayerComponent extends Component{
         if (this._entity == null) {
             return;
         }
-        this.stats = {};
         const inventoryComponent = this._entity.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID);
-        inventoryComponent!.inventories[0].updateStats(this.stats);
+        this.stats = inventoryComponent!.inventories[0].updateStats(StartingStats);
     }
     updateAnimationBasedOnWeapon(): void {
         if (this._entity == null) {
@@ -123,9 +122,9 @@ const StartingItems: Record <string, string | null> = {
     Spear: "&armour=Thrust_spear_2",
     Boots: null
 }
-const StartingStats: Record <string, number> = {
-    Lives: 1,
-    RollSpeed: 400,
+export const StartingStats: Record <string, number> = {
+    [InventoryItemStat.Lives]: 1,
+    [InventoryItemStat.RollSpeed]: 400,
 }
 const PLAYER_MOVEMENT_COOLDOWN: number = 10;
 const CLICK_DELAY: number = 300; //This is in milliseconds
@@ -371,7 +370,7 @@ function generateArrow(positionComponent: PositionComponent){
         y: Math.sin(angle)
     }
 
-    arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0));
+    arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0, angle));
     arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARROW.URL as string));
     arrow.addComponent(ArrowComponent.COMPONENT_ID, new ArrowComponent(ARROW.SPEED as number, Direction));
     arrow.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Arrow]));

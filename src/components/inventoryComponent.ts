@@ -6,7 +6,7 @@ enum Status{
     Remove = "remove"
 }
 
-enum InventoryItemStat {
+export enum InventoryItemStat {
     Lives,
     RollSpeed
 }
@@ -36,7 +36,9 @@ export const TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true };
 export type slot = { row: number, column: number };
 
 enum InventorySlot {
-    Armor,
+    Helmet,
+    Chestplate,
+    Leggings,
     Boots,
     Weapon
 }
@@ -55,7 +57,7 @@ export class Inventory{
     private _supportsEquipment: boolean = false;
 
     constructor(width: number, height: number, x: number, y: number, itemSize: Record<string, number>) {
-        this.equippedItems = {};
+        this.equippedItems = {} as Record <InventorySlot, InventoryItem | null>;
         this.cells = [];
         this.width = width;
         this.height = height;
@@ -124,7 +126,7 @@ export class Inventory{
     }
     public isEquipped(item: InventoryItem): boolean {
         console.assert(this._supportsEquipment);
-        return Object.values(this.equippedItems).includes(item.name);
+        return Object.values(this.equippedItems).includes(item);
     }
     public draw() {
         // for every row and col
@@ -158,7 +160,8 @@ export class Inventory{
         }
     }
 
-    public updateStats(stats: Record<InventoryItemStat, number>): void {
+    public updateStats(StartingStats: Record<string, number>): Record<string, number>  {
+        const stats = StartingStats;
         for (const item of Object.values(this.equippedItems)) {
             if (!item) {
                 continue;
@@ -167,20 +170,8 @@ export class Inventory{
                 stats[statModifier.stat] += statModifier.modifiedValue;
             }
         }
-        // --- to be deleted
-        //if (this.equippedItems.Armor != null){
-        //    stats.Lives = 2;
-        //}
-        //else {
-        //    stats.Lives = 1;
-        //}
-        //if (this.equippedItems.Boots != null){
-        //    stats.RollSpeed = 500;
-        //}
-        //else {
-        //    stats.RollSpeed = 400;
-        //}
-        //console.log(stats);
+        console.log(stats);
+        return stats;
     }
     
     public searchInventory(slot: slot): InventoryItem | void{
@@ -200,33 +191,9 @@ export class Inventory{
     private _updateEquippedItem(item: InventoryItem, status: string){
         if (status == Status.Add){
             this.equippedItems[item.slot] = item;
-            if (item.name == ItemList.Armor.name){
-                this.equippedItems.Armor = ItemList.Armor.name;
-            }
-            if (item.name == ItemList.Boots.name){
-                this.equippedItems.Boots = ItemList.Boots.name;
-            }
-            if (item.name == ItemList.Spear.name){
-                this.equippedItems.Spear = ItemList.Spear.name;
-            }
-            if (item.name == ItemList.Bow.name){
-                this.equippedItems.Bow = ItemList.Bow.name;
-            }
         }
         else{
             this.equippedItems[item.slot] = null;
-            if (item.name == ItemList.Armor.name){
-                this.equippedItems.Armor = null;
-            }
-            if (item.name == ItemList.Boots.name){
-                this.equippedItems.Boots = null;
-            }
-            if (item.name == ItemList.Spear.name){
-                this.equippedItems.Spear = null;
-            }
-            if (item.name == ItemList.Bow.name){
-                this.equippedItems.Bow = null;
-            }
         }
     }
 }
@@ -265,10 +232,10 @@ const bootsImage = new Image;
 bootsImage.src = ItemInfo.Boots.src;
 
 export const ItemList: Record<string, InventoryItem> = {
-    Spear: new InventoryItem(2, 1, spearImage.src, spearImage, "Spear"),
-    Bow: new InventoryItem(1, 2, bowImage.src, bowImage, "Bow"),
-    Armor: new InventoryItem(2, 2, armorImage.src, armorImage, "Armor"),
-    Boots: new InventoryItem(1, 1, bootsImage.src, bootsImage, "Boots"),
+    Spear: new InventoryItem(2, 1, spearImage.src, spearImage, "Spear", InventorySlot.Weapon, []),
+    Bow: new InventoryItem(1, 2, bowImage.src, bowImage, "Bow", InventorySlot.Weapon, []),
+    Armor: new InventoryItem(2, 2, armorImage.src, armorImage, "Armor", InventorySlot.Chestplate, [{stat: InventoryItemStat.Lives, modifiedValue: 1}]),
+    Boots: new InventoryItem(1, 1, bootsImage.src, bootsImage, "Boots", InventorySlot.Boots, [{stat: InventoryItemStat.RollSpeed, modifiedValue: 100}]),
 }
 
 export function equipStarterItems(currentObject: Entity){
