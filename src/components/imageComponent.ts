@@ -17,36 +17,27 @@ export class ImageComponent extends Component {
             return;
         }
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        const imageWidth = positionComponent.width || this.image.width; // get image width, or use default
+        const imageHeight = positionComponent.height || this.image.height; // get image height, or use default
+        const centerX = positionComponent.x - imageWidth / 2;
+        const centerY = positionComponent.y - imageHeight / 2;
         if (positionComponent.rotation !== 0) {
             context.save(); // save the current transformation matrix
-            context.translate(positionComponent.x, positionComponent.y); // move the origin to the object's position
+            context.translate(centerX, centerY); // move the origin to the object's position
             context.rotate(positionComponent.rotation); // apply the object's current rotation
-            
-            const imageWidth = positionComponent.width || this.image.width; // get image width, or use default
-            const imageHeight = positionComponent.height || this.image.height; // get image height, or use default
-
-            context.drawImage(
-                this.image,
-                -imageWidth / 2,
-                -imageHeight / 2,
-                imageWidth,
-                imageHeight
-            );
-
-            context.restore();
+            context.translate(-centerX, -centerY); // move the origin to the object's position
         }
-        else {
-            const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-            const imageWidth = positionComponent.width || this.image.width; // get image width, or use default
-            const imageHeight = positionComponent.height || this.image.height; // get image height, or use default
-            
-            context.drawImage(
-                this.image,
-                -imageWidth / 2,
-                -imageHeight / 2,
-                imageWidth,
-                imageHeight
-            );
+
+        context.drawImage(
+            this.image,
+            centerX,
+            centerY,
+            imageWidth,
+            imageHeight
+        );
+
+        if (positionComponent.rotation !== 0) {
+            context.restore();
         }
     }
 }

@@ -12,6 +12,7 @@ import { addGold, addScore, deleteObject, destroyCollidingObjects } from "../mai
 import { AnimatedComponent } from "../components/animatedComponent";
 import CameraSystem from "./cameraSystem";
 import SkeletonComponent from "../components/skeletonComponent";
+import { InventoryItemStat } from "../components/inventoryComponent";
 
 type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
@@ -129,7 +130,7 @@ function playerFrankensteinCollision(player: Entity, object: Entity) {
     else {
         const frankensteinComponent = object.getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
         if (checkTime(IN_GAME_SECOND * 3, frankensteinComponent.lastHit)){
-            playerComponent.stats.Lives -= 1;
+            playerComponent.stats[InventoryItemStat.Lives] -= 1;
             frankensteinComponent.lastHit = Date.now();
         }
     }
@@ -143,7 +144,7 @@ function playerSkeletonCollision(player: Entity, object: Entity) {
     else {
         const skeletonComponent = object.getComponent<SkeletonComponent>(SkeletonComponent.COMPONENT_ID)!;
         if (checkTime(IN_GAME_SECOND * 3, skeletonComponent.lastHit)){
-            playerComponent.stats.Lives -= 1;
+            playerComponent.stats[InventoryItemStat.Lives] -= 1;
             skeletonComponent.lastHit = Date.now();
             console.log("hit");
         }
@@ -244,7 +245,7 @@ function playerGenericCollision(player: Entity, object: Entity) {
             playerComponent.aura = false;
         }
         else {
-            playerComponent.stats.Lives -= 1;
+            playerComponent.stats[InventoryItemStat.Lives] -= 1;
             const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;
             soundComponent.playSound(GameSound.PlayerHit);
         }

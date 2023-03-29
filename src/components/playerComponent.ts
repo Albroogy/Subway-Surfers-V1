@@ -32,7 +32,7 @@ export const PlayerAnimationName = {
 export class PlayerComponent extends Component{ 
     public static COMPONENT_ID: string = "Player";
 
-    public stats: Record <string, number>;
+    public stats: Record <InventoryItemStat, number>;
     public weapon: string | null;
     public weaponAnimations: Record <string, string>;
     public directionChange: number;
@@ -42,7 +42,7 @@ export class PlayerComponent extends Component{
     public PREPARE_SPEAR_FRAMES: number;
     public aura: boolean;
 
-    constructor(lane: number, state: PlayerState, startingStats: Record <string, number>, weaponAnimations: Record <string, string>) {
+    constructor(lane: number, state: PlayerState, startingStats: Record<InventoryItemStat, number>, weaponAnimations: Record <string, string>) {
         super();
         this.stats = startingStats;
         this.weapon = null;
@@ -65,7 +65,7 @@ export class PlayerComponent extends Component{
             return;
         }
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
-        positionComponent!.x += this.stats.RollSpeed * deltaTime/1000 * this.directionChange;
+        positionComponent!.x += this.stats[InventoryItemStat.RollSpeed] * deltaTime/1000 * this.directionChange;
     }
 
     updateStats(): void{
@@ -122,7 +122,7 @@ const StartingItems: Record <string, string | null> = {
     Spear: "&armour=Thrust_spear_2",
     Boots: null
 }
-export const StartingStats: Record <string, number> = {
+export const StartingStats: Record <InventoryItemStat, number> = {
     [InventoryItemStat.Lives]: 1,
     [InventoryItemStat.RollSpeed]: 400,
 }
@@ -363,12 +363,12 @@ function generateArrow(positionComponent: PositionComponent){
         URL: "assets/images/arrow.png"
     }
 
-    const angle = Math.atan2(mouse.y - positionComponent.y, mouse.x - positionComponent.x);
-
+    let angle = Math.atan2(mouse.y - positionComponent.y, mouse.x - positionComponent.x);
     const Direction = {
         x: Math.cos(angle),
         y: Math.sin(angle)
     }
+    angle += Math.PI / 2;
 
     arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0, angle));
     arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARROW.URL as string));
@@ -406,7 +406,7 @@ function checkInput(stateStart: number): PlayerState | undefined {
     else if (allPressedKeys[KEYS.W] || allPressedKeys[KEYS.ArrowUp] && checkTime(PLAYER_MOVEMENT_COOLDOWN, stateStart)) {
         return PlayerState.Jumping;
     }
-    else if (playerComponent!.stats.Lives <= 0 && checkTime(200, stateStart) || playerComponent!.stats.Lives <= -3){
+    else if (playerComponent!.stats[InventoryItemStat.Lives] <= 0 && checkTime(200, stateStart) || playerComponent!.stats[InventoryItemStat.Lives] <= -3){
         return PlayerState.Dying;
         // Game mechanic: As long as you keep on moving, you will never die, no matter your lives count.
     }

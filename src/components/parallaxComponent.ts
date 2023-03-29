@@ -32,6 +32,7 @@ export class ParallaxComponent extends Component{
     public draw(): void {
         context.save();
         context.scale(canvas.width / this._textures[0].width, canvas.height / this._textures[0].height);
+        //context.scale(1.5, 1.5);
 
         for (let i = 0; i < this._textures.length; i++){
             const tex = this._textures[i];

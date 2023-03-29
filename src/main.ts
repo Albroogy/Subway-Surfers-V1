@@ -11,7 +11,7 @@ import { gameEntity, GameSound } from "./systems/gameSystem";
 import {images, objects} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
 import StateMachineComponent from "./components/stateMachineComponent";
-import { InventoryComponent } from "./components/inventoryComponent";
+import { InventoryComponent, InventoryItemStat } from "./components/inventoryComponent";
 import { GameState, gameState } from "./components/gameComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
 import FrankensteinComponent, { FrankensteinAnimationInfo } from "./components/frankensteinComponent";
@@ -243,9 +243,9 @@ function draw() {
         context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE_LOCATION.x, HIGH_SCORE_LOCATION.y);
         context.fillText(`GOLD: ${gold}`, GOLD_TEXT_LOCATION.x, GOLD_TEXT_LOCATION.y);
         context.font = "20px Arial";
-        if (playerComponent.stats.Lives > 0){
+        if (playerComponent.stats[InventoryItemStat.Lives] > 0){
             context.font = "20px Arial";
-            context.fillText(`LIVES: ${playerComponent.stats.Lives}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
+            context.fillText(`LIVES: ${playerComponent.stats[InventoryItemStat.Lives]}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
         else{
             context.fillStyle = "red";
@@ -671,3 +671,7 @@ function checkNameIsNonProjectile(object: Entity){
     }
     return false;
 }
+
+document.body.addEventListener("wheel", (e: WheelEvent) => {
+    CameraSystem.Instance.zoomLevel += e.deltaY / 5000;
+});

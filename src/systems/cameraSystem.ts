@@ -1,4 +1,4 @@
-import { context } from "../global";
+import { canvas, context } from "../global";
 
 export default class CameraSystem {
     public static Instance = new CameraSystem();
@@ -13,7 +13,9 @@ export default class CameraSystem {
 
         context.rotate(this.cameraAngle);
         context.translate(this.cameraX, this.cameraY);
+        context.translate(canvas.width/2, canvas.height/2);
         context.scale(this.zoomLevel, this.zoomLevel);
+        context.translate(-canvas.width/2, -canvas.height/2);
     }
 
     public endDraw(): void {

@@ -160,7 +160,7 @@ export class Inventory{
         }
     }
 
-    public updateStats(StartingStats: Record<string, number>): Record<string, number>  {
+    public updateStats(StartingStats: Record<InventoryItemStat, number>): Record<InventoryItemStat, number>  {
         const stats = StartingStats;
         for (const item of Object.values(this.equippedItems)) {
             if (!item) {
