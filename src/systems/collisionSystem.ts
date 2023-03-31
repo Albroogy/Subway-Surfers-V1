@@ -229,11 +229,15 @@ function playerAuraPowerupCollision(player: Entity, object: Entity) {
 
 function playerDeathStarPowerupCollision(player: Entity, object: Entity) {
     deleteObject(object);
+    let toBeDeleted = [];
     for (const object of objects){
         const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID);
         if (!tagComponent!.tags.includes(Tag.Powerup) && !tagComponent!.tags.includes(Tag.Player)){
-            deleteObject(object);
+            toBeDeleted.push(object)
         }
+    }
+    for (object of toBeDeleted){
+        deleteObject(object)
     }
 }
 

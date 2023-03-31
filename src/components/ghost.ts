@@ -160,6 +160,46 @@ export const GhostAnimationInfo: AnimationInfo = {
             frameCount: 12,
             framesPerSecond: 8
         },
+        [GhostAnimationNames.AttackingEast]: {
+          rowIndex: 1,
+          frameCount: 24,
+          framesPerSecond: 8
+      },
+      [GhostAnimationNames.AttackingNorth]: {
+          rowIndex: 2,
+          frameCount: 24,
+          framesPerSecond: 8
+      },
+      [GhostAnimationNames.AttackingNorthEast]: {
+          rowIndex: 3,
+          frameCount: 24,
+          framesPerSecond: 8
+      },
+      [GhostAnimationNames.AttackingNorthWest]: {
+          rowIndex: 4,
+          frameCount: 24,
+          framesPerSecond: 8
+      },
+      [GhostAnimationNames.AttackingSouth]: {
+          rowIndex: 5,
+          frameCount: 24,
+          framesPerSecond: 8
+      },
+      [GhostAnimationNames.AttackingSouthEast]: {
+          rowIndex: 6,
+          frameCount: 24,
+          framesPerSecond: 8
+      },
+      [GhostAnimationNames.AttackingSouthWest]: {
+          rowIndex: 7,
+          frameCount: 24,
+          framesPerSecond: 8
+      },
+      [GhostAnimationNames.AttackingWest]: {
+          rowIndex: 8,
+          frameCount: 24,
+          framesPerSecond: 8
+      },
     }
 };
 

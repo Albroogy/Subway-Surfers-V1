@@ -5,20 +5,20 @@ import { player } from "./playerComponent";
 import PositionComponent from "./positionComponent";
 import StateMachineComponent from "./stateMachineComponent";
 
-export enum FrankensteinState {
+export enum GoblinBossState {
     WalkingDown = "walkingDown",
     Hitting = "hitting"
 }
 
-export default class FrankensteinComponent extends Component {
-    public static COMPONENT_ID: string = "Frankenstein";
+export default class GoblinBossComponent extends Component {
+    public static COMPONENT_ID: string = "GoblinBoss";
 
     public health: number = 2;
     public onAttached(): void {
-        const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<FrankensteinState>>(StateMachineComponent.COMPONENT_ID)!;
-        stateMachineComponent.stateMachine.addState(FrankensteinState.WalkingDown, onWalkingDownActivation, onWalkingDownUpdate, onWalkingDownDeactivation);
-        stateMachineComponent.stateMachine.addState(FrankensteinState.Hitting, onHittingActivation, onHittingUpdate, onHittingDeactivation);
-        stateMachineComponent.activate(FrankensteinState.WalkingDown);
+        const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<GoblinBossState>>(StateMachineComponent.COMPONENT_ID)!;
+        stateMachineComponent.stateMachine.addState(GoblinBossState.WalkingDown, onWalkingDownActivation, onWalkingDownUpdate, onWalkingDownDeactivation);
+        stateMachineComponent.stateMachine.addState(GoblinBossState.Hitting, onHittingActivation, onHittingUpdate, onHittingDeactivation);
+        stateMachineComponent.activate(GoblinBossState.WalkingDown);
     }
 }
 
@@ -32,13 +32,13 @@ const onWalkingDownActivation = (currentObject: Entity) => {
         movementComponent.yDirection = 1;
     }
 }
-const onWalkingDownUpdate = (deltatime: number, currentObject: Entity): FrankensteinState | undefined => {
+const onWalkingDownUpdate = (deltatime: number, currentObject: Entity): GoblinBossState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
     else if (playerPositionComponent.x == positionComponent.x && playerPositionComponent.y <= positionComponent.y + playerPositionComponent.height/2 && playerPositionComponent.y >= positionComponent.y){
-        return FrankensteinState.Hitting;
+        return GoblinBossState.Hitting;
     }
 }
 const onWalkingDownDeactivation = () => {
@@ -47,19 +47,19 @@ const onWalkingDownDeactivation = () => {
 const onHittingActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[FrankensteinAnimationNames.Hitting];
-    console.log(FrankensteinState.Hitting);
+    console.log(GoblinBossState.Hitting);
     const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!
     if (movementComponent.yDirection != 0){
         movementComponent.yDirection = 0;
     }
 }
-const onHittingUpdate = (deltatime: number, currentObject: Entity): FrankensteinState | undefined => {
+const onHittingUpdate = (deltatime: number, currentObject: Entity): GoblinBossState | undefined => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     if (playerPositionComponent == null){
         return;
     }
     else if (playerPositionComponent.x != positionComponent.x){
-        return FrankensteinState.WalkingDown;
+        return GoblinBossState.WalkingDown;
     }
 }
 const onHittingDeactivation = () => {
