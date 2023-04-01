@@ -1,6 +1,6 @@
 import {player, PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
-import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime, Tag} from "./global";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime, Tag, findLane} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
@@ -24,6 +24,7 @@ import SkeletonComponent, { SkeletonAnimationInfo } from "./components/skeletonC
 import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 import { TagComponent } from "./components/tagComponent";
 import AchievementSystem from "./systems/achievementSystem";
+import GoblinBossComponent, { GoblinBossAnimationInfo } from "./components/goblinBossComponent";
 
 document.body.addEventListener('keydown', startMusicTracks);
 
@@ -176,7 +177,7 @@ function update(deltaTime: number, gameSpeed: number){
     addScore(scoreIncreaseSpeed);
     AchievementSystem.Instance.checkAchievements(gold, enemiesDefeated);
 
-    if (lastSpawn <= Date.now() - spawnDelay){
+    if (checkTime(spawnDelay, lastSpawn)){
         const randomNum = Math.random();
         if (randomNum <= 0.8) {
             spawnEnemy();
@@ -320,7 +321,7 @@ function spawnEnemy(){
     EnemyTypeGenerator[generateType](objectLaneLocation);
 }
 
-function calculateLaneLocation(lane: number): number{
+export function calculateLaneLocation(lane: number): number{
     return lane * LANE.WIDTH - LANE.WIDTH/2;
 }
 
@@ -439,7 +440,7 @@ function generateDragon(objectLaneLocation: number){
     dragon.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     dragon.addComponent(DragonComponent.COMPONENT_ID, new DragonComponent());
     dragon.addComponent(SoundComponent.COMPONENT_ID, new SoundComponent(DragonAudio));
-    dragon.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Dragon]));
+    dragon.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Dragon, Tag.Enemy]));
 
     objects.push(
         dragon
@@ -456,7 +457,7 @@ function generateMinotaur(objectLaneLocation: number){
     minotaur.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     minotaur.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     minotaur.addComponent(MinotaurComponent.COMPONENT_ID, new MinotaurComponent());
-    minotaur.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Minotaur]));
+    minotaur.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Minotaur, Tag.Enemy]));
 
     objects.push(
         minotaur
@@ -473,7 +474,7 @@ function generateFrankenstein(objectLaneLocation: number){
     frankenstein.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     frankenstein.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     frankenstein.addComponent(FrankensteinComponent.COMPONENT_ID, new FrankensteinComponent());
-    frankenstein.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Frankenstein]));
+    frankenstein.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Frankenstein, Tag.Enemy]));
 
     objects.push(
         frankenstein
@@ -490,7 +491,7 @@ function generateSkeleton(objectLaneLocation: number){
     skeleton.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
     skeleton.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     skeleton.addComponent(SkeletonComponent.COMPONENT_ID, new SkeletonComponent());
-    skeleton.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Skeleton]));
+    skeleton.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Skeleton, Tag.Enemy]));
 
     objects.push(
         skeleton
@@ -506,12 +507,30 @@ function generateGhost(objectLaneLocation: number){
     ghost.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/ghost.png", GhostAnimationInfo));
     ghost.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     ghost.addComponent(GhostComponent.COMPONENT_ID, new GhostComponent());
-    ghost.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Ghost]));
+    ghost.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Ghost, Tag.Enemy]));
     
     objects.push(
         ghost
     )
 }
+
+function generateGoblinBoss(objectLaneLocation: number){
+    const GOBLIN_WIDTH: number = 150;
+    const GOBLIN_HEIGHT: number = 150;
+
+    const goblin: Entity = new Entity("GoblinBoss");
+    goblin.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, 100, GOBLIN_WIDTH, GOBLIN_HEIGHT, 0));
+    goblin.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/goblinBossRight.png", GoblinBossAnimationInfo));
+    goblin.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
+    goblin.addComponent(GoblinBossComponent.COMPONENT_ID, new GoblinBossComponent());
+    goblin.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.GoblinBoss, Tag.Boss, Tag.Enemy]));
+    
+    objects.push(
+        goblin
+    )
+}
+
+generateGoblinBoss(500);
 
 function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: number){
     for (let i = 0; i < objects.length; i++){
@@ -546,63 +565,20 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
             const arrow = objects[i];
             for (let j = 0; j < objects.length; j++){
                 const object = objects[j];
-                if (checkNameIsNonProjectile(object) && object.name != EntityName.Coin){
+                const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID)!;
+                if (tagComponent.tags.includes(Tag.Enemy)){
                     console.assert(arrow != undefined);
                     console.assert(object != undefined);
                     if (CollisionSystem.checkObjectsColliding(arrow, object)){
                         CollisionSystem.matchPair(arrow, object);
                     }
-                continue;
-                // For effiency's sake, should I split the objects array into 3 lane arrays? 
-                // This way for collisions I will only need to check the objects that are on the same lane.
+                    continue;
                 }
             }
         }
 
         else if (objects[i] != playerCharacter && CollisionSystem.checkObjectsColliding(objects[i], playerCharacter)){
             CollisionSystem.matchPair(objects[i], playerCharacter);
-            // else if (objects[i].name == EntityName.Frankenstein){
-            //     let timeCollisionStart = Date.now();
-            //     if (playerComponent.attacking){
-            //         const positionComponent = objects[i].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
-            //         const frankensteinComponent = objects[i].getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
-            //         for (let i = 0; i < 200; i++){
-            //             positionComponent.y -= 1;
-            //         }
-            //         frankensteinComponent.health -= 1;
-            //         if (frankensteinComponent.health < 1){
-            //             deleteObject(objects[i]);
-            //             continue;
-            //         }
-            //         else{
-            //             const animatedComponent = objects[i].getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
-            //             animatedComponent.spritesheet.src = "assets/images/frankensteinHurt.png";
-            //         }
-            //     }
-            //     else {
-            //         if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
-            //             playerComponent.stats.Lives -= 1;
-            //             timeCollisionStart = Date.now();
-            //         }
-            //     }
-            // }
-            // else if (objects[i].name == EntityName.Skeleton){
-            //     let timeCollisionStart = Date.now();
-            //     if (playerComponent.attacking){
-            //         deleteObject(objects[i]);
-            //         continue;
-            //     }
-            //     else {
-            //         if (checkTime(IN_GAME_SECOND * 1, timeCollisionStart)){
-            //             playerComponent.stats.Lives -= 1;
-            //             timeCollisionStart = Date.now();
-            //         }
-            //     }
-            // }
-            // else {
-            //     deleteObject(objects[i]);
-            //     continue;
-            // }
         }
     }
 }
@@ -655,21 +631,6 @@ export function destroyCollidingObjects(arrow: Entity, object: Entity){
         }
     }
     enemiesDefeated += 1;
-}
-
-function findLane(xCoordinate: number){
-    return (xCoordinate + LANE.WIDTH/2) / LANE.WIDTH;
-}
-
-const nonProjectiles = [EntityName.Coin, EntityName.Skeleton, EntityName.Dragon, EntityName.Minotaur, EntityName.Frankenstein, EntityName.Ghost]
-
-function checkNameIsNonProjectile(object: Entity){
-    for (const objectName of nonProjectiles){
-        if (object.name == objectName){
-            return true;
-        }
-    }
-    return false;
 }
 
 document.body.addEventListener("wheel", (e: WheelEvent) => {

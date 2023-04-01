@@ -13,6 +13,7 @@ import { AnimatedComponent } from "../components/animatedComponent";
 import CameraSystem from "./cameraSystem";
 import SkeletonComponent from "../components/skeletonComponent";
 import { InventoryItemStat } from "../components/inventoryComponent";
+import GoblinBossComponent from "../components/goblinBossComponent";
 
 type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
@@ -23,10 +24,12 @@ export default class CollisionSystem {
             [Tag.Coin]: playerCoinCollision, 
             [Tag.Frankenstein]: playerFrankensteinCollision, 
             [Tag.Fireball]: playerGenericCollision, 
+            [Tag.MoneyPouch]: playerGenericCollision,
             [Tag.Skeleton]: playerSkeletonCollision, 
             [Tag.Dragon]: playerGenericCollision,
             [Tag.Minotaur]: playerGenericCollision,
             [Tag.Ghost]: playerGenericCollision,
+            [Tag.Ghost]: playerGoblinBossCollision,
             [Tag.ExtendedVisionPowerup]: playerExtendedVisionPowerupCollision,
             [Tag.AuraPowerup]: playerAuraPowerupCollision,
             [Tag.DeathStarPowerup]: playerDeathStarPowerupCollision,
@@ -37,6 +40,7 @@ export default class CollisionSystem {
             [Tag.Dragon]: arrowGenericCollision,
             [Tag.Minotaur]: arrowGenericCollision,
             [Tag.Ghost]: arrowGenericCollision,
+            [Tag.GoblinBoss]: arrowGoblinBossCollision,
         }
     };
 
@@ -151,6 +155,15 @@ function playerSkeletonCollision(player: Entity, object: Entity) {
     }
 }
 
+function playerGoblinBossCollision(arrow: Entity, object: Entity){
+    const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
+        const goblinBossComponent = object.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
+        if (checkTime(IN_GAME_SECOND * 1, goblinBossComponent.lastHit)){
+            playerComponent.stats[InventoryItemStat.Lives] -= 1;
+            goblinBossComponent.lastHit = Date.now();
+        }
+}
+
 let extendedVisionCollectedAgain = false;
 
 function playerExtendedVisionPowerupCollision(player: Entity, object: Entity){
@@ -232,8 +245,8 @@ function playerDeathStarPowerupCollision(player: Entity, object: Entity) {
     let toBeDeleted = [];
     for (const object of objects){
         const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID);
-        if (!tagComponent!.tags.includes(Tag.Powerup) && !tagComponent!.tags.includes(Tag.Player)){
-            toBeDeleted.push(object)
+        if (tagComponent!.tags.includes(Tag.Enemy) && !tagComponent!.tags.includes(Tag.Boss)){
+            toBeDeleted.push(object);
         }
     }
     for (object of toBeDeleted){
@@ -273,6 +286,19 @@ function arrowGenericCollision(arrow: Entity, object: Entity) {
     destroyCollidingObjects(arrow, object);
     playArrowImpactSound();
 }
+
+function arrowGoblinBossCollision(arrow: Entity, object: Entity){
+    const goblinBossComponent = object.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
+    goblinBossComponent.health -= 1;
+    if (goblinBossComponent.health < 1){
+        destroyCollidingObjects(arrow, object);
+    }
+    else {
+        objects.splice(objects.indexOf(arrow), 1);
+    }
+    playArrowImpactSound();
+}
+
 
 function playArrowImpactSound() {
     const soundComponent = gameEntity.getComponent<SoundComponent>(SoundComponent.COMPONENT_ID)!;

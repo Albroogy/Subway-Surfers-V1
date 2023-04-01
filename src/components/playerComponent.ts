@@ -245,7 +245,7 @@ const onRunningActivation = (currentObject: Entity) => {
     animatedComponent!.currentAnimationFrame = 0;
 };
 const onRunningUpdate = (deltatime: number, currentObject: Entity): PlayerState | undefined => {
-    let stateStart = currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
+    let stateStart = currentObject.getComponent<StateMachineComponent<PlayerState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart;
     playerComponent!.directionChange = ~~(allPressedKeys[KEYS.D] || allPressedKeys[KEYS.ArrowRight]) -
         ~~(allPressedKeys[KEYS.A] || allPressedKeys[KEYS.ArrowLeft]);
     return checkInput(stateStart);

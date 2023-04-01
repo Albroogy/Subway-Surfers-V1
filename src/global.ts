@@ -63,6 +63,13 @@ export enum EntityName{
     GameEntity = "gameEntity",
 }
 
+
+
+
+
+
+
+
 export enum Tag {
     Player = "player",
     Fireball = "fireball",
@@ -77,7 +84,10 @@ export enum Tag {
     AuraPowerup = "AuraPowerup",
     DeathStarPowerup = "DeathStarPowerup",
     Powerup = "Powerup",
-    Enemy = "Enemy"
+    Enemy = "Enemy",
+    GoblinBoss = "GoblinBoss",
+    Boss = "Boss",
+    MoneyPouch = "MoneyPouch"
 }
 
 export let timeStart: number = Date.now();
@@ -98,4 +108,6 @@ export function calculatePlayerStateHeight(player: any): number{
     }
     return 0;
 }
-// Temporary solution. Will remove calculatePlayerStateHeight in the future
+export function findLane(xCoordinate: number){
+    return (xCoordinate + LANE.WIDTH/2) / LANE.WIDTH;
+}

@@ -21,6 +21,7 @@ export class AnimatedComponent extends Component {
     private _hasSpritesheetLoaded: boolean;
     private _frameW: number = 0;
     private _frameH: number = 0;
+    public shouldDraw: boolean = true;
 
     constructor(spritesheetURL: string, animationInfo: AnimationInfo) {
         super();
@@ -64,7 +65,7 @@ export class AnimatedComponent extends Component {
         }
     }
     public draw(): void{
-        if (this._entity == null || this.currentAnimation == null || !this._hasSpritesheetLoaded) {
+        if (this._entity == null || this.currentAnimation == null || !this._hasSpritesheetLoaded || this.shouldDraw == false) {
             return;
         }
         console.assert(this._frameW > 0);

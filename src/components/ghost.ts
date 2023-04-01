@@ -44,6 +44,10 @@ const onWalkingUpdate = (deltatime: number, currentObject: Entity): GhostState |
     if (checkTime(1000, stateStart)){
         const deltaX = playerX - positionComponent.x;
         const deltaY = playerY - positionComponent.y;
+
+        if (deltaX < 100 || deltaX > -100) {
+          return GhostState.Attacking;
+        }
     
         if (deltaX < 0) {
           ghostComponent.direction.x = -1;
@@ -71,44 +75,41 @@ const onWalkingDeactivation = () => {
 
 const onAttackingActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
-    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.Attacking];
-    console.log(GhostState.Attacking);
-    const movementComponent = currentObject.getComponent<MovementComponent>(MovementComponent.COMPONENT_ID)!
-    if (movementComponent.yDirection != 0){
-        movementComponent.yDirection = 0;
-    }
+    chooseAttackingAnimation(currentObject);
 }
 const onAttackingUpdate = (deltatime: number, currentObject: Entity): GhostState | undefined => {
-    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-    if (playerPositionComponent == null){
-        return;
-    }
-    else if (playerPositionComponent.x != positionComponent.x){
-        return GhostState.Walking;
-    }
+  const playerX = playerPositionComponent.x;
+
+  const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
+
+  const deltaX = playerX - positionComponent.x;
+
+  if (deltaX > 100 || deltaX < -100) {
+      return GhostState.Walking;
+  }
 }
 const onAttackingDeactivation = () => {
 }
 
 // Ghost Animation Info
 export const GhostAnimationNames = {
-    WalkingEast: "walkingEast",
-    WalkingNorth: "walkingNorth",
-    WalkingNorthEast: "walkingNorthEast",
-    WalkingNorthWest: "walkingNorthWest",
-    WalkingSouth: "walkingSouth",
-    WalkingSouthEast: "walkingSouthEast",
-    WalkingSouthWest: "walkingSouthWest",
-    WalkingWest: "walkingWest",
-    AttackingEast: "attackingEast",
-    AttackingNorth: "attackingNorth",
-    AttackingNorthEast: "attackingNorthEast",
-    AttackingNorthWest: "attackingNorthWest",
-    AttackingSouth: "attackingSouth",
-    AttackingSouthEast: "attackingSouthEast",
-    AttackingSouthWest: "attackingSouthWest",
-    AttackingWest: "attackingWest",
-    Death: "death"
+  WalkingEast: "walkingEast",
+  WalkingNorth: "walkingNorth",
+  WalkingNorthEast: "walkingNorthEast",
+  WalkingNorthWest: "walkingNorthWest",
+  WalkingSouth: "walkingSouth",
+  WalkingSouthEast: "walkingSouthEast",
+  WalkingSouthWest: "walkingSouthWest",
+  WalkingWest: "walkingWest",
+  AttackingEast: "attackingEast",
+  AttackingNorth: "attackingNorth",
+  AttackingNorthEast: "attackingNorthEast",
+  AttackingNorthWest: "attackingNorthWest",
+  AttackingSouth: "attackingSouth",
+  AttackingSouthEast: "attackingSouthEast",
+  AttackingSouthWest: "attackingSouthWest",
+  AttackingWest: "attackingWest",
+  Death: "death"
 }
 
 export const GhostAnimationInfo: AnimationInfo = {
@@ -117,46 +118,6 @@ export const GhostAnimationInfo: AnimationInfo = {
     animations: {
         [GhostAnimationNames.Death]: {
             rowIndex: 0,
-            frameCount: 12,
-            framesPerSecond: 8
-        },
-        [GhostAnimationNames.WalkingEast]: {
-            rowIndex: 9,
-            frameCount: 12,
-            framesPerSecond: 8
-        },
-        [GhostAnimationNames.WalkingNorth]: {
-            rowIndex: 10,
-            frameCount: 12,
-            framesPerSecond: 8
-        },
-        [GhostAnimationNames.WalkingNorthEast]: {
-            rowIndex: 11,
-            frameCount: 12,
-            framesPerSecond: 8
-        },
-        [GhostAnimationNames.WalkingNorthWest]: {
-            rowIndex: 12,
-            frameCount: 12,
-            framesPerSecond: 8
-        },
-        [GhostAnimationNames.WalkingSouth]: {
-            rowIndex: 13,
-            frameCount: 12,
-            framesPerSecond: 8
-        },
-        [GhostAnimationNames.WalkingSouthEast]: {
-            rowIndex: 14,
-            frameCount: 12,
-            framesPerSecond: 8
-        },
-        [GhostAnimationNames.WalkingSouthWest]: {
-            rowIndex: 15,
-            frameCount: 12,
-            framesPerSecond: 8
-        },
-        [GhostAnimationNames.WalkingWest]: {
-            rowIndex: 16,
             frameCount: 12,
             framesPerSecond: 8
         },
@@ -200,6 +161,46 @@ export const GhostAnimationInfo: AnimationInfo = {
           frameCount: 24,
           framesPerSecond: 8
       },
+        [GhostAnimationNames.WalkingEast]: {
+            rowIndex: 9,
+            frameCount: 12,
+            framesPerSecond: 8
+        },
+        [GhostAnimationNames.WalkingNorth]: {
+            rowIndex: 10,
+            frameCount: 12,
+            framesPerSecond: 8
+        },
+        [GhostAnimationNames.WalkingNorthEast]: {
+            rowIndex: 11,
+            frameCount: 12,
+            framesPerSecond: 8
+        },
+        [GhostAnimationNames.WalkingNorthWest]: {
+            rowIndex: 12,
+            frameCount: 12,
+            framesPerSecond: 8
+        },
+        [GhostAnimationNames.WalkingSouth]: {
+            rowIndex: 13,
+            frameCount: 12,
+            framesPerSecond: 8
+        },
+        [GhostAnimationNames.WalkingSouthEast]: {
+            rowIndex: 14,
+            frameCount: 12,
+            framesPerSecond: 8
+        },
+        [GhostAnimationNames.WalkingSouthWest]: {
+            rowIndex: 15,
+            frameCount: 12,
+            framesPerSecond: 8
+        },
+        [GhostAnimationNames.WalkingWest]: {
+            rowIndex: 16,
+            frameCount: 12,
+            framesPerSecond: 8
+        },
     }
 };
 
@@ -256,4 +257,59 @@ function chooseWalkingAnimation(currentObject: Entity) {
         }
         break;
     }
+}
+
+function chooseAttackingAnimation(currentObject: Entity) {
+  const ghostComponent = currentObject.getComponent<GhostComponent>(GhostComponent.COMPONENT_ID)!;
+  const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+
+  switch (ghostComponent.direction.x) {
+    case -1:
+      // ghost is moving left
+      switch (ghostComponent.direction.y) {
+        case -1:
+          // ghost is moving left and up
+          animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.AttackingNorthWest];
+          break;
+        case 0:
+          // ghost is moving left
+          animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.AttackingWest];
+          break;
+        case 1:
+          // ghost is moving left and down
+          animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.AttackingSouthWest];
+          break;
+      }
+      break;
+    case 0:
+      // ghost is not moving left or right
+      switch (ghostComponent.direction.y) {
+        case -1:
+          // ghost is moving up
+          animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.AttackingNorth];
+          break;
+        case 1:
+          // ghost is moving down
+          animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.AttackingSouth];
+          break;
+      }
+      break;
+    case 1:
+      // ghost is moving right
+      switch (ghostComponent.direction.y) {
+        case -1:
+          // ghost is moving right and up
+          animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.AttackingNorthEast];
+          break;
+        case 0:
+          // ghost is moving right
+          animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.AttackingEast];
+          break;
+        case 1:
+          // ghost is moving right and down
+          animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GhostAnimationNames.AttackingSouthEast];
+          break;
+      }
+      break;
+  }
 }
