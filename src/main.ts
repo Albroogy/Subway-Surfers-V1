@@ -1,30 +1,22 @@
-import {player, PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
+import {PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
 import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime, Tag, findLane, calculateLaneLocation} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
 import { AnimatedComponent } from "./components/animatedComponent";
-import DragonComponent, { DragonAnimationInfo, DragonSound} from "./components/dragonComponent";
 import MovementComponent from "./components/movementComponent";
 import { gameEntity, GameSound } from "./systems/gameSystem";
 import {images, objects} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
-import StateMachineComponent from "./components/stateMachineComponent";
 import { InventoryComponent, InventoryItemStat } from "./components/inventoryComponent";
 import { GameState, gameState } from "./components/gameComponent";
-import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
-import FrankensteinComponent, { FrankensteinAnimationInfo } from "./components/frankensteinComponent";
 import { SoundComponent } from "./components/soundComponent";
 import { ImagePartComponent } from "./components/imagePartComponent";
 import CameraSystem from "./systems/cameraSystem";
 import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
-import { ImageComponent } from "./components/imageComponent";
-import SkeletonComponent, { SkeletonAnimationInfo } from "./components/skeletonComponent";
-import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 import { TagComponent } from "./components/tagComponent";
 import AchievementSystem from "./systems/achievementSystem";
-import GoblinBossComponent, { GoblinBossAnimationInfo } from "./components/goblinBossComponent";
 import { generateAura, generateCoin, generateDeathStar, generateDragon, generateExtendedVision, generateFrankenstein, generateGhost, generateGoblinBoss, generateMinotaur, generateSkeleton } from "./entityGenerator";
 
 document.body.addEventListener('keydown', startMusicTracks);
@@ -470,3 +462,5 @@ export function destroyCollidingObjects(arrow: Entity, object: Entity){
 document.body.addEventListener("wheel", (e: WheelEvent) => {
     CameraSystem.Instance.zoomLevel += e.deltaY / 5000;
 });
+
+generateGoblinBoss(200, 200);

@@ -23,6 +23,8 @@ const DRAGON: Record <string, number> = {
     SIGHT: 300,
 }
 
+let playerPositionComponent: PositionComponent | null = null;
+
 export default class DragonComponent extends Component {
     public static COMPONENT_ID: string = "Dragon";
     
@@ -31,10 +33,11 @@ export default class DragonComponent extends Component {
         stateMachineComponent.stateMachine.addState(DragonState.Flying, onFlyingActivation, onFlyingUpdate, onFlyingDeactivation);
         stateMachineComponent.stateMachine.addState(DragonState.Firing, onFiringActivation, onFiringUpdate, onFiringDeactivation);
         stateMachineComponent.activate(DragonState.Flying);
+
+        playerPositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
     }
 }
 
-const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
 const onFlyingActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;

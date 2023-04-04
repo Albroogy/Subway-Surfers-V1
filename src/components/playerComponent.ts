@@ -2,14 +2,11 @@ import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
 import { allPressedKeys, canvas, checkTime, context, EntityName, KEYS, LANE, mouse, mouseDown, OFFSET, sleep, Tag} from "../global";
-import { ImageComponent } from "./imageComponent";
-import MovementComponent from "./movementComponent";
 import StateMachineComponent from "./stateMachineComponent";
 import { objects } from "../objects";
 import { equipStarterItems, Inventory, InventoryComponent, InventoryItemStat, ItemList } from "./inventoryComponent";
 import { resetValues } from "../main";
 import { TagComponent } from "./tagComponent";
-import ArrowComponent from "./arrowComponent";
 import { generateArrow } from "../entityGenerator";
 
 

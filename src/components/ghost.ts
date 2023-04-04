@@ -1,7 +1,6 @@
 import { Component, Entity } from "../entityComponent";
 import { checkTime } from "../global";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
-import MovementComponent from "./movementComponent";
 import { player } from "./playerComponent";
 import PositionComponent from "./positionComponent";
 import StateMachineComponent from "./stateMachineComponent";
@@ -10,6 +9,9 @@ export enum GhostState {
     Walking = "walking",
     Attacking = "attacking"
 }
+
+
+let playerPositionComponent: PositionComponent | null = null;
 
 export default class GhostComponent extends Component {
     public static COMPONENT_ID: string = "Ghost";
@@ -25,18 +27,18 @@ export default class GhostComponent extends Component {
         stateMachineComponent.stateMachine.addState(GhostState.Walking, onWalkingActivation, onWalkingUpdate, onWalkingDeactivation);
         stateMachineComponent.stateMachine.addState(GhostState.Attacking, onAttackingActivation, onAttackingUpdate, onAttackingDeactivation);
         stateMachineComponent.activate(GhostState.Walking);
+        
+        playerPositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
     }
 }
-
-const playerPositionComponent: PositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
 
 const onWalkingActivation = (currentObject: Entity) => {
     currentObject.getComponent<StateMachineComponent<GhostState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart = Date.now();
 }
 const onWalkingUpdate = (deltatime: number, currentObject: Entity): GhostState | undefined => {
     let stateStart = currentObject.getComponent<StateMachineComponent<GhostState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart
-    const playerX = playerPositionComponent.x;
-    const playerY = playerPositionComponent.y;
+    const playerX = playerPositionComponent!.x;
+    const playerY = playerPositionComponent!.y;
     
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     const ghostComponent = currentObject.getComponent<GhostComponent>(GhostComponent.COMPONENT_ID)!;
@@ -78,7 +80,7 @@ const onAttackingActivation = (currentObject: Entity) => {
     chooseAttackingAnimation(currentObject);
 }
 const onAttackingUpdate = (deltatime: number, currentObject: Entity): GhostState | undefined => {
-  const playerX = playerPositionComponent.x;
+  const playerX = playerPositionComponent!.x;
 
   const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!
 

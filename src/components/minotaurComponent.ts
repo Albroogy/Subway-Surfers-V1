@@ -18,6 +18,8 @@ const MINOTAUR: Record <string, number> = {
     WALKING_SPEED: 150
 }
 
+let playerPositionComponent: PositionComponent | null = null;
+
 export default class MinotaurComponent extends Component {
     public static COMPONENT_ID: string = "Minotaur";
 
@@ -28,10 +30,10 @@ export default class MinotaurComponent extends Component {
         stateMachineComponent.stateMachine.addState(MinotaurState.WalkingUp, onWalkingUpActivation, onWalkingUpUpdate, onWalkingUpDeactivation);
         stateMachineComponent.stateMachine.addState(MinotaurState.Hitting, onHittingActivation, onHittingUpdate, onHittingDeactivation);
         stateMachineComponent.activate(MinotaurState.WalkingDown);
+        
+        playerPositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
     }
 }
-
-const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
 const onWalkingDownActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;

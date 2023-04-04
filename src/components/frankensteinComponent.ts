@@ -10,6 +10,9 @@ export enum FrankensteinState {
     Hitting = "hitting"
 }
 
+
+let playerPositionComponent: PositionComponent | null;
+
 export default class FrankensteinComponent extends Component {
     public static COMPONENT_ID: string = "Frankenstein";
     public lastHit: number = 0;
@@ -20,10 +23,10 @@ export default class FrankensteinComponent extends Component {
         stateMachineComponent.stateMachine.addState(FrankensteinState.WalkingDown, onWalkingDownActivation, onWalkingDownUpdate, onWalkingDownDeactivation);
         stateMachineComponent.stateMachine.addState(FrankensteinState.Hitting, onHittingActivation, onHittingUpdate, onHittingDeactivation);
         stateMachineComponent.activate(FrankensteinState.WalkingDown);
+        
+        playerPositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
     }
 }
-
-const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
 const onWalkingDownActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;

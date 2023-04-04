@@ -24,6 +24,8 @@ export enum GoblinBossState {
     Defeat = "Defeat",
 }
 
+let playerPositionComponent: PositionComponent | null = null;
+
 export default class GoblinBossComponent extends Component {
     public static COMPONENT_ID: string = "GoblinBoss";
 
@@ -48,6 +50,8 @@ export default class GoblinBossComponent extends Component {
         stateMachineComponent.stateMachine.addState(GoblinBossState.Defeat, onDefeatActivation, onDefeatUpdate, onDefeatDeactivation);
 
         stateMachineComponent.activate(GoblinBossState.GroundSlam);
+        
+        playerPositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
     }
     public changeLane(deltaTime: number){
         if (this._entity == null){
@@ -80,8 +84,6 @@ export default class GoblinBossComponent extends Component {
         healthBarComponent.setHealth(this.health);
     }
 }
-
-const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
 const onGroundSlamActivation = (currentObject: Entity) => {
     currentObject.getComponent<StateMachineComponent<GoblinBossState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart = Date.now();

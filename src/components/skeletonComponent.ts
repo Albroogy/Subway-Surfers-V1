@@ -10,6 +10,8 @@ export enum SkeletonState {
     Hitting = "hitting"
 }
 
+let playerPositionComponent: PositionComponent | null = null;
+
 export default class SkeletonComponent extends Component {
     public static COMPONENT_ID: string = "Skeleton";
     public lastHit: number = 0;
@@ -19,10 +21,10 @@ export default class SkeletonComponent extends Component {
         stateMachineComponent.stateMachine.addState(SkeletonState.WalkingDown, onWalkingDownActivation, onWalkingDownUpdate, onWalkingDownDeactivation);
         stateMachineComponent.stateMachine.addState(SkeletonState.Hitting, onHittingActivation, onHittingUpdate, onHittingDeactivation);
         stateMachineComponent.activate(SkeletonState.WalkingDown);
+        
+        playerPositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
     }
 }
-
-const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
 
 const onWalkingDownActivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;

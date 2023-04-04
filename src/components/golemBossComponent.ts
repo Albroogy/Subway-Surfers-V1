@@ -21,6 +21,8 @@ export enum GolemBossState {
     Defeat = "Defeat",
 }
 
+let playerPositionComponent: PositionComponent | null = null;
+
 export default class GolemBossComponent extends Component {
     public static COMPONENT_ID: string = "GolemBoss";
 
@@ -39,6 +41,8 @@ export default class GolemBossComponent extends Component {
         stateMachineComponent.stateMachine.addState(GolemBossState.Defeat, onDefeatActivation, onDefeatUpdate, onDefeatDeactivation);
 
         stateMachineComponent.activate(GolemBossState.Stationary);
+        
+        playerPositionComponent = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
     }
     public changeLane(deltaTime: number){
         if (this._entity == null){
@@ -65,8 +69,6 @@ export default class GolemBossComponent extends Component {
     }
 }
 
-const playerPositionComponent: PositionComponent | null = player.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
-
 const onStationaryActivation = (currentObject: Entity) => {
     currentObject.getComponent<StateMachineComponent<GolemBossState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart = Date.now();
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
@@ -79,24 +81,7 @@ const onStationaryUpdate = (deltatime: number, currentObject: Entity): GolemBoss
         return GolemBossState.Defeat;
     }
     if (checkTime(IN_GAME_SECOND * 2, stateStart)){
-        const randomNum = Math.random();
-        if (randomNum < 0.2) {
-            return GolemBossState.MoneyPouch;
-        }
-        else if (randomNum < 0.4) {
-            if (golemBossComponent.health < 20){
-                return GolemBossState.Healing;
-            }
-        }
-        else if (randomNum < 0.6) {
-            return GolemBossState.Jump;
-        }
-        else if (randomNum < 0.8) {
-            return GolemBossState.ChangeLane;
-        }
-        else {
-            return GolemBossState.Taunt;
-        }
+        return GolemBossState.ChangeLane;
     }
 }
 
