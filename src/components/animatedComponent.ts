@@ -22,6 +22,8 @@ export class AnimatedComponent extends Component {
     private _frameW: number = 0;
     private _frameH: number = 0;
     public shouldDraw: boolean = true;
+    public isFlipped: boolean = false;
+    public pauseAnimation: boolean = false;
 
     constructor(spritesheetURL: string, animationInfo: AnimationInfo) {
         super();
@@ -29,14 +31,6 @@ export class AnimatedComponent extends Component {
         this._hasSpritesheetLoaded = false;
         this.spritesheet.onload = () => {
             this._hasSpritesheetLoaded = true;
-            
-            // let maxAnimationFrameCount = 0;
-            // for (const anim of Object.values(this.animationInfo.animations)) {
-            //     if (maxAnimationFrameCount < anim.frameCount) {
-            //         maxAnimationFrameCount = anim.frameCount;
-            //     }
-            // }
-            
             this._frameW = this.spritesheet.width / animationInfo.maxAnimationFrameCount;
             this._frameH = this.spritesheet.height / this.animationInfo.animationCount;
         }
@@ -54,7 +48,7 @@ export class AnimatedComponent extends Component {
         this.currentAnimation = this.animationInfo.animations[name];
     }
     public animationUpdate(deltaTime: number): void{
-        if (this.currentAnimation == null) {
+        if (this.currentAnimation == null || this.pauseAnimation == true) {
             return;
         }
         const timeBetweenFrames = 1000 / this.currentAnimation.framesPerSecond;
@@ -68,16 +62,26 @@ export class AnimatedComponent extends Component {
         if (this._entity == null || this.currentAnimation == null || !this._hasSpritesheetLoaded || this.shouldDraw == false) {
             return;
         }
+        const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        if (this.isFlipped == true){
+            context.save();
+            context.translate(positionComponent.x, positionComponent.y);
+            context.scale(-1, 1);
+            context.translate(-positionComponent.x, -positionComponent.y);
+            console.log("flip");
+        }
         console.assert(this._frameW > 0);
         console.assert(this._frameH > 0);
         const frameSX = this.currentAnimationFrame * this._frameW;
         const frameSY = this.currentAnimation.rowIndex * this._frameH;
         console.assert(frameSX >= 0);
         console.assert(frameSY >= 0);
-        const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
         context.drawImage(this.spritesheet,
             frameSX, frameSY, this._frameW, this._frameH,
             positionComponent!.x - positionComponent!.width / 2, positionComponent!.y - positionComponent!.height / 2, positionComponent!.width, positionComponent!.height
         );
+        if (this.isFlipped == true){
+            context.restore();
+        }
     }
 }

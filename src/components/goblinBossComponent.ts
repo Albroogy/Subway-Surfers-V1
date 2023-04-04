@@ -1,5 +1,5 @@
 import { Component, Entity } from "../entityComponent";
-import { checkTime, findLane, IN_GAME_SECOND, mouse, OFFSET, Tag } from "../global";
+import { checkTime, findLane, IN_GAME_SECOND, mouse, OFFSET, sleep, Tag } from "../global";
 import { calculateLaneLocation } from "../main";
 import { objects } from "../objects";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
@@ -30,6 +30,9 @@ export default class GoblinBossComponent extends Component {
     public landingLocation: number = 0;
     public goblinRestY: number = 100;
     public lastHit: number = 0;
+    public walkDirection: number = 0;
+    public walkSpeed: number = 150;
+    public lane: number = 2;
 
     public onAttached(): void {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<GoblinBossState>>(StateMachineComponent.COMPONENT_ID)!;
@@ -40,7 +43,33 @@ export default class GoblinBossComponent extends Component {
         stateMachineComponent.stateMachine.addState(GoblinBossState.MoneyThrow, onMoneyThrowActivation, onMoneyThrowUpdate, onMoneyThrowDeactivation);
         stateMachineComponent.stateMachine.addState(GoblinBossState.Healing, onHealingActivation, onHealingUpdate, onHealingDeactivation);
         stateMachineComponent.stateMachine.addState(GoblinBossState.Jump, onJumpActivation, onJumpUpdate, onJumpDeactivation);
+        stateMachineComponent.stateMachine.addState(GoblinBossState.ChangeLane, onChangeLaneActivation, onChangeLaneUpdate, onChangeLaneDeactivation);
+        stateMachineComponent.stateMachine.addState(GoblinBossState.Defeat, onDefeatActivation, onDefeatUpdate, onDefeatDeactivation);
+
         stateMachineComponent.activate(GoblinBossState.GroundSlam);
+    }
+    public changeLane(deltaTime: number){
+        if (this._entity == null){
+            return;
+        }
+        const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID);
+        positionComponent!.x += this.walkSpeed * deltaTime/1000 * this.walkDirection;
+    }
+    public chooseDirection(){
+        let randomNum = Math.random();
+        
+        if (randomNum > 0.5){
+            this.walkDirection = 1;
+        }
+        else {
+            this.walkDirection = -1;
+        }
+        if (this.lane + this.walkDirection < 1 || this.lane + this.walkDirection > 3){
+            this.chooseDirection();
+        }
+        else {
+            this.lane += this.walkDirection;
+        }
     }
 }
 
@@ -61,14 +90,18 @@ const onGroundSlamUpdate = (deltatime: number, currentObject: Entity): GoblinBos
     let stateStart = currentObject.getComponent<StateMachineComponent<GoblinBossState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart;
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     if (animatedComponent.currentAnimationFrame >= animatedComponent.currentAnimation!.frameCount - OFFSET){
-        return GoblinBossState.Stationary;
+        animatedComponent.pauseAnimation = true;
+        if (checkTime(IN_GAME_SECOND * 1.5, stateStart)) {
+            animatedComponent.pauseAnimation = false;
+            return GoblinBossState.Stationary;
+        }
     }
 }
 const onGroundSlamDeactivation = (currentObject: Entity) => {
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     const goblinBossComponent = currentObject.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
     if (goblinBossComponent.landingLocation != 0) {
-        positionComponent.x = calculateLaneLocation(2);
+        positionComponent.x = calculateLaneLocation(goblinBossComponent.lane);
         positionComponent.y = goblinBossComponent.goblinRestY;
     }
 }
@@ -80,19 +113,26 @@ const onStationaryActivation = (currentObject: Entity) => {
 }
 const onStationaryUpdate = (deltatime: number, currentObject: Entity): GoblinBossState | undefined => {
     let stateStart = currentObject.getComponent<StateMachineComponent<GoblinBossState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart;
+    const goblinBossComponent = currentObject.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
+    if (goblinBossComponent.health < 0) {
+        return GoblinBossState.Defeat;
+    }
     if (checkTime(IN_GAME_SECOND * 2, stateStart)){
         const randomNum = Math.random();
         if (randomNum < 0.2) {
             return GoblinBossState.MoneyPouch;
         }
-        else if (randomNum < 0.5) {
+        else if (randomNum < 0.4) {
             const goblinBossComponent = currentObject.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
             if (goblinBossComponent.health < 20){
                 return GoblinBossState.Healing;
             }
         }
-        else if (randomNum < 0.9) {
-                return GoblinBossState.Jump;
+        else if (randomNum < 0.6) {
+            return GoblinBossState.Jump;
+        }
+        else if (randomNum < 0.8) {
+            return GoblinBossState.ChangeLane;
         }
         else {
             return GoblinBossState.Taunt;
@@ -169,8 +209,9 @@ const onJumpUpdate = (deltatime: number, currentObject: Entity): GoblinBossState
     let stateStart = currentObject.getComponent<StateMachineComponent<GoblinBossState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart;
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     if (animatedComponent.currentAnimationFrame >= animatedComponent.currentAnimation!.frameCount - OFFSET){
-        animatedComponent.shouldDraw = false;
-        if (checkTime(IN_GAME_SECOND * 1, stateStart)){
+        animatedComponent.pauseAnimation = true;
+        if (checkTime(IN_GAME_SECOND * 1.5, stateStart)) {
+            animatedComponent.pauseAnimation = false;
             return GoblinBossState.GroundSlam;
         }
     }
@@ -179,6 +220,55 @@ const onJumpDeactivation = (currentObject: Entity) => {
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     animatedComponent.shouldDraw = true;
 }
+
+const onChangeLaneActivation = (currentObject: Entity) => {
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GoblinBossAnimationNames.ChangeLane];
+    const goblinBossComponent = currentObject.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
+    goblinBossComponent.chooseDirection();
+    if (goblinBossComponent.walkDirection == 1){
+        animatedComponent!.isFlipped = false;
+    }
+    else{
+        animatedComponent!.isFlipped = true;
+    }
+    animatedComponent!.currentAnimationFrame = 0;
+}
+const onChangeLaneUpdate = (deltaTime: number, currentObject: Entity): GoblinBossState | undefined => {
+    const goblinBossComponent = currentObject.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
+    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    goblinBossComponent.changeLane(deltaTime);
+    if (goblinBossComponent.walkDirection == 1){
+        if (positionComponent!.x > calculateLaneLocation(goblinBossComponent.lane)){
+            positionComponent!.x = calculateLaneLocation(goblinBossComponent.lane);
+            return GoblinBossState.Stationary;
+        }
+    }
+    else {
+        if (positionComponent!.x < calculateLaneLocation(goblinBossComponent.lane)){
+            positionComponent!.x = calculateLaneLocation(goblinBossComponent.lane);
+            return GoblinBossState.Stationary;
+        }
+    }
+}
+const onChangeLaneDeactivation = (currentObject: Entity) => {
+}
+
+const onDefeatActivation = (currentObject: Entity) => {
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GoblinBossAnimationNames.Defeat];
+    animatedComponent!.currentAnimationFrame = 0;
+}
+const onDefeatUpdate = (deltaTime: number, currentObject: Entity): GoblinBossState | undefined => {
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    if (animatedComponent!.currentAnimationFrame >= animatedComponent!.currentAnimation!.frameCount - OFFSET){
+        return GoblinBossState.Stationary;
+    }
+}
+const onDefeatDeactivation = (currentObject: Entity) => {
+    objects.splice(objects.indexOf(currentObject), 1);
+}
+
 
 function generateMoneyPouch(currentObject: Entity){
     const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -256,6 +346,16 @@ export const GoblinBossAnimationInfo: AnimationInfo = {
         [GoblinBossAnimationNames.Jump]: {
             rowIndex: 9,
             frameCount: 6,
+            framesPerSecond: 6
+        },
+        [GoblinBossAnimationNames.ChangeLane]: {
+            rowIndex: 1,
+            frameCount: 6,
+            framesPerSecond: 6
+        },
+        [GoblinBossAnimationNames.Defeat]: {
+            rowIndex: 7,
+            frameCount: 11,
             framesPerSecond: 6
         },
     }

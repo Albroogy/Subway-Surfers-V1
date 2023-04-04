@@ -530,7 +530,7 @@ function generateGoblinBoss(objectLaneLocation: number){
     )
 }
 
-generateGoblinBoss(500);
+generateGoblinBoss(calculateLaneLocation(2));
 
 function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: number){
     for (let i = 0; i < objects.length; i++){

@@ -290,13 +290,9 @@ function arrowGenericCollision(arrow: Entity, object: Entity) {
 function arrowGoblinBossCollision(arrow: Entity, object: Entity){
     const goblinBossComponent = object.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
     goblinBossComponent.health -= 1;
-    if (goblinBossComponent.health < 1){
-        destroyCollidingObjects(arrow, object);
-    }
-    else {
-        objects.splice(objects.indexOf(arrow), 1);
-    }
+    objects.splice(objects.indexOf(arrow), 1);
     playArrowImpactSound();
+    console.log(goblinBossComponent.health);
 }
 
 
