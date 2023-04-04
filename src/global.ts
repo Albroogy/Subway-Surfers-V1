@@ -64,13 +64,6 @@ export enum EntityName{
     GameEntity = "gameEntity",
 }
 
-
-
-
-
-
-
-
 export enum Tag {
     Player = "player",
     Fireball = "fireball",
@@ -112,3 +105,8 @@ export function calculatePlayerStateHeight(player: any): number{
 export function findLane(xCoordinate: number){
     return (xCoordinate + LANE.WIDTH/2) / LANE.WIDTH;
 }
+export function calculateLaneLocation(lane: number): number{
+    return lane * LANE.WIDTH - LANE.WIDTH/2;
+}
+
+export type Coordinate = {x: number, y: number};

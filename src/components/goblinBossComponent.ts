@@ -1,10 +1,10 @@
 import { Component, Entity } from "../entityComponent";
 import { generateMoneyPouch } from "../entityGenerator";
-import { checkTime, findLane, IN_GAME_SECOND, mouse, OFFSET, sleep, Tag } from "../global";
-import { calculateLaneLocation } from "../main";
+import { calculateLaneLocation, checkTime, findLane, IN_GAME_SECOND, mouse, OFFSET, sleep, Tag } from "../global";
 import { objects } from "../objects";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
 import ArrowComponent from "./arrowComponent";
+import HealthBarComponent from "./healthBarComponent";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import { player } from "./playerComponent";
@@ -71,6 +71,13 @@ export default class GoblinBossComponent extends Component {
         else {
             this.lane += this.walkDirection;
         }
+    }
+    public update() {
+        if (this._entity == null){
+            return;
+        }
+        const healthBarComponent = this._entity.getComponent<HealthBarComponent>(HealthBarComponent.COMPONENT_ID)!;
+        healthBarComponent.setHealth(this.health);
     }
 }
 

@@ -68,7 +68,6 @@ export class AnimatedComponent extends Component {
             context.translate(positionComponent.x, positionComponent.y);
             context.scale(-1, 1);
             context.translate(-positionComponent.x, -positionComponent.y);
-            console.log("flip");
         }
         console.assert(this._frameW > 0);
         console.assert(this._frameH > 0);

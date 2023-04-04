@@ -4,6 +4,7 @@ import DragonComponent, { DragonAnimationInfo, DragonSound } from "./components/
 import FrankensteinComponent, { FrankensteinAnimationInfo } from "./components/frankensteinComponent";
 import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 import GoblinBossComponent, { GoblinBossAnimationInfo } from "./components/goblinBossComponent";
+import HealthBarComponent from "./components/healthBarComponent";
 import { ImageComponent } from "./components/imageComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
 import MovementComponent from "./components/movementComponent";
@@ -14,7 +15,7 @@ import { SoundComponent } from "./components/soundComponent";
 import StateMachineComponent from "./components/stateMachineComponent";
 import { TagComponent } from "./components/tagComponent";
 import { Entity } from "./entityComponent";
-import { EntityName, mouse, OFFSET, Tag } from "./global";
+import { canvas, EntityName, mouse, OFFSET, Tag } from "./global";
 import { objects } from "./objects";
 
 const OBJECT: Record <string, number> = {
@@ -160,22 +161,6 @@ export function generateGhost(objectLaneLocation: number){
     )
 }
 
-export function generateGoblinBoss(objectLaneLocation: number){
-    const GOBLIN_WIDTH: number = 150;
-    const GOBLIN_HEIGHT: number = 150;
-
-    const goblin: Entity = new Entity("GoblinBoss");
-    goblin.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, 100, GOBLIN_WIDTH, GOBLIN_HEIGHT, 0));
-    goblin.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/goblinBossRight.png", GoblinBossAnimationInfo));
-    goblin.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
-    goblin.addComponent(GoblinBossComponent.COMPONENT_ID, new GoblinBossComponent());
-    goblin.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.GoblinBoss, Tag.Boss, Tag.Enemy]));
-    
-    objects.push(
-        goblin
-    )
-}
-
 export function generateArrow(positionComponent: PositionComponent){
     const arrow: Entity = new Entity(EntityName.Arrow);
 
@@ -226,4 +211,23 @@ export function generateMoneyPouch(currentObject: Entity){
     moneyPouch.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.MoneyPouch]));
 
     objects.push(moneyPouch);
+}
+
+// Bosses
+
+export function generateGoblinBoss(objectLaneLocation: number, yPosition: number){
+    const GOBLIN_WIDTH: number = 150;
+    const GOBLIN_HEIGHT: number = 150;
+
+    const goblin: Entity = new Entity("GoblinBoss");
+    goblin.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, yPosition, GOBLIN_WIDTH, GOBLIN_HEIGHT, 0));
+    goblin.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/goblinBossRight.png", GoblinBossAnimationInfo));
+    goblin.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
+    goblin.addComponent(GoblinBossComponent.COMPONENT_ID, new GoblinBossComponent());
+    goblin.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.GoblinBoss, Tag.Boss, Tag.Enemy]));
+    goblin.addComponent(HealthBarComponent.COMPONENT_ID, new HealthBarComponent(20, "red", canvas.width/2, 100, 100, 20));
+    
+    objects.push(
+        goblin
+    )
 }

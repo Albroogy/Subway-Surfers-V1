@@ -1,6 +1,6 @@
 import {player, PLAYER, player as playerCharacter, PlayerComponent, resetGame} from "./components/playerComponent";
 import {PlayerState as PlayerState} from "./components/playerComponent";
-import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime, Tag, findLane} from "./global";
+import {KEYS, allPressedKeys, context, canvas, OFFSET, LANE, EntityName, IN_GAME_SECOND, checkTime, Tag, findLane, calculateLaneLocation} from "./global";
 import { Entity } from "./entityComponent";
 import PositionComponent from "./components/positionComponent";
 import DrawCircleComponent from "./components/drawCircleComponent";
@@ -322,10 +322,6 @@ function spawnEnemy(){
     EnemyTypeGenerator[generateType](objectLaneLocation, fallSpeed);
 }
 
-export function calculateLaneLocation(lane: number): number{
-    return lane * LANE.WIDTH - LANE.WIDTH/2;
-}
-
 function weightedRandom(weights: number[]): number {
     let totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
     let normalizedWeights = weights.map(weight => weight / totalWeight);
@@ -369,8 +365,6 @@ function spawnPowerup(){
     console.log(generateType, objectLaneLocation);
     PowerupTypeGenerator[generateType](objectLaneLocation, fallSpeed);
 }
-
-generateGoblinBoss(calculateLaneLocation(2));
 
 function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: number){
     for (let i = 0; i < objects.length; i++){
