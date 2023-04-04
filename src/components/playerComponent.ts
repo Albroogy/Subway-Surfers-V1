@@ -10,6 +10,7 @@ import { equipStarterItems, Inventory, InventoryComponent, InventoryItemStat, It
 import { resetValues } from "../main";
 import { TagComponent } from "./tagComponent";
 import ArrowComponent from "./arrowComponent";
+import { generateArrow } from "../entityGenerator";
 
 
 export enum PlayerState {
@@ -352,31 +353,6 @@ smComponent.stateMachine.addState(PlayerState.Ducking, onDuckingActivation, onDu
 smComponent.stateMachine.addState(PlayerState.Roll, onRollActivation, onRollUpdate, onRollDeactivation);
 smComponent.stateMachine.addState(PlayerState.Dying, onDyingActivation, onDyingUpdate, onDyingDeactivation);
 smComponent.activate(PlayerState.Running);
-
-function generateArrow(positionComponent: PositionComponent){
-    const arrow: Entity = new Entity(EntityName.Arrow);
-
-    const ARROW: Record <string, number | string> = {
-        WIDTH: 7.5,
-        HEIGHT: 45,
-        SPEED: 300,
-        URL: "assets/images/arrow.png"
-    }
-
-    let angle = Math.atan2(mouse.y - positionComponent.y, mouse.x - positionComponent.x);
-    const Direction = {
-        x: Math.cos(angle),
-        y: Math.sin(angle)
-    }
-    angle += Math.PI / 2;
-
-    arrow.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, ARROW.WIDTH as number, ARROW.HEIGHT as number, 0, angle));
-    arrow.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARROW.URL as string));
-    arrow.addComponent(ArrowComponent.COMPONENT_ID, new ArrowComponent(ARROW.SPEED as number, Direction));
-    arrow.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Arrow]));
-
-    objects.push(arrow);
-}
 
 export function resetGame(): void {
     // LOAD GAME STATE HERE

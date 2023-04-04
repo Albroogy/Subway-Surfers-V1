@@ -1,4 +1,5 @@
 import { Component, Entity } from "../entityComponent";
+import { generateMoneyPouch } from "../entityGenerator";
 import { checkTime, findLane, IN_GAME_SECOND, mouse, OFFSET, sleep, Tag } from "../global";
 import { calculateLaneLocation } from "../main";
 import { objects } from "../objects";
@@ -267,33 +268,6 @@ const onDefeatUpdate = (deltaTime: number, currentObject: Entity): GoblinBossSta
 }
 const onDefeatDeactivation = (currentObject: Entity) => {
     objects.splice(objects.indexOf(currentObject), 1);
-}
-
-
-function generateMoneyPouch(currentObject: Entity){
-    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-
-    const moneyPouch: Entity = new Entity("MoneyPouch");
-
-    const MONEY_POUCH: Record <string, number | string> = {
-        WIDTH: 30,
-        HEIGHT: 30,
-        SPEED: 200,
-        URL: "assets/images/moneyPouch.png"
-    }
-
-    let angle = Math.atan2(playerPositionComponent!.y - positionComponent.y, playerPositionComponent!.x - positionComponent.x);
-    const Direction = {
-        x: Math.cos(angle),
-        y: Math.sin(angle)
-    }
-
-    moneyPouch.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, MONEY_POUCH.WIDTH as number, MONEY_POUCH.HEIGHT as number, 0, angle));
-    moneyPouch.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(MONEY_POUCH.URL as string));
-    moneyPouch.addComponent(ArrowComponent.COMPONENT_ID, new ArrowComponent(MONEY_POUCH.SPEED as number, Direction));
-    moneyPouch.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.MoneyPouch]));
-
-    objects.push(moneyPouch);
 }
 
 // Goblin Boss Animation Info
