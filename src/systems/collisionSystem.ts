@@ -29,7 +29,7 @@ export default class CollisionSystem {
             [Tag.Dragon]: playerGenericCollision,
             [Tag.Minotaur]: playerGenericCollision,
             [Tag.Ghost]: playerGenericCollision,
-            [Tag.Ghost]: playerGoblinBossCollision,
+            [Tag.GoblinBoss]: playerGoblinBossCollision,
             [Tag.ExtendedVisionPowerup]: playerExtendedVisionPowerupCollision,
             [Tag.AuraPowerup]: playerAuraPowerupCollision,
             [Tag.DeathStarPowerup]: playerDeathStarPowerupCollision,
@@ -157,11 +157,12 @@ function playerSkeletonCollision(player: Entity, object: Entity) {
 
 function playerGoblinBossCollision(arrow: Entity, object: Entity){
     const playerComponent = player.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
-        const goblinBossComponent = object.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
-        if (checkTime(IN_GAME_SECOND * 1, goblinBossComponent.lastHit)){
-            playerComponent.stats[InventoryItemStat.Lives] -= 1;
-            goblinBossComponent.lastHit = Date.now();
-        }
+    const goblinBossComponent = object.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
+    if (checkTime(IN_GAME_SECOND * 2, goblinBossComponent.lastHit)){
+        playerComponent.stats[InventoryItemStat.Lives] -= 1;
+        goblinBossComponent.lastHit = Date.now();
+        console.log("hit");
+    }
 }
 
 let extendedVisionCollectedAgain = false;

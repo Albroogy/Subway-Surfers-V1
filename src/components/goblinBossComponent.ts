@@ -201,7 +201,7 @@ const onHealingUpdate = (deltatime: number, currentObject: Entity): GoblinBossSt
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     if (animatedComponent.currentAnimationFrame >= animatedComponent.currentAnimation!.frameCount - OFFSET){
         const goblinBossComponent = currentObject.getComponent<GoblinBossComponent>(GoblinBossComponent.COMPONENT_ID)!;
-        goblinBossComponent.health += 1;
+        goblinBossComponent.health += 5;
         return GoblinBossState.Stationary;
     }
 }
@@ -219,9 +219,9 @@ const onJumpUpdate = (deltatime: number, currentObject: Entity): GoblinBossState
     let stateStart = currentObject.getComponent<StateMachineComponent<GoblinBossState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart;
     const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
     if (animatedComponent.currentAnimationFrame >= animatedComponent.currentAnimation!.frameCount - OFFSET){
-        animatedComponent.pauseAnimation = true;
+        animatedComponent.shouldDraw = false;
         if (checkTime(IN_GAME_SECOND * 1.5, stateStart)) {
-            animatedComponent.pauseAnimation = false;
+            animatedComponent.shouldDraw = true;
             return GoblinBossState.GroundSlam;
         }
     }

@@ -25,11 +25,11 @@ export default class HealthBarComponent extends Component {
         this._location.y = yPosition;
     }
     
-    public update(deltaTime: number): void {
+    public draw(): void {
         if (this._entity == null) {
             return;
         }
-        
+
         console.assert(this._location != null);
         
         // Calculate the width of the health bar based on the current health

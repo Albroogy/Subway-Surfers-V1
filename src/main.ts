@@ -17,7 +17,7 @@ import CameraSystem from "./systems/cameraSystem";
 import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
 import { TagComponent } from "./components/tagComponent";
 import AchievementSystem from "./systems/achievementSystem";
-import { generateAura, generateCoin, generateDeathStar, generateDragon, generateExtendedVision, generateFrankenstein, generateGhost, generateGoblinBoss, generateMinotaur, generateSkeleton } from "./entityGenerator";
+import { generateAura, generateCoin, generateDeathStar, generateDragon, generateExtendedVision, generateFrankenstein, generateGhost, generateGoblinBoss, generateGolemBoss, generateLaser, generateMinotaur, generateSkeleton } from "./entityGenerator";
 
 document.body.addEventListener('keydown', startMusicTracks);
 
@@ -464,3 +464,7 @@ document.body.addEventListener("wheel", (e: WheelEvent) => {
 });
 
 generateGoblinBoss(200, 200);
+
+generateGolemBoss(500, 200);
+
+generateLaser(playerCharacter);

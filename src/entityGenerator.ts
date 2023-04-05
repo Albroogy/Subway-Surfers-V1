@@ -1,11 +1,14 @@
-import { AnimatedComponent } from "./components/animatedComponent";
+import { AnimatedComponent, AnimationInfo } from "./components/animatedComponent";
 import ArrowComponent from "./components/arrowComponent";
 import DragonComponent, { DragonAnimationInfo, DragonSound } from "./components/dragonComponent";
 import FrankensteinComponent, { FrankensteinAnimationInfo } from "./components/frankensteinComponent";
 import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 import GoblinBossComponent, { GoblinBossAnimationInfo } from "./components/goblinBossComponent";
+import GolemBossComponent, { GolemBossAnimationInfo } from "./components/golemBossComponent";
 import HealthBarComponent from "./components/healthBarComponent";
+import HomingMissileComponent from "./components/homingMissileComponent";
 import { ImageComponent } from "./components/imageComponent";
+import { LaserAnimationInfo } from "./components/laserComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
 import MovementComponent from "./components/movementComponent";
 import { player } from "./components/playerComponent";
@@ -195,7 +198,7 @@ export function generateMoneyPouch(currentObject: Entity){
     const MONEY_POUCH: Record <string, number | string> = {
         WIDTH: 30,
         HEIGHT: 30,
-        SPEED: 200,
+        SPEED: 400,
         URL: "assets/images/moneyPouch.png"
     }
 
@@ -211,6 +214,49 @@ export function generateMoneyPouch(currentObject: Entity){
     moneyPouch.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.MoneyPouch]));
 
     objects.push(moneyPouch);
+}
+
+export function generateLaser(currentObject: Entity){
+    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+
+    const laser: Entity = new Entity("Laser");
+
+    const LASER: Record <string, number | string> = {
+        WIDTH: 100,
+        HEIGHT: 1000,
+        URL: "assets/images/laser.png"
+    }
+
+    let angle = Math.PI/2;
+
+    laser.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, LASER.WIDTH as number, LASER.HEIGHT as number, 0, angle));
+    laser.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Laser]));
+    laser.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(LASER.URL as string, LaserAnimationInfo, false))
+
+    objects.push(laser);
+}
+
+export function generateArmProjectile(currentObject: Entity){
+    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+
+    const armProjectile: Entity = new Entity("ArmProjectile");
+
+    const LASER: Record <string, number | string> = {
+        WIDTH: 100,
+        HEIGHT: 100,
+        SPEED: 400,
+        URL: "assets/images/armProjectile.png"
+    }
+
+    let angle = Math.PI/2;
+
+    armProjectile.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, LASER.WIDTH as number, LASER.HEIGHT as number, 0, angle));
+    armProjectile.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(LASER.URL as string));
+    armProjectile.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.ArmProjectile]));
+    armProjectile.addComponent(HomingMissileComponent.COMPONENT_ID, new HomingMissileComponent(LASER.SPEED as number))
+
+
+    objects.push(armProjectile);
 }
 
 // Bosses
@@ -229,5 +275,22 @@ export function generateGoblinBoss(objectLaneLocation: number, yPosition: number
     
     objects.push(
         goblin
+    )
+}
+
+export function generateGolemBoss(objectLaneLocation: number, yPosition: number){
+    const GOLEM_WIDTH: number = 150;
+    const GOLEM_HEIGHT: number = 150;
+
+    const golem: Entity = new Entity("GoblinBoss");
+    golem.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, yPosition, GOLEM_WIDTH, GOLEM_HEIGHT, 0));
+    golem.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent("assets/images/golem.png", GolemBossAnimationInfo));
+    golem.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
+    golem.addComponent(GolemBossComponent.COMPONENT_ID, new GolemBossComponent());
+    golem.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.GolemBoss, Tag.Boss, Tag.Enemy]));
+    golem.addComponent(HealthBarComponent.COMPONENT_ID, new HealthBarComponent(20, "red", canvas.width/2, 300, 100, 20));
+    
+    objects.push(
+        golem
     )
 }

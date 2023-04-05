@@ -1,5 +1,5 @@
 import { Component, Entity } from "../entityComponent";
-import { generateMoneyPouch } from "../entityGenerator";
+import { generateArmProjectile, generateLaser, generateMoneyPouch } from "../entityGenerator";
 import { calculateLaneLocation, checkTime, findLane, IN_GAME_SECOND, mouse, OFFSET, sleep, Tag } from "../global";
 import { objects } from "../objects";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
@@ -38,6 +38,8 @@ export default class GolemBossComponent extends Component {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<GolemBossState>>(StateMachineComponent.COMPONENT_ID)!;
         stateMachineComponent.stateMachine.addState(GolemBossState.Stationary, onStationaryActivation, onStationaryUpdate, onStationaryDeactivation);
         stateMachineComponent.stateMachine.addState(GolemBossState.ChangeLane, onChangeLaneActivation, onChangeLaneUpdate, onChangeLaneDeactivation);
+        stateMachineComponent.stateMachine.addState(GolemBossState.LaserBeam, onLaserBeamActivation, onLaserBeamUpdate, onLaserBeamDeactivation);
+        stateMachineComponent.stateMachine.addState(GolemBossState.ArmProjectileAttack, onArmProjectileAttackActivation, onArmProjectileAttackUpdate, onArmProjectileAttackDeactivation);
         stateMachineComponent.stateMachine.addState(GolemBossState.Defeat, onDefeatActivation, onDefeatUpdate, onDefeatDeactivation);
 
         stateMachineComponent.activate(GolemBossState.Stationary);
@@ -81,7 +83,7 @@ const onStationaryUpdate = (deltatime: number, currentObject: Entity): GolemBoss
         return GolemBossState.Defeat;
     }
     if (checkTime(IN_GAME_SECOND * 2, stateStart)){
-        return GolemBossState.ChangeLane;
+        return GolemBossState.LaserBeam;
     }
 }
 
@@ -148,7 +150,22 @@ const onLaserBeamUpdate = (deltaTime: number, currentObject: Entity): GolemBossS
     }
 }
 const onLaserBeamDeactivation = (currentObject: Entity) => {
-    objects.splice(objects.indexOf(currentObject), 1);
+    generateLaser(currentObject);
+}
+
+const onArmProjectileAttackActivation = (currentObject: Entity) => {
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GolemBossAnimationNames.ArmProjectileAttack];
+    animatedComponent!.currentAnimationFrame = 0;
+}
+const onArmProjectileAttackUpdate = (deltaTime: number, currentObject: Entity): GolemBossState | undefined => {
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    if (animatedComponent!.currentAnimationFrame >= animatedComponent!.currentAnimation!.frameCount - OFFSET){
+        return GolemBossState.Stationary;
+    }
+}
+const onArmProjectileAttackDeactivation = (currentObject: Entity) => {
+    generateArmProjectile(currentObject);
 }
 
 // Goblin Boss Animation Info
