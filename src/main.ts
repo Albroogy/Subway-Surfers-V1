@@ -402,7 +402,6 @@ function objectsLoop(deltaTime: number, gameSpeed: number, FALL_INCREMENT: numbe
                 }
             }
         }
-
         else if (objects[i] != playerCharacter && CollisionSystem.checkObjectsColliding(objects[i], playerCharacter)){
             CollisionSystem.matchPair(objects[i], playerCharacter);
         }
@@ -467,4 +466,4 @@ generateGoblinBoss(200, 200);
 
 generateGolemBoss(500, 200);
 
-generateLaser(playerCharacter);
+generateLaser(500, 500);

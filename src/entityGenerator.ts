@@ -5,10 +5,10 @@ import FrankensteinComponent, { FrankensteinAnimationInfo } from "./components/f
 import GhostComponent, { GhostAnimationInfo } from "./components/ghost";
 import GoblinBossComponent, { GoblinBossAnimationInfo } from "./components/goblinBossComponent";
 import GolemBossComponent, { GolemBossAnimationInfo } from "./components/golemBossComponent";
-import HealthBarComponent from "./components/healthBarComponent";
+import HealthBarComponent, { EntityBar } from "./components/healthBarComponent";
 import HomingMissileComponent from "./components/homingMissileComponent";
 import { ImageComponent } from "./components/imageComponent";
-import { LaserAnimationInfo } from "./components/laserComponent";
+import LaserComponent, { LaserAnimationInfo } from "./components/laserComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
 import MovementComponent from "./components/movementComponent";
 import { player } from "./components/playerComponent";
@@ -216,22 +216,21 @@ export function generateMoneyPouch(currentObject: Entity){
     objects.push(moneyPouch);
 }
 
-export function generateLaser(currentObject: Entity){
-    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-
+export function generateLaser(objectLaneLocation: number, yPosition: number){
     const laser: Entity = new Entity("Laser");
 
     const LASER: Record <string, number | string> = {
-        WIDTH: 100,
-        HEIGHT: 1000,
+        WIDTH: 1000,
+        HEIGHT: 200,
         URL: "assets/images/laser.png"
     }
 
     let angle = Math.PI/2;
 
-    laser.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, LASER.WIDTH as number, LASER.HEIGHT as number, 0, angle));
+    laser.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(objectLaneLocation, yPosition, LASER.WIDTH as number, LASER.HEIGHT as number, 0, angle));
     laser.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Laser]));
-    laser.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(LASER.URL as string, LaserAnimationInfo, false))
+    laser.addComponent(AnimatedComponent.COMPONENT_ID, new AnimatedComponent(LASER.URL as string, LaserAnimationInfo, false));
+    laser.addComponent(LaserComponent.COMPONENT_ID, new LaserComponent());
 
     objects.push(laser);
 }
@@ -241,19 +240,17 @@ export function generateArmProjectile(currentObject: Entity){
 
     const armProjectile: Entity = new Entity("ArmProjectile");
 
-    const LASER: Record <string, number | string> = {
-        WIDTH: 100,
-        HEIGHT: 100,
+    const ARM_PROJECTILE: Record <string, number | string> = {
+        WIDTH: 200,
+        HEIGHT: 200,
         SPEED: 400,
         URL: "assets/images/armProjectile.png"
     }
 
-    let angle = Math.PI/2;
-
-    armProjectile.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, LASER.WIDTH as number, LASER.HEIGHT as number, 0, angle));
-    armProjectile.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(LASER.URL as string));
+    armProjectile.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(positionComponent.x, positionComponent.y, ARM_PROJECTILE.WIDTH as number, ARM_PROJECTILE.HEIGHT as number));
+    armProjectile.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ARM_PROJECTILE.URL as string));
     armProjectile.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.ArmProjectile]));
-    armProjectile.addComponent(HomingMissileComponent.COMPONENT_ID, new HomingMissileComponent(LASER.SPEED as number))
+    armProjectile.addComponent(HomingMissileComponent.COMPONENT_ID, new HomingMissileComponent(ARM_PROJECTILE.SPEED as number))
 
 
     objects.push(armProjectile);
@@ -271,7 +268,9 @@ export function generateGoblinBoss(objectLaneLocation: number, yPosition: number
     goblin.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     goblin.addComponent(GoblinBossComponent.COMPONENT_ID, new GoblinBossComponent());
     goblin.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.GoblinBoss, Tag.Boss, Tag.Enemy]));
-    goblin.addComponent(HealthBarComponent.COMPONENT_ID, new HealthBarComponent(20, "red", canvas.width/2, 100, 100, 20));
+
+    let EntityBar1 = new EntityBar(20, "red", 0, -50, 100, 20, true);
+    goblin.addComponent(HealthBarComponent.COMPONENT_ID, new HealthBarComponent([EntityBar1]));
     
     objects.push(
         goblin
@@ -288,7 +287,9 @@ export function generateGolemBoss(objectLaneLocation: number, yPosition: number)
     golem.addComponent(StateMachineComponent.COMPONENT_ID, new StateMachineComponent());
     golem.addComponent(GolemBossComponent.COMPONENT_ID, new GolemBossComponent());
     golem.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.GolemBoss, Tag.Boss, Tag.Enemy]));
-    golem.addComponent(HealthBarComponent.COMPONENT_ID, new HealthBarComponent(20, "red", canvas.width/2, 300, 100, 20));
+    let EntityBar1 = new EntityBar(20, "red", 0, -70, 100, 20, true);
+    let EntityBar2 = new EntityBar(3, "blue", 0, -50, 100, 20, true);
+    golem.addComponent(HealthBarComponent.COMPONENT_ID, new HealthBarComponent([EntityBar1, EntityBar2]));
     
     objects.push(
         golem

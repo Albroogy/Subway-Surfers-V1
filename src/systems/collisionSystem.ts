@@ -14,6 +14,7 @@ import CameraSystem from "./cameraSystem";
 import SkeletonComponent from "../components/skeletonComponent";
 import { InventoryItemStat } from "../components/inventoryComponent";
 import GoblinBossComponent from "../components/goblinBossComponent";
+import GolemBossComponent from "../components/golemBossComponent";
 
 type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
@@ -33,6 +34,8 @@ export default class CollisionSystem {
             [Tag.ExtendedVisionPowerup]: playerExtendedVisionPowerupCollision,
             [Tag.AuraPowerup]: playerAuraPowerupCollision,
             [Tag.DeathStarPowerup]: playerDeathStarPowerupCollision,
+            [Tag.Laser]: playerGenericCollision,
+            [Tag.ArmProjectile]: playerGenericCollision,
         },
         [Tag.Arrow]: {
             [Tag.Frankenstein]: arrowFrankensteinCollision,
@@ -41,6 +44,7 @@ export default class CollisionSystem {
             [Tag.Minotaur]: arrowGenericCollision,
             [Tag.Ghost]: arrowGenericCollision,
             [Tag.GoblinBoss]: arrowGoblinBossCollision,
+            [Tag.GolemBoss]: arrowGolemBossCollision,
         }
     };
 
@@ -294,6 +298,19 @@ function arrowGoblinBossCollision(arrow: Entity, object: Entity){
     objects.splice(objects.indexOf(arrow), 1);
     playArrowImpactSound();
     console.log(goblinBossComponent.health);
+}
+
+function arrowGolemBossCollision(arrow: Entity, object: Entity){
+    const golemBossComponent = object.getComponent<GolemBossComponent>(GolemBossComponent.COMPONENT_ID)!;
+    if (golemBossComponent.armor > 0) {
+        golemBossComponent.armor -= 1;
+    }
+    else {
+        golemBossComponent.health -= 1;
+    }
+    objects.splice(objects.indexOf(arrow), 1);
+    playArrowImpactSound();
+    console.log(golemBossComponent.health);
 }
 
 

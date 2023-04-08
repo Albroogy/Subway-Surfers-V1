@@ -1,9 +1,11 @@
 import { Component, Entity } from "../entityComponent";
 import { generateArmProjectile, generateLaser, generateMoneyPouch } from "../entityGenerator";
-import { calculateLaneLocation, checkTime, findLane, IN_GAME_SECOND, mouse, OFFSET, sleep, Tag } from "../global";
+import { calculateLaneLocation, canvas, checkTime, findLane, IN_GAME_SECOND, mouse, OFFSET, sleep, Tag } from "../global";
 import { objects } from "../objects";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
 import ArrowComponent from "./arrowComponent";
+import GoblinBossComponent from "./goblinBossComponent";
+import HealthBarComponent from "./healthBarComponent";
 import { ImageComponent } from "./imageComponent";
 import MovementComponent from "./movementComponent";
 import { player } from "./playerComponent";
@@ -40,6 +42,7 @@ export default class GolemBossComponent extends Component {
         stateMachineComponent.stateMachine.addState(GolemBossState.ChangeLane, onChangeLaneActivation, onChangeLaneUpdate, onChangeLaneDeactivation);
         stateMachineComponent.stateMachine.addState(GolemBossState.LaserBeam, onLaserBeamActivation, onLaserBeamUpdate, onLaserBeamDeactivation);
         stateMachineComponent.stateMachine.addState(GolemBossState.ArmProjectileAttack, onArmProjectileAttackActivation, onArmProjectileAttackUpdate, onArmProjectileAttackDeactivation);
+        stateMachineComponent.stateMachine.addState(GolemBossState.LaserRain, onLaserRainActivation, onLaserRainUpdate, onLaserRainDeactivation);
         stateMachineComponent.stateMachine.addState(GolemBossState.Defeat, onDefeatActivation, onDefeatUpdate, onDefeatDeactivation);
 
         stateMachineComponent.activate(GolemBossState.Stationary);
@@ -69,6 +72,14 @@ export default class GolemBossComponent extends Component {
             this.lane += this.walkDirection;
         }
     }
+    public update() {
+        if (this._entity == null){
+            return;
+        }
+        const healthBarComponent = this._entity.getComponent<HealthBarComponent>(HealthBarComponent.COMPONENT_ID)!;
+        healthBarComponent.entityBars[0].setHealth(this.health); // Health bar
+        healthBarComponent.entityBars[1].setHealth(this.armor); // Armor bar
+    }
 }
 
 const onStationaryActivation = (currentObject: Entity) => {
@@ -83,7 +94,25 @@ const onStationaryUpdate = (deltatime: number, currentObject: Entity): GolemBoss
         return GolemBossState.Defeat;
     }
     if (checkTime(IN_GAME_SECOND * 2, stateStart)){
-        return GolemBossState.LaserBeam;
+        // const randomNum = Math.random();
+        // if (randomNum < 0.2) {
+        //     return GolemBossState.ArmProjectileAttack;
+        // }
+        // else if (randomNum < 0.4) {
+        //     const goblinBossComponent = currentObject.getComponent<GolemBossComponent>(GolemBossComponent.COMPONENT_ID)!;
+        //     if (goblinBossComponent.armor < 3){
+        //         return GolemBossState.RegainArmor;
+        //     }
+        // }
+        // else if (randomNum < 0.6) {
+        //     return GolemBossState.LaserBeam;
+        // }
+        // else if (randomNum < 0.8) {
+        //     return GolemBossState.ChangeLane;
+        // }
+        // else {
+            return GolemBossState.LaserRain;
+        // }
     }
 }
 
@@ -150,7 +179,33 @@ const onLaserBeamUpdate = (deltaTime: number, currentObject: Entity): GolemBossS
     }
 }
 const onLaserBeamDeactivation = (currentObject: Entity) => {
-    generateLaser(currentObject);
+    const positionComponent = currentObject.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    generateLaser(positionComponent.x, positionComponent.y);
+}
+
+const onLaserRainActivation = (currentObject: Entity) => {
+    currentObject.getComponent<StateMachineComponent<GolemBossState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart = Date.now();
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GolemBossAnimationNames.LaserRain];
+    animatedComponent!.currentAnimationFrame = 0;
+    for (let i = 0; i < 5; i++) {
+        let laserX = Math.random() * canvas.width;
+        let laserY = Math.random() * canvas.height;
+        generateLaser(laserX, laserY);
+    }
+}
+const onLaserRainUpdate = (deltaTime: number, currentObject: Entity): GolemBossState | undefined => {
+    let stateStart = currentObject.getComponent<StateMachineComponent<GolemBossState>>(StateMachineComponent.COMPONENT_ID)!.stateMachine.data.stateStart;
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    if (animatedComponent!.currentAnimationFrame >= animatedComponent!.currentAnimation!.frameCount - OFFSET){
+        animatedComponent.pauseAnimation = true;
+        if (checkTime(IN_GAME_SECOND * 3, stateStart)) {
+            animatedComponent.pauseAnimation = false;
+            return GolemBossState.Stationary;
+        }
+    }
+}
+const onLaserRainDeactivation = (currentObject: Entity) => {
 }
 
 const onArmProjectileAttackActivation = (currentObject: Entity) => {
@@ -166,6 +221,22 @@ const onArmProjectileAttackUpdate = (deltaTime: number, currentObject: Entity): 
 }
 const onArmProjectileAttackDeactivation = (currentObject: Entity) => {
     generateArmProjectile(currentObject);
+}
+
+const onRegainArmorActivation = (currentObject: Entity) => {
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[GolemBossAnimationNames.RegainArmor];
+    animatedComponent!.currentAnimationFrame = 0;
+}
+const onRegainArmorUpdate = (deltaTime: number, currentObject: Entity): GolemBossState | undefined => {
+    const animatedComponent = currentObject.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+    if (animatedComponent!.currentAnimationFrame >= animatedComponent!.currentAnimation!.frameCount - OFFSET){
+        return GolemBossState.Stationary;
+    }
+}
+const onRegainArmorDeactivation = (currentObject: Entity) => {
+    const golemBossComponent = currentObject.getComponent<GolemBossComponent>(GolemBossComponent.COMPONENT_ID)!;
+    golemBossComponent.armor = 3;
 }
 
 // Goblin Boss Animation Info
@@ -200,11 +271,6 @@ export const GolemBossAnimationInfo: AnimationInfo = {
         [GolemBossAnimationNames.LaserRain]: {
             rowIndex: 3,
             frameCount: 8,
-            framesPerSecond: 6
-        },
-        [GolemBossAnimationNames.LaserRain]: {
-            rowIndex: 6,
-            frameCount: 10,
             framesPerSecond: 6
         },
         [GolemBossAnimationNames.Defeat]: {

@@ -5,6 +5,8 @@ export interface Hitbox {
     width?: number;
     height?: number;
     radius?: number;
+    x: number;
+    y: number;
 }
 
 export class HitboxComponent extends Component {

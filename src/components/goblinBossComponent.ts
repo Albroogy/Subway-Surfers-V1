@@ -81,7 +81,7 @@ export default class GoblinBossComponent extends Component {
             return;
         }
         const healthBarComponent = this._entity.getComponent<HealthBarComponent>(HealthBarComponent.COMPONENT_ID)!;
-        healthBarComponent.setHealth(this.health);
+        healthBarComponent.entityBars[0].setHealth(this.health); // Health bar
     }
 }
 

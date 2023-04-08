@@ -1,5 +1,6 @@
 import { Component } from "../entityComponent";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
+import PositionComponent from "./positionComponent";
 
 export default class LaserComponent extends Component {    
     public static COMPONENT_ID: string = "Laser";
