@@ -8,7 +8,7 @@ import { objects } from "../objects";
 import { player, PlayerComponent } from "../components/playerComponent";
 import { SoundComponent } from "../components/soundComponent";
 import { gameEntity, GameSound } from "./gameSystem";
-import { addGold, addScore, deleteObject, destroyCollidingObjects } from "../main";
+import { addGold, addScore, deleteObject} from "../main";
 import { AnimatedComponent } from "../components/animatedComponent";
 import CameraSystem from "./cameraSystem";
 import SkeletonComponent from "../components/skeletonComponent";
@@ -279,7 +279,8 @@ function arrowFrankensteinCollision(arrow: Entity, object: Entity) {
     const frankensteinComponent = object.getComponent<FrankensteinComponent>(FrankensteinComponent.COMPONENT_ID)!;
     frankensteinComponent.health -= 1;
     if (frankensteinComponent.health < 1){
-        destroyCollidingObjects(arrow, object);
+        deleteObject(object);
+        deleteObject(arrow);
     }
     else {
         dealDamageToCollidingObjects(arrow, object);
@@ -288,7 +289,8 @@ function arrowFrankensteinCollision(arrow: Entity, object: Entity) {
 }
 
 function arrowGenericCollision(arrow: Entity, object: Entity) {
-    destroyCollidingObjects(arrow, object);
+    deleteObject(object);
+    deleteObject(arrow);
     playArrowImpactSound();
 }
 

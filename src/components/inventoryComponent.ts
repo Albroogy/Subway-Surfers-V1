@@ -6,9 +6,11 @@ enum Status{
     Remove = "remove"
 }
 
+
 export enum InventoryItemStat {
     Lives,
-    RollSpeed
+    RollSpeed,
+    AttackSpeed
 }
 
 type StatPair = { stat: InventoryItemStat, modifiedValue: number };
@@ -188,6 +190,16 @@ export class Inventory{
     public hideItem(name: string){
         this._hiddenItem = name;
     }
+    public findEmptySpot(item: InventoryItem) {
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                if (this.placeItemCheck(item, i, j)) {
+                    const slot: slot = {row: i, column: j};
+                    return slot;
+                }
+            }
+        }
+    }
     private _updateEquippedItem(item: InventoryItem, status: string){
         if (status == Status.Add){
             this.equippedItems[item.slot] = item;
@@ -222,6 +234,199 @@ export const ItemInfo: Record<string, Record<string, string>> = {
     }
 }
 
+// export enum Weapons {
+//     Kite,
+//     Spartan,
+//     Crusader,
+//     Saber,
+//     LongSword,
+//     Rapier,
+//     GlowSwordBlue,
+//     GlowSwordRed,
+//     Scythe,
+//     Cane,
+//     Mace,
+//     Spear,
+//     BasicBow,
+//     BasicStaff,
+//     Crossbow,
+//     DiamondStaff,
+//     GreatBow,
+//     QuickBow,
+// }
+
+export enum Weapons {
+    Kite = "kite",
+    Spartan = "spartan",
+    Crusader = "crusader",
+    Saber = "saber",
+    LongSword = "longSword",
+    Rapier = "rapier",
+    GlowSwordBlue = "glowSwordBlue",
+    GlowSwordRed = "glowSwordRed",
+    Scythe = "scythe",
+    Cane = "cane",
+    Mace = "mace",
+    Spear = "spear",
+    BasicBow = "basicBow",
+    BasicStaff = "basicStaff",
+    Crossbow = "crossbow",
+    DiamondStaff = "diamondStaff",
+    GreatBow = "greatBow",
+    QuickBow = "quickBow",
+}
+
+interface ItemInfo {
+    src: string;
+    stats: StatPair[];
+    type: InventorySlot;
+    width: number;
+    height: number;
+}
+
+interface Items {
+    Armor: {
+        [key: string]: ItemInfo;
+    };
+    Weapons: {
+        [key: string]: ItemInfo;
+    };
+  }
+
+export const Items: Items = {
+    Armor: {
+
+    },
+    Weapons: {
+        [Weapons.Saber]: {
+            src: "assets/images/inventoryItems/weapons/melee/saber.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.LongSword]: {
+            src: "assets/images/inventoryItems/weapons/melee/longSword.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Rapier]: {
+            src: "assets/images/inventoryItems/weapons/melee/rapier.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.GlowSwordBlue]: {
+            src: "assets/images/inventoryItems/weapons/melee/glowSwordBlue.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.GlowSwordRed]: {
+            src: "assets/images/inventoryItems/weapons/melee/glowSwordRed.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Scythe]: {
+            src: "assets/images/inventoryItems/weapons/melee/scythe.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Cane]: {
+            src: "assets/images/inventoryItems/weapons/melee/cane.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Mace]: {
+            src: "assets/images/inventoryItems/weapons/melee/mace.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Spear]: {
+            src: "assets/images/inventoryItems/weapons/melee/spear.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.BasicBow]: {
+            src: "assets/images/inventoryItems/weapons/ranged/basicBow.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.BasicStaff]: {
+            src: "assets/images/inventoryItems/weapons/ranged/basicStaff.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Crossbow]: {
+            src: "assets/images/inventoryItems/weapons/ranged/crossbow.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.DiamondStaff]: {
+            src: "assets/images/inventoryItems/weapons/ranged/diamondStaff.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.GreatBow]: {
+            src: "assets/images/inventoryItems/weapons/ranged/greatBow.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.QuickBow]: {
+            src: "assets/images/inventoryItems/weapons/ranged/quickBow.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Kite]: {
+            src: "assets/images/inventoryItems/weapons/sheilds/kite.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Spartan]: {
+            src: "assets/images/inventoryItems/weapons/sheilds/spartan.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+        [Weapons.Crusader]: {
+            src: "assets/images/inventoryItems/weapons/sheilds/crusader.png",
+            stats: [],
+            type: InventorySlot.Weapon,
+            width: 2,
+            height: 2,
+        },
+    }
+}
+
 const spearImage = new Image;
 spearImage.src = ItemInfo.Spear.src;
 const bowImage = new Image;
@@ -246,3 +451,14 @@ export function equipStarterItems(currentObject: Entity){
     inventoryComponent.inventories[1].placeItem(ItemList.Spear, 0, 0);
 }
 
+export function createInventoryItem(item: ItemInfo, name: string, inventory: Inventory) {
+    const newImage = new Image;
+    newImage.src = item.src;
+    const inventoryItem = new InventoryItem(item.width, item.height, item.src, newImage, name, item.type, item.stats)
+    const slot = inventory.findEmptySpot(inventoryItem);
+    if (slot == null) {
+        console.assert(slot == null);
+        return;
+    }
+    inventory.placeItem(inventoryItem, slot.column, slot.row);
+}

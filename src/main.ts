@@ -9,7 +9,7 @@ import MovementComponent from "./components/movementComponent";
 import { gameEntity, GameSound } from "./systems/gameSystem";
 import {images, objects} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
-import { InventoryComponent, InventoryItemStat } from "./components/inventoryComponent";
+import { createInventoryItem, InventoryComponent, InventoryItem, InventoryItemStat, Items, Weapons } from "./components/inventoryComponent";
 import { GameState, gameState } from "./components/gameComponent";
 import { SoundComponent } from "./components/soundComponent";
 import { ImagePartComponent } from "./components/imagePartComponent";
@@ -424,11 +424,24 @@ export function deleteObject(object: Entity){
     if (tagComponent!.tags.includes(Tag.Enemy)){
         const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
         
-        const randomNum = Math.random();
-
-        if (randomNum >= 0.8) {
-            // Drop item
-            
+        let randomNum = 0.9;
+        let itemName = ""
+        let item: any = null;
+        
+        if (randomNum > 0.8) {
+            randomNum = Math.random();
+            if (randomNum < 0.5) {
+                itemName = Object.keys(Items.Armor)[Math.floor(Math.random() * Object.keys(Items.Armor).length)];
+                item = Items.Armor[itemName];
+            }
+            else {
+                const itemNum = Math.floor(Math.random() * Object.keys(Items.Weapons).length);
+                itemName = Object.keys(Items.Weapons)[itemNum];
+                item = Object.values(Items.Weapons)[itemNum];
+            }
+            // create item
+            const inventoryComponent: InventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
+            createInventoryItem(item, itemName, inventoryComponent.inventories[1]);
         }
 
         let objectLane = findLane(positionComponent.x);
@@ -444,26 +457,12 @@ export function deleteObject(object: Entity){
     }
 }
 
-export function destroyCollidingObjects(arrow: Entity, object: Entity){
-    objects.splice(objects.indexOf(arrow), 1);
-    objects.splice(objects.indexOf(object), 1);
-
-    const positionComponent2 = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-    let objectLane2 = findLane(positionComponent2.x);
-    for (let i = 0; i < enemiesPerLane.length; i++){
-        if (i == objectLane2 - OFFSET){
-            enemiesPerLane[i] -= 1;
-        }
-    }
-    enemiesDefeated += 1;
-}
-
 document.body.addEventListener("wheel", (e: WheelEvent) => {
     CameraSystem.Instance.zoomLevel += e.deltaY / 5000;
 });
 
-generateGoblinBoss(200, 200);
+// generateGoblinBoss(200, 200);
 
-generateGolemBoss(500, 200);
+// generateGolemBoss(500, 200);
 
-generateLaser(500, 500);
+// generateLaser(500, 500);

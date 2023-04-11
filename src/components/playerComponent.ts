@@ -123,6 +123,7 @@ const StartingItems: Record <string, string | null> = {
 export const StartingStats: Record <InventoryItemStat, number> = {
     [InventoryItemStat.Lives]: 1,
     [InventoryItemStat.RollSpeed]: 400,
+    [InventoryItemStat.AttackSpeed]: 2
 }
 const PLAYER_MOVEMENT_COOLDOWN: number = 10;
 const CLICK_DELAY: number = 300; //This is in milliseconds
