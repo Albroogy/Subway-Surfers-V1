@@ -32,6 +32,7 @@ System.register("entityComponent", [], function (exports_1, context_1) {
                 addComponent(componentId, component) {
                     this._components[componentId] = component;
                     component.attachToEntity(this);
+                    console.log(componentId);
                 }
                 getComponent(componentId) {
                     return this._components[componentId];
@@ -403,13 +404,20 @@ System.register("components/imageComponent", ["global", "entityComponent", "comp
             ImageComponent = class ImageComponent extends entityComponent_4.Component {
                 static COMPONENT_ID = "Image";
                 image;
+                isLoaded = false;
                 constructor(imageURL) {
                     super();
                     this.image = new Image();
+                    this.image.onload = () => {
+                        this.isLoaded = true;
+                    };
                     this.image.src = imageURL;
                 }
                 draw() {
                     if (this._entity == null) {
+                        return;
+                    }
+                    if (!this.isLoaded) {
                         return;
                     }
                     const positionComponent = this._entity.getComponent(positionComponent_3.default.COMPONENT_ID);
@@ -3463,7 +3471,7 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
                     BossesDefeated[achievementSystem_1.ValueType.GolemBossDefeated] = 1;
                 }
             }
-            else if (Math.random() > 0.8) {
+            else if (Math.random() > 0.000001) {
                 generateItem(object);
             }
             const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
@@ -3494,10 +3502,20 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
             item = Object.values(inventoryComponent_3.Items.Weapons)[itemNum];
             console.log(item);
         }
+        for (const loot of Object.values(inventoryComponent_3.Items.Weapons)) {
+            const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
+            const inventoryItem = inventoryComponent_3.createInventoryItem(loot, itemName);
+            entityGenerator_3.generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+        }
+        for (const loot of Object.values(inventoryComponent_3.Items.Armor)) {
+            const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
+            const inventoryItem = inventoryComponent_3.createInventoryItem(loot, itemName);
+            entityGenerator_3.generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+        }
         // create item
-        const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
-        const inventoryItem = inventoryComponent_3.createInventoryItem(item, itemName);
-        entityGenerator_3.generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+        // const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        // const inventoryItem = createInventoryItem(item, itemName);
+        // generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
     }
     return {
         setters: [
