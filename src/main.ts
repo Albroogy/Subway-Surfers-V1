@@ -443,7 +443,7 @@ export function deleteObject(object: Entity){
                 BossesDefeated[ValueType.GolemBossDefeated] = 1;
             }
         }
-        else if (Math.random() > 0.8) {
+        else if (Math.random() > 0.000001) {
             generateItem(object);
         }
         const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -475,10 +475,20 @@ function generateItem(object: Entity) {
         item = Object.values(Items.Weapons)[itemNum];
         console.log(item)
     }
+    for (const loot of Object.values(Items.Weapons)) {
+        const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        const inventoryItem = createInventoryItem(loot, itemName);
+        generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+    }
+    for (const loot of Object.values(Items.Armor)) {
+        const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        const inventoryItem = createInventoryItem(loot, itemName);
+        generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+    }
     // create item
-    const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-    const inventoryItem = createInventoryItem(item, itemName);
-    generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+    // const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    // const inventoryItem = createInventoryItem(item, itemName);
+    // generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
 }
 
 document.body.addEventListener("wheel", (e: WheelEvent) => {

@@ -6,14 +6,22 @@ export class ImageComponent extends Component {
     public static COMPONENT_ID: string = "Image";
     
     public image: HTMLImageElement;
+    public isLoaded: boolean = false;
+
 
     constructor(imageURL: string) {
         super();
         this.image = new Image();
+        this.image.onload = () => {
+            this.isLoaded = true;
+        };
         this.image.src = imageURL;
     }
     public draw(): void{
         if (this._entity == null) {
+            return;
+        }
+        if (!this.isLoaded) {
             return;
         }
         const positionComponent = this._entity.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;

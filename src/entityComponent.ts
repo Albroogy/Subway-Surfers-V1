@@ -31,6 +31,7 @@ export class Entity {
     public addComponent(componentId: string, component: Component): void {
         this._components[componentId] = component;
         component.attachToEntity(this);
+        console.log(componentId);
     }
 
     public getComponent<ComponentType extends Component>(componentId: string): ComponentType | null {
