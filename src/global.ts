@@ -18,7 +18,8 @@ export const KEYS = {
     ArrowDown: 40,
     SpaceBar: 32,
     Escape: 27,
-    E: 69
+    E: 69,
+    One: 49
 };
 
 export let mouseDown = false;

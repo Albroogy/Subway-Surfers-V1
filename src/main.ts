@@ -16,7 +16,7 @@ import { ImagePartComponent } from "./components/imagePartComponent";
 import CameraSystem from "./systems/cameraSystem";
 import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
 import { TagComponent } from "./components/tagComponent";
-import AchievementSystem from "./systems/achievementSystem";
+import AchievementSystem, { BossAchievements, ValueType } from "./systems/achievementSystem";
 import { generateAura, generateCoin, generateDeathStar, generateDragon, generateExtendedVision, generateFrankenstein, generateGhost, generateGoblinBoss, generateGolemBoss, generateLaser, generateMinotaur, generateSkeleton } from "./entityGenerator";
 
 document.body.addEventListener('keydown', startMusicTracks);
@@ -34,7 +34,8 @@ function startMusicTracks() {
 
 window.addEventListener("beforeunload", function (e) {
     // Save game state here
-    SaveGameSystem.Instance.saveGameData(gold, highScore, AchievementSystem.Instance.AchievementInfo);
+    const inventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
+    SaveGameSystem.Instance.saveGameData(gold, highScore, AchievementSystem.Instance.AchievementInfo, inventoryComponent.inventories[1].cells);
 });
 
 // Player Component
@@ -168,7 +169,9 @@ function update(deltaTime: number, gameSpeed: number){
     const SCORE_INCREMENT: number = 0.001;
     let scoreIncreaseSpeed: number = 1;
     addScore(scoreIncreaseSpeed);
-    AchievementSystem.Instance.checkAchievements(gold, enemiesDefeated);
+    const inventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
+    let itemsCount = inventoryComponent.inventories[0].count + inventoryComponent.inventories[1].count;
+    AchievementSystem.Instance.checkAchievements(gold, enemiesDefeated, BossesDefeated, itemsCount);
 
     if (checkTime(spawnDelay, lastSpawn)){
         const randomNum = Math.random();
@@ -202,7 +205,7 @@ function draw() {
 
     context.clearRect(0, 0, canvas.width, canvas.height);
     
-    if (gameState != GameState.InventoryMenu){
+    if (gameState == GameState.Playing){
         
         CameraSystem.Instance.beginDraw();
         
@@ -247,7 +250,7 @@ function draw() {
             context.fillText("CERTAIN DEATH (MOVE TO STAY ALIVE. DO NOT GET HIT)", LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
         }
     }
-    else{
+    else if (gameState == GameState.InventoryMenu){
         // draw player inventories
         if (playerCharacter.getComponent(InventoryComponent.COMPONENT_ID) == null) {
             return;
@@ -262,6 +265,11 @@ function draw() {
             image.draw();
         }
         playerImage.draw();
+    }
+    else if (gameState == GameState.AchievementsMenu){
+        // draw achievements
+        AchievementSystem.Instance.drawAchievements();
+        console.log("Achievements Menu");
     }
 }
 
@@ -418,32 +426,28 @@ function outOfBoundsCheck(movementComponent: MovementComponent, positionComponen
 
 let enemiesDefeated = 0;
 
+let BossesDefeated: BossAchievements = {
+    [ValueType.GoblinBossDefeated]: 0,
+    [ValueType.GolemBossDefeated]: 0,
+}
+
 export function deleteObject(object: Entity){
     objects.splice(objects.indexOf(object),1);
     const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID);
     if (tagComponent!.tags.includes(Tag.Enemy)){
-        const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-        
-        let randomNum = 0.9;
-        let itemName = ""
-        let item: any = null;
-        
-        if (randomNum > 0.8) {
-            randomNum = Math.random();
-            if (randomNum < 0.5) {
-                itemName = Object.keys(Items.Armor)[Math.floor(Math.random() * Object.keys(Items.Armor).length)];
-                item = Items.Armor[itemName];
+        if (tagComponent!.tags.includes(Tag.Boss)){
+            generateItem();
+            if (tagComponent!.tags.includes(Tag.GoblinBoss)){
+                BossesDefeated[ValueType.GoblinBossDefeated] = 1;
             }
-            else {
-                const itemNum = Math.floor(Math.random() * Object.keys(Items.Weapons).length);
-                itemName = Object.keys(Items.Weapons)[itemNum];
-                item = Object.values(Items.Weapons)[itemNum];
+            if (tagComponent!.tags.includes(Tag.GolemBoss)){
+                BossesDefeated[ValueType.GolemBossDefeated] = 1;
             }
-            // create item
-            const inventoryComponent: InventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
-            createInventoryItem(item, itemName, inventoryComponent.inventories[1]);
         }
-
+        else if (Math.random() > 0.8) {
+            generateItem();
+        }
+        const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
         let objectLane = findLane(positionComponent.x);
         for (let i = 0; i < enemiesPerLane.length; i++){
             if (i == objectLane - OFFSET){
@@ -455,6 +459,26 @@ export function deleteObject(object: Entity){
             }
         }
     }
+}
+
+function generateItem() {
+    let itemName = ""
+    let item: any = null;
+    
+    let randomNum = Math.random();
+    if (randomNum < 0.5) {
+        itemName = Object.keys(Items.Armor)[Math.floor(Math.random() * Object.keys(Items.Armor).length)];
+        item = Items.Armor[itemName];
+    }
+    else {
+        const itemNum = Math.floor(Math.random() * Object.keys(Items.Weapons).length);
+        itemName = Object.keys(Items.Weapons)[itemNum];
+        item = Object.values(Items.Weapons)[itemNum];
+        console.log(item)
+    }
+    // create item
+    const inventoryComponent: InventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
+    createInventoryItem(item, itemName, inventoryComponent.inventories[1]);
 }
 
 document.body.addEventListener("wheel", (e: WheelEvent) => {

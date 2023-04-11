@@ -1,3 +1,4 @@
+import { canvas, context } from "../global";
 import SaveGameSystem, { SaveKey } from "./saveGameSystem";
 
 enum AchievementName {
@@ -7,11 +8,20 @@ enum AchievementName {
     Apprentice = "Apprentice",
     Warrior = "Master Warrior",
     Sensei = "Sensei",
+    GoblinBossDefeated = "GoblinBossDefeated",
+    GolemBossDefeated = "GolemBossDefeated",
+    ItemCollector = "ItemCollector",
+    ItemHorder = "ItemHorder",
+    ItemMonger = "ItemMonger"
 }
 
-enum ValueType {
+
+export enum ValueType {
     Gold = "gold",
-    EnemiesDefeated = "enemiesDefeated"
+    EnemiesDefeated = "enemiesDefeated",
+    GoblinBossDefeated = "GoblinBossDefeated",
+    GolemBossDefeated = "GolemBossDefeated",
+    Item = "Item"
 }
 
 export interface AchievementInfo {
@@ -75,17 +85,66 @@ export default class AchievementSystem {
                     valueType: ValueType.EnemiesDefeated,
                     requisite: 300
                 },
+                {
+                    name: AchievementName.ItemCollector,
+                    description: "Collect 8 pieces of gold",
+                    isUnlocked: false,
+                    valueType: ValueType.Item,
+                    requisite: 8
+                },
+                {
+                    name: AchievementName.ItemHorder,
+                    description: "Collect 16 pieces of gold",
+                    isUnlocked: false,
+                    valueType: ValueType.Item,
+                    requisite: 16
+                },
+                {
+                    name: AchievementName.ItemMonger,
+                    description: "Collect 24 pieces of gold",
+                    isUnlocked: false,
+                    valueType: ValueType.Item,
+                    requisite: 24
+                },
+                {
+                    name: AchievementName.GoblinBossDefeated,
+                    description: "Goblin boss defeated",
+                    isUnlocked: false,
+                    valueType: ValueType.GoblinBossDefeated,
+                    requisite: 1
+                },
+                {
+                    name: AchievementName.GolemBossDefeated,
+                    description: "Golem boss defeated",
+                    isUnlocked: false,
+                    valueType: ValueType.GolemBossDefeated,
+                    requisite: 1
+                },
             ];
         }
     }
-    public checkAchievements(gold: number, enemiesDefeated: number) {
+
+    public checkAchievements(gold: number, enemiesDefeated: number, bossesDefeated: BossAchievements, itemsCount: number) {
         const achievementsLeft = this.getLockedAchievements();
         for (const achievement of achievementsLeft){
-            if (achievement.valueType == ValueType.Gold){
-                this.checkAchievementAccomplishedFunction(gold, achievement.name, achievement.requisite);
-            }
-            if (achievement.valueType == ValueType.EnemiesDefeated){
-                this.checkAchievementAccomplishedFunction(enemiesDefeated, achievement.name, achievement.requisite);
+            switch (achievement.valueType) {
+                case ValueType.Gold:
+                    this.checkAchievementAccomplishedFunction(gold, achievement.name, achievement.requisite);
+                    break;
+                case ValueType.EnemiesDefeated:
+                    this.checkAchievementAccomplishedFunction(enemiesDefeated, achievement.name, achievement.requisite);
+                    break;
+                case ValueType.GoblinBossDefeated:
+                    this.checkAchievementAccomplishedFunction(bossesDefeated[ValueType.GoblinBossDefeated], achievement.name, achievement.requisite);
+                    break;
+                case ValueType.GolemBossDefeated:
+                    this.checkAchievementAccomplishedFunction(bossesDefeated[ValueType.GolemBossDefeated], achievement.name, achievement.requisite);
+                    break;
+                case ValueType.Item:
+                    this.checkAchievementAccomplishedFunction(itemsCount, achievement.name, achievement.requisite);
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -108,9 +167,40 @@ export default class AchievementSystem {
         return this._achievements.filter(a => a.isUnlocked);
     }
     public drawAchievements() {
-        
+        const width = canvas.width/this._achievements.length;
+        const height = canvas.width/this._achievements.length;
+        let x = width/2;
+        let y = height/2;
+        for (const achievement of this._achievements) {
+            this.drawSingleAchievement(achievement, x, y, width, height);
+            if (x < canvas.width - width * 1.5) {
+                x += width;
+            }
+            else {
+                x = width/2;
+                y += height;
+            }
+        }
+    }
+    public drawSingleAchievement(achievement: AchievementInfo, x: number, y: number, width: number, height: number) {
+        context.fillStyle = "gray";
+        context.fillRect(x - width/2, y - height/2, width, height);
+        context.strokeStyle = "blue";
+        context.lineWidth = 2;
+        context.strokeRect(x - width/2, y - height/2, width, height);
+        context.fillStyle = "black";
+        context.font = "25px Arial";
+        context.fillText(achievement.description, x - width/4, y);
+        if (achievement.isUnlocked) {
+            context.fillStyle = "yellow";
+            context.fillText("Completed", x - width/4, y + 50);
+        }
     }
     public get AchievementInfo(): AchievementInfo[] {
         return this._achievements;
     }
 }  
+
+export type BossAchievements = {
+    [key: string]: number;
+}

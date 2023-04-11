@@ -7,9 +7,11 @@ import { player, PlayerComponent } from "./playerComponent";
 import PositionComponent from "./positionComponent";
 import StateMachineComponent from "./stateMachineComponent";
 
+
 export enum GameState {
     Playing = "playing",
-    InventoryMenu = "inventoryMenu"
+    InventoryMenu = "inventoryMenu",
+    AchievementsMenu = "AchievementsMenu"
 }
 export let gameState: GameState = GameState.Playing;
 
@@ -20,6 +22,7 @@ export default class GameComponent extends Component {
         const stateMachineComponent = this._entity!.getComponent<StateMachineComponent<GameState>>(StateMachineComponent.COMPONENT_ID)!;
         stateMachineComponent.stateMachine.addState(GameState.Playing, onPlayingActivation, onPlayingUpdate, onPlayingDeactivation);
         stateMachineComponent.stateMachine.addState(GameState.InventoryMenu, onInventoryMenuActivation, onInventoryMenuUpdate, onInventoryMenuDeactivation);
+        stateMachineComponent.stateMachine.addState(GameState.AchievementsMenu, onAchievementsMenuActivation, onAchievementsMenuUpdate, onAchievementsMenuDeactivation);
         stateMachineComponent.activate(GameState.Playing);
     }
 }
@@ -32,6 +35,9 @@ export const onPlayingActivation = () => {
 export const onPlayingUpdate = (): GameState | undefined => {
     if (allPressedKeys[KEYS.SpaceBar]){
         return GameState.InventoryMenu;
+    }
+    if (allPressedKeys[KEYS.One]){
+        return GameState.AchievementsMenu;
     }
 }
 export const onPlayingDeactivation = () => {
@@ -50,6 +56,17 @@ export const onInventoryMenuUpdate = (): GameState | undefined => {
 }
 export const onInventoryMenuDeactivation = () => {
     removeEventListener('mousedown', mouseDown);
+}
+
+export const onAchievementsMenuActivation = () => {
+    gameState = GameState.AchievementsMenu;
+}
+export const onAchievementsMenuUpdate = (): GameState | undefined => {
+    if (allPressedKeys[KEYS.Escape]){
+        return GameState.Playing;
+    }
+}
+export const onAchievementsMenuDeactivation = () => {
 }
 
 let mouseDownBoolean = true;

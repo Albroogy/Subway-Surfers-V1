@@ -1,3 +1,4 @@
+import { Cells, Inventory } from "../components/inventoryComponent";
 import AchievementSystem, { AchievementInfo } from "./achievementSystem";
 
 export default class SaveGameSystem {
@@ -15,16 +16,19 @@ export default class SaveGameSystem {
         return JSON.parse(textRepresentation) as T;
     }
 
-    public saveGameData(gold: number, highScore: number, achievementInfo: AchievementInfo[]) {
+    public saveGameData(gold: number, highScore: number, achievementInfo: AchievementInfo[], foundItems: Cells) {
         this.saveData<number>(SaveKey.Gold, gold);
         this.saveData<number>(SaveKey.HighScore, highScore);
         this.saveData<AchievementInfo[]>(SaveKey.AchievementInfo, achievementInfo);
+        this.saveData<Cells>(SaveKey.FoundItems, foundItems);
     }
 }
+
 
 export enum SaveKey {
     Gold = "gold",
     HighScore = "highScore",
-    AchievementInfo = "achivementInfo"
+    AchievementInfo = "achivementInfo",
+    FoundItems = "FoundItems"
 }
 
