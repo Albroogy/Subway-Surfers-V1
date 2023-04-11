@@ -8,7 +8,9 @@ import GolemBossComponent, { GolemBossAnimationInfo } from "./components/golemBo
 import HealthBarComponent, { EntityBar } from "./components/healthBarComponent";
 import HomingMissileComponent from "./components/homingMissileComponent";
 import { ImageComponent } from "./components/imageComponent";
+import { InventoryItem, ItemInfo } from "./components/inventoryComponent";
 import LaserComponent, { LaserAnimationInfo } from "./components/laserComponent";
+import { LootComponent } from "./components/lootComponent";
 import MinotaurComponent, { MinotaurAnimationInfo } from "./components/minotaurComponent";
 import MovementComponent from "./components/movementComponent";
 import { player } from "./components/playerComponent";
@@ -75,6 +77,19 @@ export function generateDeathStar(objectLaneLocation: number, fallSpeed: number)
 
     objects.push(
         deathStarPowerup
+    )
+}
+
+export function generateLoot(x: number, y: number, fallSpeed: number, item: InventoryItem){
+    const loot: Entity = new Entity("Loot");
+    loot.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(x, y, item.width * OBJECT.WIDTH, item.height * OBJECT.HEIGHT, 0));
+    loot.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(item.image.src));
+    loot.addComponent(MovementComponent.COMPONENT_ID, new MovementComponent(fallSpeed, 1));
+    loot.addComponent(LootComponent.COMPONENT_ID, new LootComponent(item));
+    loot.addComponent(TagComponent.COMPONENT_ID, new TagComponent([Tag.Loot]));
+
+    objects.push(
+        loot
     )
 }
 

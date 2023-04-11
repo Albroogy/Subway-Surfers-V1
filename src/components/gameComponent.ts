@@ -33,10 +33,10 @@ export const onPlayingActivation = () => {
     console.log(GameState.Playing);
 }
 export const onPlayingUpdate = (): GameState | undefined => {
-    if (allPressedKeys[KEYS.SpaceBar]){
+    if (allPressedKeys[KEYS.One]){
         return GameState.InventoryMenu;
     }
-    if (allPressedKeys[KEYS.One]){
+    if (allPressedKeys[KEYS.Two]){
         return GameState.AchievementsMenu;
     }
 }
@@ -100,7 +100,7 @@ function mouseDown(e: MouseEvent) {
 
                 const item = new Entity(EntityName.ItemFrame);
                 item.addComponent(PositionComponent.COMPONENT_ID, new PositionComponent(mouse.x, mouse.y, inventoryItem.width * 50, inventoryItem.height * 50, 0));
-                item.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(ItemInfo[inventoryItem.name].src));
+                item.addComponent(ImageComponent.COMPONENT_ID, new ImageComponent(inventoryItem.image.src));
                 images.push(item);
 
                 const positionComponent = images[0].getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;

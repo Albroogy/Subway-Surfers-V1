@@ -49,9 +49,9 @@ export class Inventory{
     private _hiddenItem: string;
     public highlight: boolean = false;
 
-    private _supportsEquipment: boolean = false;
+    private _supportsEquipment: boolean;
 
-    constructor(width: number, height: number, x: number, y: number, itemSize: Record<string, number>) {
+    constructor(width: number, height: number, x: number, y: number, itemSize: Record<string, number>, supportsEquipment: boolean = false) {
         this.equippedItems = {} as Record <InventorySlot, InventoryItem | null>;
         this.cells = [];
         this.width = width;
@@ -60,6 +60,7 @@ export class Inventory{
         this.y = y;
         this._hiddenItem = "";
         this.itemSize = itemSize
+        this._supportsEquipment = supportsEquipment;
         for (let i = 0; i < this.width; i++) {
             this.cells[i] = [];
             for (let j = 0; j < this.height; j++) {
@@ -120,8 +121,12 @@ export class Inventory{
         }
     }
     public isEquipped(item: InventoryItem): boolean {
+        console.assert(this._supportsEquipment);
         return Object.values(this.equippedItems).includes(item);
     }
+    // public isInInventory(item: InventoryItem): boolean {
+    //     return Object.values(this.equippedItems).includes(item);
+    // }
     public draw() {
         // for every row and col
         //   go through every cell, that is the top-left coordinate of an item and draw the image
@@ -287,7 +292,7 @@ export enum Armors {
     SteelBoots = "steelBoots",
 }
 
-interface ItemInfo {
+export interface ItemInfo {
     src: string;
     stats: StatPair[];
     type: InventorySlot;
@@ -310,120 +315,120 @@ export const Items: Items = {
             src: "assets/images/inventoryItems/armor/helmets/black.png",
             stats: [],
             type: InventorySlot.Helmet,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
         [Armors.MagicHelmet]: {
             src: "assets/images/inventoryItems/armor/helmets/magic.png",
             stats: [],
             type: InventorySlot.Helmet,
             width: 2,
-            height: 2,
+            height: 1,
         },
         [Armors.SteelHelmet]: {
             src: "assets/images/inventoryItems/armor/helmets/steel.png",
             stats: [],
             type: InventorySlot.Helmet,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
         [Armors.CopperHelmet]: {
             src: "assets/images/inventoryItems/armor/helmets/copper.png",
             stats: [],
             type: InventorySlot.Helmet,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
         [Armors.BronzeHelmet]: {
             src: "assets/images/inventoryItems/armor/helmets/bronze.png",
             stats: [],
             type: InventorySlot.Helmet,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
         [Armors.VikingHelmet]: {
             src: "assets/images/inventoryItems/armor/helmets/viking.png",
             stats: [],
             type: InventorySlot.Helmet,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
         [Armors.BronzeChestplate]: {
             src: "assets/images/inventoryItems/armor/chestplates/bronze.png",
             stats: [],
             type: InventorySlot.Chestplate,
             width: 2,
-            height: 3,
+            height: 2,
         },
         [Armors.CopperChestplate]: {
             src: "assets/images/inventoryItems/armor/chestplates/copper.png",
             stats: [],
             type: InventorySlot.Chestplate,
             width: 2,
-            height: 3,
+            height: 2,
         },
         [Armors.LeatherChestplate]: {
             src: "assets/images/inventoryItems/armor/chestplates/leather.png",
             stats: [],
             type: InventorySlot.Chestplate,
             width: 2,
-            height: 3,
+            height: 2,
         },
         [Armors.LegionChestplate]: {
             src: "assets/images/inventoryItems/armor/chestplates/legion.png",
             stats: [],
             type: InventorySlot.Chestplate,
             width: 2,
-            height: 3,
+            height: 2,
         },
         [Armors.SteelChestplate]: {
             src: "assets/images/inventoryItems/armor/chestplates/steel.png",
             stats: [],
             type: InventorySlot.Chestplate,
             width: 2,
-            height: 3,
+            height: 2,
         },
         [Armors.BronzeLeggings]: {
             src: "assets/images/inventoryItems/armor/leggings/bronze.png",
             stats: [],
             type: InventorySlot.Leggings,
             width: 2,
-            height: 3,
+            height: 1,
         },
         [Armors.CopperLeggings]: {
             src: "assets/images/inventoryItems/armor/leggings/copper.png",
             stats: [],
             type: InventorySlot.Leggings,
             width: 2,
-            height: 3,
+            height: 1,
         },
         [Armors.SteelLeggings]: {
             src: "assets/images/inventoryItems/armor/leggings/steel.png",
             stats: [],
             type: InventorySlot.Leggings,
             width: 2,
-            height: 3,
+            height: 1,
         },
         [Armors.PantLeggings]: {
             src: "assets/images/inventoryItems/armor/leggings/pants.png",
             stats: [],
             type: InventorySlot.Leggings,
             width: 2,
-            height: 3,
+            height: 1,
         },
         [Armors.BlackBoots]: {
             src: "assets/images/inventoryItems/armor/boots/black.png",
             stats: [],
             type: InventorySlot.Boots,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
         [Armors.SteelBoots]: {
             src: "assets/images/inventoryItems/armor/boots/steel.png",
             stats: [],
             type: InventorySlot.Boots,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
     },
     Weapons: {
@@ -432,7 +437,7 @@ export const Items: Items = {
             stats: [],
             type: InventorySlot.Weapon,
             width: 2,
-            height: 2,
+            height: 1,
         },
         [Weapons.LongSword]: {
             src: "assets/images/inventoryItems/weapons/melee/longSword.png",
@@ -446,49 +451,49 @@ export const Items: Items = {
             stats: [],
             type: InventorySlot.Weapon,
             width: 2,
-            height: 2,
+            height: 1,
         },
         [Weapons.GlowSwordBlue]: {
             src: "assets/images/inventoryItems/weapons/melee/glowSwordBlue.png",
             stats: [],
             type: InventorySlot.Weapon,
             width: 2,
-            height: 2,
+            height: 1,
         },
         [Weapons.GlowSwordRed]: {
             src: "assets/images/inventoryItems/weapons/melee/glowSwordRed.png",
             stats: [],
             type: InventorySlot.Weapon,
             width: 2,
-            height: 2,
+            height: 1,
         },
         [Weapons.Scythe]: {
             src: "assets/images/inventoryItems/weapons/melee/scythe.png",
             stats: [],
             type: InventorySlot.Weapon,
-            width: 2,
+            width: 1,
             height: 2,
         },
         [Weapons.Cane]: {
             src: "assets/images/inventoryItems/weapons/melee/cane.png",
             stats: [],
             type: InventorySlot.Weapon,
-            width: 2,
+            width: 1,
             height: 2,
         },
         [Weapons.Mace]: {
             src: "assets/images/inventoryItems/weapons/melee/mace.png",
             stats: [],
             type: InventorySlot.Weapon,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
         [Weapons.Spear]: {
             src: "assets/images/inventoryItems/weapons/melee/spear.png",
             stats: [],
             type: InventorySlot.Weapon,
             width: 2,
-            height: 2,
+            height: 1,
         },
         [Weapons.BasicBow]: {
             src: "assets/images/inventoryItems/weapons/ranged/basicBow.png",
@@ -501,21 +506,21 @@ export const Items: Items = {
             src: "assets/images/inventoryItems/weapons/ranged/basicStaff.png",
             stats: [],
             type: InventorySlot.Weapon,
-            width: 2,
+            width: 1,
             height: 2,
         },
         [Weapons.Crossbow]: {
             src: "assets/images/inventoryItems/weapons/ranged/crossbow.png",
             stats: [],
             type: InventorySlot.Weapon,
-            width: 2,
-            height: 2,
+            width: 1,
+            height: 1,
         },
         [Weapons.DiamondStaff]: {
             src: "assets/images/inventoryItems/weapons/ranged/diamondStaff.png",
             stats: [],
             type: InventorySlot.Weapon,
-            width: 2,
+            width: 1,
             height: 2,
         },
         [Weapons.GreatBow]: {
@@ -580,10 +585,14 @@ export function equipStarterItems(currentObject: Entity){
     inventoryComponent.inventories[1].placeItem(ItemList.Spear, 0, 0);
 }
 
-export function createInventoryItem(item: ItemInfo, name: string, inventory: Inventory) {
+export function createInventoryItem(item: ItemInfo, name: string) {
     const newImage = new Image;
     newImage.src = item.src;
     const inventoryItem = new InventoryItem(item.width, item.height, item.src, newImage, name, item.type, item.stats);
+    return inventoryItem;
+}
+
+export function addInventoryItem(inventoryItem: InventoryItem, inventory: Inventory) {
     const slot = inventory.findEmptySpot(inventoryItem);
     if (slot == null) {
         console.assert(slot == null);

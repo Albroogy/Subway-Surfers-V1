@@ -17,7 +17,7 @@ import CameraSystem from "./systems/cameraSystem";
 import SaveGameSystem, { SaveKey } from "./systems/saveGameSystem";
 import { TagComponent } from "./components/tagComponent";
 import AchievementSystem, { BossAchievements, ValueType } from "./systems/achievementSystem";
-import { generateAura, generateCoin, generateDeathStar, generateDragon, generateExtendedVision, generateFrankenstein, generateGhost, generateGoblinBoss, generateGolemBoss, generateLaser, generateMinotaur, generateSkeleton } from "./entityGenerator";
+import { generateAura, generateCoin, generateDeathStar, generateDragon, generateExtendedVision, generateFrankenstein, generateGhost, generateGoblinBoss, generateGolemBoss, generateLaser, generateLoot, generateMinotaur, generateSkeleton } from "./entityGenerator";
 
 document.body.addEventListener('keydown', startMusicTracks);
 
@@ -269,7 +269,6 @@ function draw() {
     else if (gameState == GameState.AchievementsMenu){
         // draw achievements
         AchievementSystem.Instance.drawAchievements();
-        console.log("Achievements Menu");
     }
 }
 
@@ -436,7 +435,7 @@ export function deleteObject(object: Entity){
     const tagComponent = object.getComponent<TagComponent>(TagComponent.COMPONENT_ID);
     if (tagComponent!.tags.includes(Tag.Enemy)){
         if (tagComponent!.tags.includes(Tag.Boss)){
-            generateItem();
+            generateItem(object);
             if (tagComponent!.tags.includes(Tag.GoblinBoss)){
                 BossesDefeated[ValueType.GoblinBossDefeated] = 1;
             }
@@ -445,7 +444,7 @@ export function deleteObject(object: Entity){
             }
         }
         else if (Math.random() > 0.8) {
-            generateItem();
+            generateItem(object);
         }
         const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
         let objectLane = findLane(positionComponent.x);
@@ -461,7 +460,7 @@ export function deleteObject(object: Entity){
     }
 }
 
-function generateItem() {
+function generateItem(object: Entity) {
     let itemName = ""
     let item: any = null;
     
@@ -477,8 +476,9 @@ function generateItem() {
         console.log(item)
     }
     // create item
-    const inventoryComponent: InventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
-    createInventoryItem(item, itemName, inventoryComponent.inventories[1]);
+    const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    const inventoryItem = createInventoryItem(item, itemName);
+    generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
 }
 
 document.body.addEventListener("wheel", (e: WheelEvent) => {

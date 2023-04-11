@@ -19,7 +19,8 @@ export const KEYS = {
     SpaceBar: 32,
     Escape: 27,
     E: 69,
-    One: 49
+    One: 49,
+    Two: 50,
 };
 
 export let mouseDown = false;
@@ -72,6 +73,14 @@ export enum EntityName{
 
 
 
+
+
+
+
+
+
+
+
 export enum Tag {
     Player = "player",
     Fireball = "fireball",
@@ -92,7 +101,8 @@ export enum Tag {
     MoneyPouch = "MoneyPouch",
     Laser = "Laser",
     GolemBoss = "GolemBoss",
-    ArmProjectile = "ArmProjectile"
+    ArmProjectile = "ArmProjectile",
+    Loot = "Loot"
 }
 
 export let timeStart: number = Date.now();

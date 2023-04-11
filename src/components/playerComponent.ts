@@ -217,10 +217,11 @@ const itemSize = {
     height: 50
 }
 
-export const equippedInventory = new Inventory(5, 3, 200, 200, itemSize);
+export const equippedInventory = new Inventory(5, 3, 200, 200, itemSize, true);
 export const itemsFound = new Inventory(10, 5, canvas.width * 3/4, 200, itemSize);
 if (SaveGameSystem.Instance.loadData(SaveKey.FoundItems) != null){
     itemsFound.cells = SaveGameSystem.Instance.loadData(SaveKey.FoundItems)!;
+    console.log(itemsFound.cells);
 }
 
 export const playerInventory = [equippedInventory, itemsFound];

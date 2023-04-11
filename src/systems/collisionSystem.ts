@@ -12,9 +12,10 @@ import { addGold, addScore, deleteObject} from "../main";
 import { AnimatedComponent } from "../components/animatedComponent";
 import CameraSystem from "./cameraSystem";
 import SkeletonComponent from "../components/skeletonComponent";
-import { InventoryItemStat } from "../components/inventoryComponent";
+import { addInventoryItem, InventoryComponent, InventoryItemStat } from "../components/inventoryComponent";
 import GoblinBossComponent from "../components/goblinBossComponent";
 import GolemBossComponent from "../components/golemBossComponent";
+import { LootComponent } from "../components/lootComponent";
 
 type Func = (object1: Entity, object2: Entity) => void;
 type Registry = { [tag: string]: { [subtag: string]: Func } }; 
@@ -34,6 +35,7 @@ export default class CollisionSystem {
             [Tag.ExtendedVisionPowerup]: playerExtendedVisionPowerupCollision,
             [Tag.AuraPowerup]: playerAuraPowerupCollision,
             [Tag.DeathStarPowerup]: playerDeathStarPowerupCollision,
+            [Tag.Loot]: playerLootCollision,
             [Tag.Laser]: playerGenericCollision,
             [Tag.ArmProjectile]: playerGenericCollision,
         },
@@ -257,6 +259,15 @@ function playerDeathStarPowerupCollision(player: Entity, object: Entity) {
     for (object of toBeDeleted){
         deleteObject(object)
     }
+}
+
+function playerLootCollision(player: Entity, object: Entity) {
+    const lootComponent = object.getComponent<LootComponent>(LootComponent.COMPONENT_ID)!;
+    const inventoryComponent = player.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID);
+    if (lootComponent.inventoryItem != null) {
+        addInventoryItem(lootComponent.inventoryItem, inventoryComponent!.inventories[1]);
+    }
+    deleteObject(object);
 }
 
 function playerGenericCollision(player: Entity, object: Entity) {
