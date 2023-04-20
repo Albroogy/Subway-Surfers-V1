@@ -699,9 +699,9 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                     console.assert(this._supportsEquipment);
                     return Object.values(this.equippedItems).includes(item);
                 }
-                // public isInInventory(item: InventoryItem): boolean {
-                //     return Object.values(this.equippedItems).includes(item);
-                // }
+                isInInventory(item) {
+                    return Object.values(this.equippedItems).includes(item);
+                }
                 draw() {
                     // for every row and col
                     //   go through every cell, that is the top-left coordinate of an item and draw the image
@@ -1417,7 +1417,7 @@ System.register("components/soundComponent", ["entityComponent", "global"], func
     var entityComponent_11, global_6, SoundComponent;
     var __moduleName = context_14 && context_14.id;
     function audioTrackEnded(sounds, thisSoundNumber, soundComponent) {
-        if (thisSoundNumber >= sounds.length) {
+        if (thisSoundNumber >= sounds.length - global_6.OFFSET) {
             return;
         }
         soundComponent.playSound(sounds[thisSoundNumber]);
@@ -3230,9 +3230,12 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
         exports_28("fallSpeed", fallSpeed = ORIGINAL_FALL_SPEED);
         objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
         objectIntervalTime = ORIGINAL_ENEMY_INTERVAL_TIME;
-        currentSpawnTypes = ORIGINAL_SPAWN_TYPES;
-        enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE;
-        enemiesPerLane = [0, 0, 0];
+        if (ORIGINAL_SPAWN_TYPES) {
+            currentSpawnTypes = ORIGINAL_SPAWN_TYPES.map(t => t);
+        }
+        if (ORIGINAL_ENEMIES_PER_LANE) {
+            enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE.map(t => t);
+        }
         if (score > highScore) {
             highScore = score;
         }
@@ -3263,7 +3266,7 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
         gameSystem_2.gameEntity.update(deltaTime, gameSpeed);
     }
     function checkobjectTypesCount(currentTime) {
-        if (currentTime >= nextobjectTime && objectTypesCount <= Object.keys(EnemyType).length) {
+        if (currentTime >= nextobjectTime && objectTypesCount <= Object.keys(EnemyType).length - global_15.OFFSET) {
             objectTypesCount += 1;
             currentSpawnTypes.push(Object.values(EnemyType)[objectTypesCount - global_15.OFFSET]);
             nextobjectTime += objectIntervalTime;
@@ -3502,20 +3505,26 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
             item = Object.values(inventoryComponent_3.Items.Weapons)[itemNum];
             console.log(item);
         }
-        for (const loot of Object.values(inventoryComponent_3.Items.Weapons)) {
-            const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
-            const inventoryItem = inventoryComponent_3.createInventoryItem(loot, itemName);
-            entityGenerator_3.generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
-        }
-        for (const loot of Object.values(inventoryComponent_3.Items.Armor)) {
-            const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
-            const inventoryItem = inventoryComponent_3.createInventoryItem(loot, itemName);
-            entityGenerator_3.generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
-        }
+        // for (const loot of Object.values(Items.Weapons)) {
+        //     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        //     const inventoryItem = createInventoryItem(loot, itemName);
+        //     generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+        // }
+        // for (const loot of Object.values(Items.Armor)) {
+        //     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+        //     const inventoryItem = createInventoryItem(loot, itemName);
+        //     generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+        // }
         // create item
-        // const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-        // const inventoryItem = createInventoryItem(item, itemName);
-        // generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+        const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
+        const inventoryItem = inventoryComponent_3.createInventoryItem(item, itemName);
+        const inventory = playerComponent_7.player.getComponent(inventoryComponent_3.InventoryComponent.COMPONENT_ID).inventories[1];
+        if (inventory.isInInventory(inventoryItem)) {
+            return;
+        }
+        else {
+            entityGenerator_3.generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+        }
     }
     return {
         setters: [
@@ -3649,9 +3658,9 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
                 [EnemyType.GenerateGhost]: entityGenerator_3.generateGhost
             };
             ORIGINAL_ENEMIES_PER_LANE = [0, 0, 0];
-            enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE;
+            enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE.map(t => t);
             ORIGINAL_SPAWN_TYPES = [EnemyType.GenerateSkeleton];
-            currentSpawnTypes = ORIGINAL_SPAWN_TYPES;
+            currentSpawnTypes = ORIGINAL_SPAWN_TYPES.map(t => t);
             (function (PowerupType) {
                 PowerupType["Coin"] = "coin";
                 PowerupType["ExtendedVision"] = "extendedVision";
@@ -4792,9 +4801,9 @@ System.register("components/minotaurComponent", ["entityComponent", "components/
         }
     };
 });
-System.register("entityGenerator", ["components/animatedComponent", "components/arrowComponent", "components/dragonComponent", "components/frankensteinComponent", "components/ghost", "components/goblinBossComponent", "components/golemBossComponent", "components/healthBarComponent", "components/homingMissileComponent", "components/imageComponent", "components/laserComponent", "components/lootComponent", "components/minotaurComponent", "components/movementComponent", "components/playerComponent", "components/positionComponent", "components/skeletonComponent", "components/soundComponent", "components/stateMachineComponent", "components/tagComponent", "entityComponent", "global", "objects"], function (exports_35, context_35) {
+System.register("entityGenerator", ["components/animatedComponent", "components/arrowComponent", "components/dragonComponent", "components/frankensteinComponent", "components/ghost", "components/goblinBossComponent", "components/golemBossComponent", "components/healthBarComponent", "components/homingMissileComponent", "components/imageComponent", "components/laserComponent", "components/lootComponent", "components/minotaurComponent", "components/movementComponent", "components/playerComponent", "components/positionComponent", "components/skeletonComponent", "components/soundComponent", "components/stateMachineComponent", "components/tagComponent", "entityComponent", "global", "objects", "systems/cameraSystem"], function (exports_35, context_35) {
     "use strict";
-    var animatedComponent_12, arrowComponent_1, dragonComponent_1, frankensteinComponent_2, ghost_1, goblinBossComponent_2, golemBossComponent_2, healthBarComponent_3, homingMissileComponent_1, imageComponent_3, laserComponent_1, lootComponent_2, minotaurComponent_1, movementComponent_6, playerComponent_13, positionComponent_20, skeletonComponent_2, soundComponent_5, stateMachineComponent_11, tagComponent_5, entityComponent_28, global_19, objects_8, OBJECT;
+    var animatedComponent_12, arrowComponent_1, dragonComponent_1, frankensteinComponent_2, ghost_1, goblinBossComponent_2, golemBossComponent_2, healthBarComponent_3, homingMissileComponent_1, imageComponent_3, laserComponent_1, lootComponent_2, minotaurComponent_1, movementComponent_6, playerComponent_13, positionComponent_20, skeletonComponent_2, soundComponent_5, stateMachineComponent_11, tagComponent_5, entityComponent_28, global_19, objects_8, cameraSystem_3, OBJECT;
     var __moduleName = context_35 && context_35.id;
     function generateCoin(objectLaneLocation, fallSpeed) {
         const coin = new entityComponent_28.Entity(global_19.EntityName.Coin);
@@ -4917,7 +4926,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
             SPEED: 300,
             URL: "assets/images/arrow.png"
         };
-        let angle = Math.atan2(global_19.mouse.y - positionComponent.y, global_19.mouse.x - positionComponent.x);
+        let angle = Math.atan2(((global_19.mouse.y + 50) - positionComponent.y) / cameraSystem_3.default.Instance.zoomLevel, ((global_19.mouse.x + 50) - positionComponent.x) / cameraSystem_3.default.Instance.zoomLevel);
         const Direction = {
             x: Math.cos(angle),
             y: Math.sin(angle)
@@ -5083,6 +5092,9 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
             },
             function (objects_8_1) {
                 objects_8 = objects_8_1;
+            },
+            function (cameraSystem_3_1) {
+                cameraSystem_3 = cameraSystem_3_1;
             }
         ],
         execute: function () {

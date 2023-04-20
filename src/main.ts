@@ -73,9 +73,12 @@ export function resetValues(){
     fallSpeed = ORIGINAL_FALL_SPEED;
     objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
     objectIntervalTime = ORIGINAL_ENEMY_INTERVAL_TIME;
-    currentSpawnTypes = ORIGINAL_SPAWN_TYPES;
-    enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE;
-    enemiesPerLane = [0, 0, 0];
+    if (ORIGINAL_SPAWN_TYPES) {
+        currentSpawnTypes = ORIGINAL_SPAWN_TYPES.map(t => t);
+    }
+    if (ORIGINAL_ENEMIES_PER_LANE) {
+        enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE.map(t => t);
+    }
     if (score > highScore){
         highScore = score;
     }
@@ -151,7 +154,7 @@ const ORIGINAL_OBJECT_TYPES_COUNT = 1;
 let objectTypesCount = ORIGINAL_OBJECT_TYPES_COUNT;
 
 function checkobjectTypesCount(currentTime: number): void {
-    if (currentTime >= nextobjectTime && objectTypesCount <= Object.keys(EnemyType).length){
+    if (currentTime >= nextobjectTime && objectTypesCount <= Object.keys(EnemyType).length - OFFSET){
         objectTypesCount += 1;
         currentSpawnTypes.push(
             Object.values(EnemyType)[objectTypesCount - OFFSET]
@@ -289,10 +292,10 @@ const EnemyTypeGenerator = {
 };
 
 const ORIGINAL_ENEMIES_PER_LANE = [0, 0, 0];
-let enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE;
+let enemiesPerLane = ORIGINAL_ENEMIES_PER_LANE.map(t => t);
 
 const ORIGINAL_SPAWN_TYPES = [EnemyType.GenerateSkeleton];
-let currentSpawnTypes = ORIGINAL_SPAWN_TYPES;
+let currentSpawnTypes = ORIGINAL_SPAWN_TYPES.map(t => t);
 
 function spawnEnemy(){
     const spawnProbabilities = currentSpawnTypes.map((spawnType: string, index: number) => {
@@ -475,20 +478,26 @@ function generateItem(object: Entity) {
         item = Object.values(Items.Weapons)[itemNum];
         console.log(item)
     }
-    for (const loot of Object.values(Items.Weapons)) {
-        const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-        const inventoryItem = createInventoryItem(loot, itemName);
-        generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
-    }
-    for (const loot of Object.values(Items.Armor)) {
-        const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-        const inventoryItem = createInventoryItem(loot, itemName);
-        generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
-    }
+    // for (const loot of Object.values(Items.Weapons)) {
+    //     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    //     const inventoryItem = createInventoryItem(loot, itemName);
+    //     generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+    // }
+    // for (const loot of Object.values(Items.Armor)) {
+    //     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    //     const inventoryItem = createInventoryItem(loot, itemName);
+    //     generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+    // }
     // create item
-    // const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-    // const inventoryItem = createInventoryItem(item, itemName);
-    // generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+    const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
+    const inventoryItem = createInventoryItem(item, itemName);
+    const inventory = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!.inventories[1];
+    if (inventory.isInInventory(inventoryItem)) {
+        return;
+    }
+    else {
+        generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
+    }
 }
 
 document.body.addEventListener("wheel", (e: WheelEvent) => {

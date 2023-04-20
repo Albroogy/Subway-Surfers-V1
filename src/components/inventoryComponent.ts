@@ -124,9 +124,9 @@ export class Inventory{
         console.assert(this._supportsEquipment);
         return Object.values(this.equippedItems).includes(item);
     }
-    // public isInInventory(item: InventoryItem): boolean {
-    //     return Object.values(this.equippedItems).includes(item);
-    // }
+    public isInInventory(item: InventoryItem): boolean {
+        return Object.values(this.equippedItems).includes(item);
+    }
     public draw() {
         // for every row and col
         //   go through every cell, that is the top-left coordinate of an item and draw the image

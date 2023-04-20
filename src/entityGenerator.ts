@@ -22,6 +22,7 @@ import { TagComponent } from "./components/tagComponent";
 import { Entity } from "./entityComponent";
 import { canvas, EntityName, mouse, OFFSET, Tag } from "./global";
 import { objects } from "./objects";
+import CameraSystem from "./systems/cameraSystem";
 
 const OBJECT: Record <string, number> = {
     WIDTH: 50,
@@ -189,7 +190,10 @@ export function generateArrow(positionComponent: PositionComponent){
         URL: "assets/images/arrow.png"
     }
 
-    let angle = Math.atan2(mouse.y - positionComponent.y, mouse.x - positionComponent.x);
+    let angle = Math.atan2(
+        ((mouse.y + 50) - positionComponent.y) / CameraSystem.Instance.zoomLevel,
+        ((mouse.x + 50) - positionComponent.x) / CameraSystem.Instance.zoomLevel
+    );
     const Direction = {
         x: Math.cos(angle),
         y: Math.sin(angle)

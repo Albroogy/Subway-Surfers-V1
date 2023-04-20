@@ -31,7 +31,7 @@ export class SoundComponent extends Component {
 }
 
 function audioTrackEnded(sounds: Array<string>, thisSoundNumber: number, soundComponent: SoundComponent){
-    if (thisSoundNumber >= sounds.length){
+    if (thisSoundNumber >= sounds.length - OFFSET){
         return;
     }
     soundComponent.playSound(sounds[thisSoundNumber]);
