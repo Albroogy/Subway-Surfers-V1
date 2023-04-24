@@ -1,4 +1,5 @@
 import { Component } from "../entityComponent";
+import { objects } from "../objects";
 import { AnimatedComponent, AnimationInfo } from "./animatedComponent";
 import PositionComponent from "./positionComponent";
 
@@ -8,6 +9,12 @@ export default class LaserComponent extends Component {
     public onAttached(): void {
         const animatedComponent = this._entity!.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
         animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[LaserAnimationNames.LaserBeam];
+    }
+    public update(deltaTime: number, gameSpeed: number): void {
+        const animatedComponent = this._entity!.getComponent<AnimatedComponent>(AnimatedComponent.COMPONENT_ID)!;
+        if (animatedComponent.currentAnimationFrame > 12) {
+            objects.splice(objects.indexOf(this._entity!), 1);
+        }
     }
 }
 

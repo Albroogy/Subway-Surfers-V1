@@ -175,6 +175,12 @@ function update(deltaTime: number, gameSpeed: number){
     AchievementSystem.Instance.checkAchievements(gold, enemiesDefeated, BossesDefeated, itemsCount);
 
     if (checkTime(spawnDelay, lastSpawn)){
+        if (allPressedKeys[KEYS.Three]) {
+            generateGoblinBoss(calculateLaneLocation(2), 200)
+        }
+        if (allPressedKeys[KEYS.Four]) {
+            generateGolemBoss(calculateLaneLocation(2), 200)
+        }
         const randomNum = Math.random();
         if (randomNum <= 0.8) {
             spawnEnemy();

@@ -112,6 +112,8 @@ System.register("global", [], function (exports_2, context_2) {
                 E: 69,
                 One: 49,
                 Two: 50,
+                Three: 51,
+                Four: 52,
             });
             exports_2("mouseDown", mouseDown = false);
             exports_2("mouse", mouse = {
@@ -3302,6 +3304,12 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
         let itemsCount = inventoryComponent.inventories[0].count + inventoryComponent.inventories[1].count;
         achievementSystem_1.default.Instance.checkAchievements(gold, enemiesDefeated, BossesDefeated, itemsCount);
         if (global_15.checkTime(spawnDelay, lastSpawn)) {
+            if (global_15.allPressedKeys[global_15.KEYS.Three]) {
+                entityGenerator_3.generateGoblinBoss(global_15.calculateLaneLocation(2), 200);
+            }
+            if (global_15.allPressedKeys[global_15.KEYS.Four]) {
+                entityGenerator_3.generateGolemBoss(global_15.calculateLaneLocation(2), 200);
+            }
             const randomNum = Math.random();
             if (randomNum <= 0.8) {
                 spawnEnemy();
@@ -4613,14 +4621,17 @@ System.register("components/homingMissileComponent", ["entityComponent", "compon
         }
     };
 });
-System.register("components/laserComponent", ["entityComponent", "components/animatedComponent"], function (exports_33, context_33) {
+System.register("components/laserComponent", ["entityComponent", "objects", "components/animatedComponent"], function (exports_33, context_33) {
     "use strict";
-    var entityComponent_26, animatedComponent_10, LaserComponent, LaserAnimationNames, LaserAnimationInfo;
+    var entityComponent_26, objects_8, animatedComponent_10, LaserComponent, LaserAnimationNames, LaserAnimationInfo;
     var __moduleName = context_33 && context_33.id;
     return {
         setters: [
             function (entityComponent_26_1) {
                 entityComponent_26 = entityComponent_26_1;
+            },
+            function (objects_8_1) {
+                objects_8 = objects_8_1;
             },
             function (animatedComponent_10_1) {
                 animatedComponent_10 = animatedComponent_10_1;
@@ -4632,6 +4643,12 @@ System.register("components/laserComponent", ["entityComponent", "components/ani
                 onAttached() {
                     const animatedComponent = this._entity.getComponent(animatedComponent_10.AnimatedComponent.COMPONENT_ID);
                     animatedComponent.currentAnimation = animatedComponent.animationInfo.animations[LaserAnimationNames.LaserBeam];
+                }
+                update(deltaTime, gameSpeed) {
+                    const animatedComponent = this._entity.getComponent(animatedComponent_10.AnimatedComponent.COMPONENT_ID);
+                    if (animatedComponent.currentAnimationFrame > 12) {
+                        objects_8.objects.splice(objects_8.objects.indexOf(this._entity), 1);
+                    }
                 }
             };
             exports_33("default", LaserComponent);
@@ -4809,7 +4826,7 @@ System.register("components/minotaurComponent", ["entityComponent", "components/
 });
 System.register("entityGenerator", ["components/animatedComponent", "components/arrowComponent", "components/dragonComponent", "components/frankensteinComponent", "components/ghost", "components/goblinBossComponent", "components/golemBossComponent", "components/healthBarComponent", "components/homingMissileComponent", "components/imageComponent", "components/laserComponent", "components/lootComponent", "components/minotaurComponent", "components/movementComponent", "components/playerComponent", "components/positionComponent", "components/skeletonComponent", "components/soundComponent", "components/stateMachineComponent", "components/tagComponent", "entityComponent", "global", "objects", "systems/cameraSystem"], function (exports_35, context_35) {
     "use strict";
-    var animatedComponent_12, arrowComponent_1, dragonComponent_1, frankensteinComponent_2, ghost_1, goblinBossComponent_2, golemBossComponent_2, healthBarComponent_3, homingMissileComponent_1, imageComponent_3, laserComponent_1, lootComponent_2, minotaurComponent_1, movementComponent_6, playerComponent_13, positionComponent_20, skeletonComponent_2, soundComponent_5, stateMachineComponent_11, tagComponent_5, entityComponent_28, global_19, objects_8, cameraSystem_3, OBJECT;
+    var animatedComponent_12, arrowComponent_1, dragonComponent_1, frankensteinComponent_2, ghost_1, goblinBossComponent_2, golemBossComponent_2, healthBarComponent_3, homingMissileComponent_1, imageComponent_3, laserComponent_1, lootComponent_2, minotaurComponent_1, movementComponent_6, playerComponent_13, positionComponent_20, skeletonComponent_2, soundComponent_5, stateMachineComponent_11, tagComponent_5, entityComponent_28, global_19, objects_9, cameraSystem_3, OBJECT;
     var __moduleName = context_35 && context_35.id;
     function generateCoin(objectLaneLocation, fallSpeed) {
         const coin = new entityComponent_28.Entity(global_19.EntityName.Coin);
@@ -4817,7 +4834,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         coin.addComponent(imageComponent_3.ImageComponent.COMPONENT_ID, new imageComponent_3.ImageComponent("assets/images/coin.png"));
         coin.addComponent(movementComponent_6.default.COMPONENT_ID, new movementComponent_6.default(fallSpeed, 1));
         coin.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Coin, global_19.Tag.Powerup]));
-        objects_8.objects.push(coin);
+        objects_9.objects.push(coin);
     }
     exports_35("generateCoin", generateCoin);
     function generateExtendedVision(objectLaneLocation, fallSpeed) {
@@ -4826,7 +4843,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         extendedVisionPowerup.addComponent(imageComponent_3.ImageComponent.COMPONENT_ID, new imageComponent_3.ImageComponent("assets/images/extendedVisionPowerup.png"));
         extendedVisionPowerup.addComponent(movementComponent_6.default.COMPONENT_ID, new movementComponent_6.default(fallSpeed, 1));
         extendedVisionPowerup.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.ExtendedVisionPowerup, global_19.Tag.Powerup]));
-        objects_8.objects.push(extendedVisionPowerup);
+        objects_9.objects.push(extendedVisionPowerup);
     }
     exports_35("generateExtendedVision", generateExtendedVision);
     function generateAura(objectLaneLocation, fallSpeed) {
@@ -4836,7 +4853,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         auraPowerup.addComponent(imageComponent_3.ImageComponent.COMPONENT_ID, new imageComponent_3.ImageComponent("assets/images/aura.png"));
         auraPowerup.addComponent(movementComponent_6.default.COMPONENT_ID, new movementComponent_6.default(fallSpeed, 1));
         auraPowerup.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.AuraPowerup, global_19.Tag.Powerup]));
-        objects_8.objects.push(auraPowerup);
+        objects_9.objects.push(auraPowerup);
     }
     exports_35("generateAura", generateAura);
     function generateDeathStar(objectLaneLocation, fallSpeed) {
@@ -4845,7 +4862,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         deathStarPowerup.addComponent(imageComponent_3.ImageComponent.COMPONENT_ID, new imageComponent_3.ImageComponent("assets/images/deathStar.png"));
         deathStarPowerup.addComponent(movementComponent_6.default.COMPONENT_ID, new movementComponent_6.default(fallSpeed, 1));
         deathStarPowerup.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.DeathStarPowerup, global_19.Tag.Powerup]));
-        objects_8.objects.push(deathStarPowerup);
+        objects_9.objects.push(deathStarPowerup);
     }
     exports_35("generateDeathStar", generateDeathStar);
     function generateLoot(x, y, fallSpeed, item) {
@@ -4855,7 +4872,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         loot.addComponent(movementComponent_6.default.COMPONENT_ID, new movementComponent_6.default(fallSpeed, 1));
         loot.addComponent(lootComponent_2.LootComponent.COMPONENT_ID, new lootComponent_2.LootComponent(item));
         loot.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Loot]));
-        objects_8.objects.push(loot);
+        objects_9.objects.push(loot);
     }
     exports_35("generateLoot", generateLoot);
     function generateDragon(objectLaneLocation, fallSpeed) {
@@ -4870,7 +4887,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         dragon.addComponent(dragonComponent_1.default.COMPONENT_ID, new dragonComponent_1.default());
         dragon.addComponent(soundComponent_5.SoundComponent.COMPONENT_ID, new soundComponent_5.SoundComponent(DragonAudio));
         dragon.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Dragon, global_19.Tag.Enemy]));
-        objects_8.objects.push(dragon);
+        objects_9.objects.push(dragon);
     }
     exports_35("generateDragon", generateDragon);
     function generateMinotaur(objectLaneLocation, fallSpeed) {
@@ -4883,7 +4900,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         minotaur.addComponent(stateMachineComponent_11.default.COMPONENT_ID, new stateMachineComponent_11.default());
         minotaur.addComponent(minotaurComponent_1.default.COMPONENT_ID, new minotaurComponent_1.default());
         minotaur.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Minotaur, global_19.Tag.Enemy]));
-        objects_8.objects.push(minotaur);
+        objects_9.objects.push(minotaur);
     }
     exports_35("generateMinotaur", generateMinotaur);
     function generateFrankenstein(objectLaneLocation, fallSpeed) {
@@ -4896,7 +4913,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         frankenstein.addComponent(stateMachineComponent_11.default.COMPONENT_ID, new stateMachineComponent_11.default());
         frankenstein.addComponent(frankensteinComponent_2.default.COMPONENT_ID, new frankensteinComponent_2.default());
         frankenstein.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Frankenstein, global_19.Tag.Enemy]));
-        objects_8.objects.push(frankenstein);
+        objects_9.objects.push(frankenstein);
     }
     exports_35("generateFrankenstein", generateFrankenstein);
     function generateSkeleton(objectLaneLocation, fallSpeed) {
@@ -4909,7 +4926,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         skeleton.addComponent(stateMachineComponent_11.default.COMPONENT_ID, new stateMachineComponent_11.default());
         skeleton.addComponent(skeletonComponent_2.default.COMPONENT_ID, new skeletonComponent_2.default());
         skeleton.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Skeleton, global_19.Tag.Enemy]));
-        objects_8.objects.push(skeleton);
+        objects_9.objects.push(skeleton);
     }
     exports_35("generateSkeleton", generateSkeleton);
     function generateGhost(objectLaneLocation) {
@@ -4921,7 +4938,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         ghost.addComponent(stateMachineComponent_11.default.COMPONENT_ID, new stateMachineComponent_11.default());
         ghost.addComponent(ghost_1.default.COMPONENT_ID, new ghost_1.default());
         ghost.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Ghost, global_19.Tag.Enemy]));
-        objects_8.objects.push(ghost);
+        objects_9.objects.push(ghost);
     }
     exports_35("generateGhost", generateGhost);
     function generateArrow(positionComponent) {
@@ -4942,7 +4959,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         arrow.addComponent(imageComponent_3.ImageComponent.COMPONENT_ID, new imageComponent_3.ImageComponent(ARROW.URL));
         arrow.addComponent(arrowComponent_1.default.COMPONENT_ID, new arrowComponent_1.default(ARROW.SPEED, Direction));
         arrow.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Arrow]));
-        objects_8.objects.push(arrow);
+        objects_9.objects.push(arrow);
     }
     exports_35("generateArrow", generateArrow);
     function generateMoneyPouch(currentObject) {
@@ -4964,7 +4981,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         moneyPouch.addComponent(imageComponent_3.ImageComponent.COMPONENT_ID, new imageComponent_3.ImageComponent(MONEY_POUCH.URL));
         moneyPouch.addComponent(arrowComponent_1.default.COMPONENT_ID, new arrowComponent_1.default(MONEY_POUCH.SPEED, Direction));
         moneyPouch.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.MoneyPouch]));
-        objects_8.objects.push(moneyPouch);
+        objects_9.objects.push(moneyPouch);
     }
     exports_35("generateMoneyPouch", generateMoneyPouch);
     function generateLaser(objectLaneLocation, yPosition) {
@@ -4979,7 +4996,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         laser.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.Laser]));
         laser.addComponent(animatedComponent_12.AnimatedComponent.COMPONENT_ID, new animatedComponent_12.AnimatedComponent(LASER.URL, laserComponent_1.LaserAnimationInfo, false));
         laser.addComponent(laserComponent_1.default.COMPONENT_ID, new laserComponent_1.default());
-        objects_8.objects.push(laser);
+        objects_9.objects.push(laser);
     }
     exports_35("generateLaser", generateLaser);
     function generateArmProjectile(currentObject) {
@@ -4995,7 +5012,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         armProjectile.addComponent(imageComponent_3.ImageComponent.COMPONENT_ID, new imageComponent_3.ImageComponent(ARM_PROJECTILE.URL));
         armProjectile.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.ArmProjectile]));
         armProjectile.addComponent(homingMissileComponent_1.default.COMPONENT_ID, new homingMissileComponent_1.default(ARM_PROJECTILE.SPEED));
-        objects_8.objects.push(armProjectile);
+        objects_9.objects.push(armProjectile);
     }
     exports_35("generateArmProjectile", generateArmProjectile);
     // Bosses
@@ -5010,7 +5027,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         goblin.addComponent(tagComponent_5.TagComponent.COMPONENT_ID, new tagComponent_5.TagComponent([global_19.Tag.GoblinBoss, global_19.Tag.Boss, global_19.Tag.Enemy]));
         let EntityBar1 = new healthBarComponent_3.EntityBar(20, "red", 0, -50, 100, 20, true);
         goblin.addComponent(healthBarComponent_3.default.COMPONENT_ID, new healthBarComponent_3.default([EntityBar1]));
-        objects_8.objects.push(goblin);
+        objects_9.objects.push(goblin);
     }
     exports_35("generateGoblinBoss", generateGoblinBoss);
     function generateGolemBoss(objectLaneLocation, yPosition) {
@@ -5025,7 +5042,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
         let EntityBar1 = new healthBarComponent_3.EntityBar(20, "red", 0, -70, 100, 20, true);
         let EntityBar2 = new healthBarComponent_3.EntityBar(3, "blue", 0, -50, 100, 20, true);
         golem.addComponent(healthBarComponent_3.default.COMPONENT_ID, new healthBarComponent_3.default([EntityBar1, EntityBar2]));
-        objects_8.objects.push(golem);
+        objects_9.objects.push(golem);
     }
     exports_35("generateGolemBoss", generateGolemBoss);
     return {
@@ -5096,8 +5113,8 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
             function (global_19_1) {
                 global_19 = global_19_1;
             },
-            function (objects_8_1) {
-                objects_8 = objects_8_1;
+            function (objects_9_1) {
+                objects_9 = objects_9_1;
             },
             function (cameraSystem_3_1) {
                 cameraSystem_3 = cameraSystem_3_1;

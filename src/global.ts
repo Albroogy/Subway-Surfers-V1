@@ -21,6 +21,8 @@ export const KEYS = {
     E: 69,
     One: 49,
     Two: 50,
+    Three: 51,
+    Four: 52,
 };
 
 export let mouseDown = false;
