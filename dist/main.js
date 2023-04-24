@@ -547,7 +547,7 @@ System.register("components/stateMachineComponent", ["entityComponent"], functio
 });
 System.register("components/inventoryComponent", ["global", "entityComponent"], function (exports_10, context_10) {
     "use strict";
-    var global_3, entityComponent_7, Status, InventoryItemStat, InventoryItem, TakenInventoryItemSlot, Inventory, InventoryComponent, ItemInfo, InventorySlot, Weapons, Armors, Items, spearImage, bowImage, armorImage, bootsImage, ItemList;
+    var global_3, entityComponent_7, Status, InventoryItemStat, InventoryItem, InventorySlot, Inventory, InventoryComponent, ItemInfo, Weapons, Armors, Items, spearImage, bowImage, armorImage, bootsImage, ItemList;
     var __moduleName = context_10 && context_10.id;
     function equipStarterItems(currentObject) {
         const inventoryComponent = currentObject.getComponent(InventoryComponent.COMPONENT_ID);
@@ -614,7 +614,13 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                 }
             };
             exports_10("InventoryItem", InventoryItem);
-            exports_10("TakenInventoryItemSlot", TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true });
+            (function (InventorySlot) {
+                InventorySlot[InventorySlot["Helmet"] = 0] = "Helmet";
+                InventorySlot[InventorySlot["Chestplate"] = 1] = "Chestplate";
+                InventorySlot[InventorySlot["Leggings"] = 2] = "Leggings";
+                InventorySlot[InventorySlot["Boots"] = 3] = "Boots";
+                InventorySlot[InventorySlot["Weapon"] = 4] = "Weapon";
+            })(InventorySlot || (InventorySlot = {}));
             Inventory = class Inventory {
                 width;
                 height;
@@ -627,7 +633,13 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                 highlight = false;
                 _supportsEquipment;
                 constructor(width, height, x, y, itemSize, supportsEquipment = false) {
-                    this.equippedItems = {};
+                    this.equippedItems = {
+                        [InventorySlot.Helmet]: null,
+                        [InventorySlot.Chestplate]: null,
+                        [InventorySlot.Leggings]: null,
+                        [InventorySlot.Boots]: null,
+                        [InventorySlot.Weapon]: null
+                    };
                     this.cells = [];
                     this.width = width;
                     this.height = height;
@@ -674,7 +686,9 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                             for (let j = 0; j < item.height; j++) {
                                 this.cells[cellRow + i][cellCol + j] = { inventoryItem: item };
                                 this.cells[cellRow][cellCol] = item;
-                                this._updateEquippedItem(item, Status.Add);
+                                if (this._supportsEquipment) {
+                                    this._updateEquippedItem(item, Status.Add);
+                                }
                             }
                         }
                     }
@@ -684,7 +698,9 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                         for (let j = 0; j < this.height; j++) {
                             if (this.cells[i][j] instanceof InventoryItem) {
                                 if (this.cells[i][j].name == item.name) {
-                                    this._updateEquippedItem(item, Status.Remove);
+                                    if (this._supportsEquipment) {
+                                        this._updateEquippedItem(item, Status.Remove);
+                                    }
                                     for (let a = 0; a < item.width; a++) {
                                         for (let b = 0; b < item.height; b++) {
                                             this.cells[a + i][b + j] = null;
@@ -700,7 +716,14 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                     return Object.values(this.equippedItems).includes(item);
                 }
                 isInInventory(item) {
-                    return Object.values(this.equippedItems).includes(item);
+                    for (let i = 0; i < this.width; i++) {
+                        for (let j = 0; j < this.height; j++) {
+                            if (this.cells[i][j] == item) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
                 }
                 draw() {
                     // for every row and col
@@ -768,6 +791,7 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                             }
                         }
                     }
+                    return null;
                 }
                 get count() {
                     let count = 0;
@@ -787,6 +811,7 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                     else {
                         this.equippedItems[item.slot] = null;
                     }
+                    console.log(this.equippedItems);
                 }
             };
             exports_10("Inventory", Inventory);
@@ -813,13 +838,6 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                     src: "assets/images/spear.png"
                 }
             });
-            (function (InventorySlot) {
-                InventorySlot[InventorySlot["Helmet"] = 0] = "Helmet";
-                InventorySlot[InventorySlot["Chestplate"] = 1] = "Chestplate";
-                InventorySlot[InventorySlot["Leggings"] = 2] = "Leggings";
-                InventorySlot[InventorySlot["Boots"] = 3] = "Boots";
-                InventorySlot[InventorySlot["Weapon"] = 4] = "Weapon";
-            })(InventorySlot || (InventorySlot = {}));
             (function (Weapons) {
                 Weapons["Kite"] = "kite";
                 Weapons["Spartan"] = "spartan";
@@ -865,42 +883,42 @@ System.register("components/inventoryComponent", ["global", "entityComponent"], 
                 Armor: {
                     [Armors.BlackHelmet]: {
                         src: "assets/images/inventoryitems/armor/helmets/black.png",
-                        stats: [],
+                        stats: [{ stat: InventoryItemStat.Lives, modifiedValue: 1 }],
                         type: InventorySlot.Helmet,
                         width: 1,
                         height: 1,
                     },
                     [Armors.MagicHelmet]: {
                         src: "assets/images/inventoryitems/armor/helmets/magic.png",
-                        stats: [],
+                        stats: [{ stat: InventoryItemStat.Lives, modifiedValue: 1 }],
                         type: InventorySlot.Helmet,
                         width: 2,
                         height: 1,
                     },
                     [Armors.SteelHelmet]: {
                         src: "assets/images/inventoryitems/armor/helmets/steel.png",
-                        stats: [],
+                        stats: [{ stat: InventoryItemStat.Lives, modifiedValue: 1 }],
                         type: InventorySlot.Helmet,
                         width: 1,
                         height: 1,
                     },
                     [Armors.CopperHelmet]: {
                         src: "assets/images/inventoryitems/armor/helmets/copper.png",
-                        stats: [],
+                        stats: [{ stat: InventoryItemStat.Lives, modifiedValue: 1 }],
                         type: InventorySlot.Helmet,
                         width: 1,
                         height: 1,
                     },
                     [Armors.BronzeHelmet]: {
                         src: "assets/images/inventoryitems/armor/helmets/bronze.png",
-                        stats: [],
+                        stats: [{ stat: InventoryItemStat.Lives, modifiedValue: 1 }],
                         type: InventorySlot.Helmet,
                         width: 1,
                         height: 1,
                     },
                     [Armors.VikingHelmet]: {
                         src: "assets/images/inventoryitems/armor/helmets/viking.png",
-                        stats: [],
+                        stats: [{ stat: InventoryItemStat.Lives, modifiedValue: 1 }],
                         type: InventorySlot.Helmet,
                         width: 1,
                         height: 1,
@@ -3197,7 +3215,7 @@ System.register("systems/saveGameSystem", [], function (exports_27, context_27) 
 });
 System.register("main", ["components/playerComponent", "global", "entityComponent", "components/positionComponent", "components/drawCircleComponent", "components/animatedComponent", "components/movementComponent", "systems/gameSystem", "objects", "systems/collisionSystem", "components/inventoryComponent", "components/gameComponent", "components/soundComponent", "components/imagePartComponent", "systems/cameraSystem", "systems/saveGameSystem", "components/tagComponent", "systems/achievementSystem", "entityGenerator"], function (exports_28, context_28) {
     "use strict";
-    var playerComponent_7, playerComponent_8, global_15, entityComponent_21, positionComponent_14, drawCircleComponent_2, animatedComponent_6, movementComponent_3, gameSystem_2, objects_5, collisionSystem_1, inventoryComponent_3, gameComponent_2, soundComponent_3, imagePartComponent_1, cameraSystem_2, saveGameSystem_2, tagComponent_2, achievementSystem_1, entityGenerator_3, playerComponent, gold, score, highScore, ORIGINAL_FALL_SPEED, fallSpeed, ORIGINAL_SPAWN_DELAY, spawnDelay, lastTime, ORIGINAL_ENEMY_INTERVAL_TIME, objectIntervalTime, nextobjectTime, ORIGINAL_OBJECT_TYPES_COUNT, objectTypesCount, lastSpawn, playerImage, EnemyType, EnemyTypeGenerator, ORIGINAL_ENEMIES_PER_LANE, enemiesPerLane, ORIGINAL_SPAWN_TYPES, currentSpawnTypes, PowerupType, PowerupTypeGenerator, enemiesDefeated, BossesDefeated;
+    var playerComponent_7, playerComponent_8, global_15, entityComponent_21, positionComponent_14, drawCircleComponent_2, animatedComponent_6, movementComponent_3, gameSystem_2, objects_5, collisionSystem_1, inventoryComponent_3, gameComponent_2, soundComponent_3, imagePartComponent_1, cameraSystem_2, saveGameSystem_2, tagComponent_2, achievementSystem_1, entityGenerator_3, gold, score, highScore, ORIGINAL_FALL_SPEED, fallSpeed, ORIGINAL_SPAWN_DELAY, spawnDelay, lastTime, ORIGINAL_ENEMY_INTERVAL_TIME, objectIntervalTime, nextobjectTime, ORIGINAL_OBJECT_TYPES_COUNT, objectTypesCount, lastSpawn, playerImage, EnemyType, EnemyTypeGenerator, ORIGINAL_ENEMIES_PER_LANE, enemiesPerLane, ORIGINAL_SPAWN_TYPES, currentSpawnTypes, PowerupType, PowerupTypeGenerator, enemiesDefeated, BossesDefeated;
     var __moduleName = context_28 && context_28.id;
     function startMusicTracks() {
         const soundComponent = gameSystem_2.gameEntity.getComponent(soundComponent_3.SoundComponent.COMPONENT_ID);
@@ -3248,6 +3266,7 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
         const deltaTime = currentTime - lastTime;
         lastTime = currentTime;
         let gameSpeed = 1;
+        const playerComponent = playerComponent_7.player.getComponent(playerComponent_7.PlayerComponent.COMPONENT_ID);
         if (playerComponent.state != playerComponent_8.PlayerState.Running || global_15.allPressedKeys[global_15.KEYS.E]) {
             gameSpeed = 1;
         }
@@ -3337,6 +3356,7 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
             global_15.context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE_LOCATION.x, HIGH_SCORE_LOCATION.y);
             global_15.context.fillText(`GOLD: ${gold}`, GOLD_TEXT_LOCATION.x, GOLD_TEXT_LOCATION.y);
             global_15.context.font = "20px Arial";
+            const playerComponent = playerComponent_7.player.getComponent(playerComponent_7.PlayerComponent.COMPONENT_ID);
             if (playerComponent.stats[inventoryComponent_3.InventoryItemStat.Lives] > 0) {
                 global_15.context.font = "20px Arial";
                 global_15.context.fillText(`LIVES: ${playerComponent.stats[inventoryComponent_3.InventoryItemStat.Lives]}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
@@ -3474,7 +3494,7 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
                     BossesDefeated[achievementSystem_1.ValueType.GolemBossDefeated] = 1;
                 }
             }
-            else if (Math.random() > 0.000001) {
+            else if (Math.random() > 0.5) {
                 generateItem(object);
             }
             const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
@@ -3505,16 +3525,6 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
             item = Object.values(inventoryComponent_3.Items.Weapons)[itemNum];
             console.log(item);
         }
-        // for (const loot of Object.values(Items.Weapons)) {
-        //     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-        //     const inventoryItem = createInventoryItem(loot, itemName);
-        //     generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
-        // }
-        // for (const loot of Object.values(Items.Armor)) {
-        //     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-        //     const inventoryItem = createInventoryItem(loot, itemName);
-        //     generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
-        // }
         // create item
         const positionComponent = object.getComponent(positionComponent_14.default.COMPONENT_ID);
         const inventoryItem = inventoryComponent_3.createInventoryItem(item, itemName);
@@ -3594,8 +3604,6 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
                 const inventoryComponent = playerComponent_7.player.getComponent(inventoryComponent_3.InventoryComponent.COMPONENT_ID);
                 saveGameSystem_2.default.Instance.saveGameData(gold, highScore, achievementSystem_1.default.Instance.AchievementInfo, inventoryComponent.inventories[1].cells);
             });
-            // Player Component
-            playerComponent = playerComponent_7.player.getComponent(playerComponent_7.PlayerComponent.COMPONENT_ID);
             // Changeble variables
             gold = 0;
             score = 0;
@@ -3686,7 +3694,7 @@ System.register("main", ["components/playerComponent", "global", "entityComponen
 });
 System.register("components/playerComponent", ["entityComponent", "components/positionComponent", "components/animatedComponent", "global", "components/stateMachineComponent", "objects", "components/inventoryComponent", "main", "components/tagComponent", "entityGenerator", "systems/saveGameSystem"], function (exports_29, context_29) {
     "use strict";
-    var entityComponent_22, positionComponent_15, animatedComponent_7, global_16, stateMachineComponent_7, objects_6, inventoryComponent_4, main_2, tagComponent_3, entityGenerator_4, saveGameSystem_3, PlayerState, PlayerAnimationName, PlayerComponent, weaponAnimations, StartingItems, StartingStats, PLAYER_MOVEMENT_COOLDOWN, CLICK_DELAY, lastClick, playerSpearAnimationInfo, playerBowAnimationInfo, PLAYER, itemSize, equippedInventory, itemsFound, playerInventory, player, playerComponent, animatedComponent, positionComponent, smComponent, onRunningActivation, onRunningUpdate, onRunningDeactivation, onJumpingActivation, onJumpingUpdate, onJumpingDeactivation, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation, onRollActivation, onRollUpdate, onRollDeactivation, onDyingActivation, onDyingUpdate, onDyingDeactivation;
+    var entityComponent_22, positionComponent_15, animatedComponent_7, global_16, stateMachineComponent_7, objects_6, inventoryComponent_4, main_2, tagComponent_3, entityGenerator_4, saveGameSystem_3, PlayerState, PlayerAnimationName, PlayerComponent, weaponAnimations, StartingStats, PLAYER_MOVEMENT_COOLDOWN, CLICK_DELAY, lastClick, playerSpearAnimationInfo, playerBowAnimationInfo, PLAYER, itemSize, equippedInventory, itemsFound, playerInventory, player, playerComponent, animatedComponent, positionComponent, smComponent, onRunningActivation, onRunningUpdate, onRunningDeactivation, onJumpingActivation, onJumpingUpdate, onJumpingDeactivation, onDuckingActivation, onDuckingUpdate, onDuckingDeactivation, onRollActivation, onRollUpdate, onRollDeactivation, onDyingActivation, onDyingUpdate, onDyingDeactivation;
     var __moduleName = context_29 && context_29.id;
     function resetGame() {
         // LOAD GAME STATE HERE
@@ -3828,7 +3836,11 @@ System.register("components/playerComponent", ["entityComponent", "components/po
                         return;
                     }
                     const inventoryComponent = this._entity.getComponent(inventoryComponent_4.InventoryComponent.COMPONENT_ID);
-                    this.stats = inventoryComponent.inventories[0].updateStats(StartingStats);
+                    this.stats = inventoryComponent.inventories[0].updateStats({
+                        [inventoryComponent_4.InventoryItemStat.Lives]: 1,
+                        [inventoryComponent_4.InventoryItemStat.RollSpeed]: 400,
+                        [inventoryComponent_4.InventoryItemStat.AttackSpeed]: 2
+                    });
                 }
                 updateAnimationBasedOnWeapon() {
                     if (this._entity == null) {
@@ -3867,12 +3879,6 @@ System.register("components/playerComponent", ["entityComponent", "components/po
             weaponAnimations = {
                 Spear: "assets/images/player.png",
                 Bow: "assets/images/playerBow.png"
-            };
-            StartingItems = {
-                Armor: "&weapon=Leather_leather",
-                Bow: null,
-                Spear: "&armour=Thrust_spear_2",
-                Boots: null
             };
             exports_29("StartingStats", StartingStats = {
                 [inventoryComponent_4.InventoryItemStat.Lives]: 1,
@@ -4926,7 +4932,7 @@ System.register("entityGenerator", ["components/animatedComponent", "components/
             SPEED: 300,
             URL: "assets/images/arrow.png"
         };
-        let angle = Math.atan2(((global_19.mouse.y + 50) - positionComponent.y) / cameraSystem_3.default.Instance.zoomLevel, ((global_19.mouse.x + 50) - positionComponent.x) / cameraSystem_3.default.Instance.zoomLevel);
+        let angle = Math.atan2((global_19.mouse.y - positionComponent.y) / cameraSystem_3.default.Instance.zoomLevel, (global_19.mouse.x - positionComponent.x) / cameraSystem_3.default.Instance.zoomLevel);
         const Direction = {
             x: Math.cos(angle),
             y: Math.sin(angle)

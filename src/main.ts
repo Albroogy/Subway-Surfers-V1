@@ -9,7 +9,7 @@ import MovementComponent from "./components/movementComponent";
 import { gameEntity, GameSound } from "./systems/gameSystem";
 import {images, objects} from "./objects"
 import CollisionSystem from "./systems/collisionSystem";
-import { createInventoryItem, InventoryComponent, InventoryItem, InventoryItemStat, Items, Weapons } from "./components/inventoryComponent";
+import { createInventoryItem, InventoryComponent, InventoryItemStat, Items} from "./components/inventoryComponent";
 import { GameState, gameState } from "./components/gameComponent";
 import { SoundComponent } from "./components/soundComponent";
 import { ImagePartComponent } from "./components/imagePartComponent";
@@ -37,9 +37,6 @@ window.addEventListener("beforeunload", function (e) {
     const inventoryComponent = playerCharacter.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID)!;
     SaveGameSystem.Instance.saveGameData(gold, highScore, AchievementSystem.Instance.AchievementInfo, inventoryComponent.inventories[1].cells);
 });
-
-// Player Component
-const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
 
 // Changeble variables
 let gold: number = 0;
@@ -129,6 +126,7 @@ function runFrame() {
     lastTime = currentTime;
     let gameSpeed: number = 1;
 
+    const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
     if (playerComponent.state != PlayerState.Running || allPressedKeys[KEYS.E]){
         gameSpeed = 1;
     }
@@ -243,6 +241,7 @@ function draw() {
         context.fillText(`HIGH SCORE: ${highScore}`, HIGH_SCORE_LOCATION.x, HIGH_SCORE_LOCATION.y);
         context.fillText(`GOLD: ${gold}`, GOLD_TEXT_LOCATION.x, GOLD_TEXT_LOCATION.y);
         context.font = "20px Arial";
+        const playerComponent = playerCharacter.getComponent<PlayerComponent>(PlayerComponent.COMPONENT_ID)!;
         if (playerComponent.stats[InventoryItemStat.Lives] > 0){
             context.font = "20px Arial";
             context.fillText(`LIVES: ${playerComponent.stats[InventoryItemStat.Lives]}`, LIVES_TEXT_LOCATION.x, LIVES_TEXT_LOCATION.y);
@@ -446,7 +445,7 @@ export function deleteObject(object: Entity){
                 BossesDefeated[ValueType.GolemBossDefeated] = 1;
             }
         }
-        else if (Math.random() > 0.000001) {
+        else if (Math.random() > 0.5) {
             generateItem(object);
         }
         const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
@@ -478,16 +477,6 @@ function generateItem(object: Entity) {
         item = Object.values(Items.Weapons)[itemNum];
         console.log(item)
     }
-    // for (const loot of Object.values(Items.Weapons)) {
-    //     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-    //     const inventoryItem = createInventoryItem(loot, itemName);
-    //     generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
-    // }
-    // for (const loot of Object.values(Items.Armor)) {
-    //     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
-    //     const inventoryItem = createInventoryItem(loot, itemName);
-    //     generateLoot(positionComponent.x, positionComponent.y, fallSpeed, inventoryItem);
-    // }
     // create item
     const positionComponent = object.getComponent<PositionComponent>(PositionComponent.COMPONENT_ID)!;
     const inventoryItem = createInventoryItem(item, itemName);

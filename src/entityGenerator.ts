@@ -191,8 +191,8 @@ export function generateArrow(positionComponent: PositionComponent){
     }
 
     let angle = Math.atan2(
-        ((mouse.y + 50) - positionComponent.y) / CameraSystem.Instance.zoomLevel,
-        ((mouse.x + 50) - positionComponent.x) / CameraSystem.Instance.zoomLevel
+        (mouse.y - positionComponent.y) / CameraSystem.Instance.zoomLevel,
+        (mouse.x - positionComponent.x) / CameraSystem.Instance.zoomLevel
     );
     const Direction = {
         x: Math.cos(angle),

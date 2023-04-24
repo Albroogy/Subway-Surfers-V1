@@ -1,7 +1,7 @@
 import { Component, Entity } from "../entityComponent";
 import PositionComponent from "./positionComponent";
 import {AnimatedComponent, AnimationInfo} from "./animatedComponent";
-import { allPressedKeys, canvas, checkTime, context, EntityName, KEYS, LANE, mouse, mouseDown, OFFSET, sleep, Tag} from "../global";
+import { allPressedKeys, canvas, checkTime, context, KEYS, LANE, mouseDown, OFFSET, sleep, Tag} from "../global";
 import StateMachineComponent from "./stateMachineComponent";
 import { objects } from "../objects";
 import { equipStarterItems, Inventory, InventoryComponent, InventoryItemStat, ItemList } from "./inventoryComponent";
@@ -72,7 +72,11 @@ export class PlayerComponent extends Component{
             return;
         }
         const inventoryComponent = this._entity.getComponent<InventoryComponent>(InventoryComponent.COMPONENT_ID);
-        this.stats = inventoryComponent!.inventories[0].updateStats(StartingStats);
+        this.stats = inventoryComponent!.inventories[0].updateStats({
+            [InventoryItemStat.Lives]: 1,
+            [InventoryItemStat.RollSpeed]: 400,
+            [InventoryItemStat.AttackSpeed]: 2
+        });
     }
     updateAnimationBasedOnWeapon(): void {
         if (this._entity == null) {
@@ -114,12 +118,6 @@ export class PlayerComponent extends Component{
 const weaponAnimations: Record <string, string> = {
     Spear: "assets/images/player.png",
     Bow: "assets/images/playerBow.png"
-}
-const StartingItems: Record <string, string | null> = {
-    Armor: "&weapon=Leather_leather",
-    Bow: null,
-    Spear: "&armour=Thrust_spear_2",
-    Boots: null
 }
 export const StartingStats: Record <InventoryItemStat, number> = {
     [InventoryItemStat.Lives]: 1,

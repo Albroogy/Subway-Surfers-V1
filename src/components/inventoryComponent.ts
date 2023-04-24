@@ -34,9 +34,17 @@ export class InventoryItem {
     }
 }
 
-export const TakenInventoryItemSlot = { INVENTORY_SLOT_TAKEN: true };
 export type slot = { row: number, column: number };
 export type Cells = Array<Array<InventoryItem | Record<string, InventoryItem> | null>>;
+
+enum InventorySlot {
+    Helmet,
+    Chestplate,
+    Leggings,
+    Boots,
+    Weapon
+}
+
 
 export class Inventory{
     public width: number;
@@ -52,7 +60,13 @@ export class Inventory{
     private _supportsEquipment: boolean;
 
     constructor(width: number, height: number, x: number, y: number, itemSize: Record<string, number>, supportsEquipment: boolean = false) {
-        this.equippedItems = {} as Record <InventorySlot, InventoryItem | null>;
+        this.equippedItems = {
+            [InventorySlot.Helmet]: null,
+            [InventorySlot.Chestplate]: null,
+            [InventorySlot.Leggings]: null,
+            [InventorySlot.Boots]: null,
+            [InventorySlot.Weapon]: null
+        };
         this.cells = [];
         this.width = width;
         this.height = height;
@@ -99,7 +113,9 @@ export class Inventory{
                 for (let j = 0; j < item.height; j++){
                     this.cells[cellRow + i][cellCol + j] = {inventoryItem: item};
                     this.cells[cellRow][cellCol] = item;
-                    this._updateEquippedItem(item, Status.Add);
+                    if (this._supportsEquipment) {
+                        this._updateEquippedItem(item, Status.Add);
+                    }
                 }
             }
         }
@@ -109,7 +125,9 @@ export class Inventory{
             for (let j = 0; j < this.height; j++) {
                 if (this.cells[i][j] instanceof InventoryItem){
                     if (this.cells[i][j]!.name == item.name){
-                        this._updateEquippedItem(item, Status.Remove);
+                        if (this._supportsEquipment) {
+                            this._updateEquippedItem(item, Status.Remove);
+                        }
                         for (let a = 0; a < item.width; a++){
                             for (let b = 0; b < item.height; b++){
                                 this.cells[a + i][b + j] = null;
@@ -125,7 +143,14 @@ export class Inventory{
         return Object.values(this.equippedItems).includes(item);
     }
     public isInInventory(item: InventoryItem): boolean {
-        return Object.values(this.equippedItems).includes(item);
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                if (this.cells[i][j] == item) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     public draw() {
         // for every row and col
@@ -196,6 +221,7 @@ export class Inventory{
                 }
             }
         }
+        return null;
     }
     public get count() {
         let count = 0;
@@ -215,6 +241,7 @@ export class Inventory{
         else{
             this.equippedItems[item.slot] = null;
         }
+        console.log(this.equippedItems)
     }
 }
 export class InventoryComponent extends Component {
@@ -240,15 +267,6 @@ export const ItemInfo: Record<string, Record<string, string>> = {
     Spear: {
         src: "assets/images/spear.png"
     }
-}
-
-
-enum InventorySlot {
-    Helmet,
-    Chestplate,
-    Leggings,
-    Boots,
-    Weapon
 }
 
 export enum Weapons {
@@ -313,42 +331,42 @@ export const Items: Items = {
     Armor: {
         [Armors.BlackHelmet]: {
             src: "assets/images/inventoryitems/armor/helmets/black.png",
-            stats: [],
+            stats: [{stat: InventoryItemStat.Lives, modifiedValue: 1}],
             type: InventorySlot.Helmet,
             width: 1,
             height: 1,
         },
         [Armors.MagicHelmet]: {
             src: "assets/images/inventoryitems/armor/helmets/magic.png",
-            stats: [],
+            stats: [{stat: InventoryItemStat.Lives, modifiedValue: 1}],
             type: InventorySlot.Helmet,
             width: 2,
             height: 1,
         },
         [Armors.SteelHelmet]: {
             src: "assets/images/inventoryitems/armor/helmets/steel.png",
-            stats: [],
+            stats: [{stat: InventoryItemStat.Lives, modifiedValue: 1}],
             type: InventorySlot.Helmet,
             width: 1,
             height: 1,
         },
         [Armors.CopperHelmet]: {
             src: "assets/images/inventoryitems/armor/helmets/copper.png",
-            stats: [],
+            stats: [{stat: InventoryItemStat.Lives, modifiedValue: 1}],
             type: InventorySlot.Helmet,
             width: 1,
             height: 1,
         },
         [Armors.BronzeHelmet]: {
             src: "assets/images/inventoryitems/armor/helmets/bronze.png",
-            stats: [],
+            stats: [{stat: InventoryItemStat.Lives, modifiedValue: 1}],
             type: InventorySlot.Helmet,
             width: 1,
             height: 1,
         },
         [Armors.VikingHelmet]: {
             src: "assets/images/inventoryitems/armor/helmets/viking.png",
-            stats: [],
+            stats: [{stat: InventoryItemStat.Lives, modifiedValue: 1}],
             type: InventorySlot.Helmet,
             width: 1,
             height: 1,
